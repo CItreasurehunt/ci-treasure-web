@@ -67,7 +67,7 @@ export function SiteHeader() {
 
       {/* Mobile dropdown */}
       {open && (
-        <nav className="sm:hidden border-t border-[--color-sand-strong] bg-[--color-cream] px-5 py-4 flex flex-col gap-4 text-base font-medium text-slate-700">
+        <nav className="sm:hidden border-t border-[--color-sand-strong] bg-[--color-cream] px-5 py-4 flex flex-col gap-4 text-base font-medium text-slate-700 items-end">
           {NAV_LINKS.map((link) =>
             link.external ? (
               <a
