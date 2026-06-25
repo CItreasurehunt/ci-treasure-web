@@ -19,8 +19,6 @@ export default function PrivacyPage() {
             <a href="mailto:hello@citreasurehunt.com" className="underline">
               hello@citreasurehunt.com
             </a>
-            <br />
-            Phone: available on request
           </p>
         </section>
         <section>
@@ -96,7 +94,7 @@ export default function PrivacyPage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Berliner Beauftragte fur Datenschutz und Informationsfreiheit
+              Berliner Beauftragte für Datenschutz und Informationsfreiheit
             </a>
             .
           </p>

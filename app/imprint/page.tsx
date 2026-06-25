@@ -23,8 +23,6 @@ export default function ImprintPage() {
               hello@citreasurehunt.com
             </a>
             <br />
-            Phone: available on request
-            <br />
             Website: citreasurehunt.com
           </p>
         </section>
