@@ -39,6 +39,13 @@ export default function ImprintPage() {
           </p>
         </section>
         <section>
+          <h2 className="font-semibold text-slate-950">Dispute resolution</h2>
+          <p>
+            We are not obliged to participate in consumer dispute resolution proceedings before a consumer arbitration
+            board and do not do so voluntarily (§ 36 VSBG).
+          </p>
+        </section>
+        <section>
           <h2 className="font-semibold text-slate-950">Liability for links</h2>
           <p>
             This site contains links to external websites. We have no control over their content and accept no
