@@ -30,16 +30,24 @@ export default async function Home() {
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
 
         {/* Hero */}
-        <div className="border-l-4 border-[--color-pine] pl-5 py-1">
-          <h1 className="font-serif text-4xl tracking-tight text-slate-950 sm:text-5xl">
-            Contact Improvisation events &amp;{" "}
-            <Link href="/communities" className="text-violet-600 underline underline-offset-4 hover:text-violet-800">
-              communities
-            </Link>
-          </h1>
-          <p className="mt-3 text-base text-slate-500 sm:text-lg">
-            Browse {events.length} upcoming events across {countries.length} countries.
-          </p>
+        <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div className="border-l-4 border-[--color-pine] pl-5 py-1">
+            <h1 className="font-serif text-4xl tracking-tight text-slate-950 sm:text-5xl">
+              Contact Improvisation events &amp;{" "}
+              <Link href="/communities" className="text-violet-600 underline underline-offset-4 hover:text-violet-800">
+                communities
+              </Link>
+            </h1>
+            <p className="mt-3 text-base text-slate-500 sm:text-lg">
+              Browse {events.length} upcoming events across {countries.length} countries.
+            </p>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/ci-hero.jpg"
+            alt="Contact improvisation dancers"
+            className="hidden lg:block w-72 xl:w-96 h-52 xl:h-64 rounded-2xl object-cover shadow-lg"
+          />
         </div>
 
         {error && (
