@@ -27,10 +27,10 @@ const serif = Fraunces({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "CI Treasure Hunt",
-  description: "Public calendar for contact improvisation festivals, retreats, trainings, and workshops worldwide.",
+  description: "A living map of contact improvisation events, communities, teachers & venues worldwide.",
   openGraph: {
     title: "CI Treasure Hunt",
-    description: "Public calendar for contact improvisation festivals, retreats, trainings, and workshops worldwide.",
+    description: "A living map of contact improvisation events, communities, teachers & venues worldwide.",
     url: SITE_URL,
     siteName: "CI Treasure Hunt",
     locale: "en_US",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
     title: "CI Treasure Hunt",
-    description: "Public calendar for contact improvisation festivals, retreats, trainings, and workshops worldwide.",
+    description: "A living map of contact improvisation events, communities, teachers & venues worldwide.",
   },
 };
 
