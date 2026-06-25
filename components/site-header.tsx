@@ -1,42 +1,98 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { Menu, X } from "lucide-react";
 
 import { NEWSLETTER_URL } from "@/lib/site";
 
+const NAV_LINKS = [
+  { label: "Events", href: "/", external: false },
+  { label: "Communities", href: "/communities", external: false },
+  { label: "Feedback", href: "https://tally.so/r/yPzK4B", external: true },
+  { label: "Newsletter", href: NEWSLETTER_URL, external: true },
+];
+
 export function SiteHeader() {
+  const [open, setOpen] = useState(false);
+
   return (
     <header className="border-b border-[--color-sand-strong] bg-[--color-cream]/90 backdrop-blur">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8 lg:px-10">
-        <Link href="/" className="flex items-center gap-2 font-serif text-2xl tracking-tight text-slate-950">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-serif text-2xl tracking-tight text-slate-950"
+          onClick={() => setOpen(false)}
+        >
           CI Treasure Hunt
           <span className="rounded-full bg-[--color-pine]/10 px-2 py-0.5 font-sans text-[10px] font-bold tracking-widest uppercase text-[--color-pine]">
             Alpha
           </span>
         </Link>
-        <nav className="flex flex-wrap items-center justify-end gap-4 text-sm font-medium text-slate-700 sm:gap-5">
-          <Link href="/" className="transition hover:text-[--color-pine]">
-            Events
-          </Link>
-          <Link href="/communities" className="transition hover:text-[--color-pine]">
-            Communities
-          </Link>
-          <a
-            href="https://tally.so/r/yPzK4B"
-            target="_blank"
-            rel="noreferrer"
-            className="transition hover:text-[--color-pine]"
-          >
-            Feedback
-          </a>
-          <a
-            href={NEWSLETTER_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="transition hover:text-[--color-pine]"
-          >
-            Newsletter
-          </a>
+
+        {/* Desktop nav */}
+        <nav className="hidden sm:flex items-center gap-5 text-sm font-medium text-slate-700">
+          {NAV_LINKS.map((link) =>
+            link.external ? (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-[--color-pine]"
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="transition hover:text-[--color-pine]"
+              >
+                {link.label}
+              </Link>
+            )
+          )}
         </nav>
+
+        {/* Mobile hamburger */}
+        <button
+          className="sm:hidden p-2 text-slate-700 hover:text-[--color-pine]"
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? "Close menu" : "Open menu"}
+        >
+          {open ? <X className="size-6" /> : <Menu className="size-6" />}
+        </button>
       </div>
+
+      {/* Mobile dropdown */}
+      {open && (
+        <nav className="sm:hidden border-t border-[--color-sand-strong] bg-[--color-cream] px-5 py-4 flex flex-col gap-4 text-base font-medium text-slate-700">
+          {NAV_LINKS.map((link) =>
+            link.external ? (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-[--color-pine]"
+                onClick={() => setOpen(false)}
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="transition hover:text-[--color-pine]"
+                onClick={() => setOpen(false)}
+              >
+                {link.label}
+              </Link>
+            )
+          )}
+        </nav>
+      )}
     </header>
   );
 }
