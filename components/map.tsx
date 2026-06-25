@@ -1,0 +1,212 @@
+"use client";
+
+import { useEffect, useRef, useCallback, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Dynamic import of markercluster styles is safe
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+
+import { formatEventDateRange, getCountryLabel, getEventHref, getTypeLabel, type EventListItem } from "@/lib/events";
+
+// Standard fix for Leaflet default icon markers in Next.js/Webpack environment
+const fixLeafletIcons = () => {
+  // @ts-expect-error - Leaflet internal property
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  });
+};
+
+type EventMapProps = {
+  events: EventListItem[];
+  highlightedEventId: string | null;
+  onMarkerClick?: (eventId: string) => void;
+};
+
+export default function EventMap({ events, highlightedEventId, onMarkerClick }: EventMapProps) {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
+  const markersMapRef = useRef<Record<string, L.Marker>>({});
+  const [mapReady, setMapReady] = useState(false);
+
+  // Helper to determine if event is within the next 14 days
+  const isEventSoon = (startDateStr: string) => {
+    try {
+      const start = new Date(startDateStr);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const diffTime = start.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays >= 0 && diffDays <= 14;
+    } catch {
+      return false;
+    }
+  };
+
+  // Helper to build custom HTML markers matching violet theme
+  const createCustomMarker = (_event: EventListItem, isSoon: boolean) => {
+    const color = isSoon ? "#ec4899" : "#7c3aed";
+    return L.divIcon({
+      className: "",
+      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>`,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7],
+      popupAnchor: [0, -7],
+    });
+  };
+
+  // Initialize Map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+    let cancelled = false;
+
+    const initMap = async () => {
+      await import("leaflet.markercluster");
+      // Guard after async gap: StrictMode cleanup may have run and set cancelled
+      if (cancelled || !mapContainerRef.current || mapRef.current) return;
+      fixLeafletIcons();
+
+      // Create Map with default focus on Europe
+      const map = L.map(mapContainerRef.current, {
+        scrollWheelZoom: true,
+        worldCopyJump: true,
+      }).setView([48, 12], 4);
+
+      // CartoDB Positron - Light Grayscale/Silver tiles
+      // Fits violet theme perfectly, works out-of-the-box in prod (no keys needed)
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      }).addTo(map);
+
+      // Initialize cluster group
+      const clusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 40,
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        disableClusteringAtZoom: 10,
+      });
+      map.addLayer(clusterGroup);
+
+      mapRef.current = map;
+      clusterGroupRef.current = clusterGroup;
+      setMapReady(true);
+    };
+
+    initMap();
+
+    return () => {
+      cancelled = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleMarkerClickInternal = useCallback((eventId: string) => {
+    if (onMarkerClick) {
+      onMarkerClick(eventId);
+    }
+  }, [onMarkerClick]);
+
+  // Update Markers when events list changes
+  useEffect(() => {
+    const map = mapRef.current;
+    const clusterGroup = clusterGroupRef.current;
+    if (!map || !clusterGroup) return;
+
+    // Clear previous markers
+    clusterGroup.clearLayers();
+    markersMapRef.current = {};
+
+    const bounds: L.LatLngTuple[] = [];
+
+    events.forEach((event) => {
+      if (typeof event.lat !== "number" || typeof event.lng !== "number") return;
+
+      const isSoon = isEventSoon(event.startDate);
+      const icon = createCustomMarker(event, isSoon);
+      
+      const marker = L.marker([event.lat, event.lng], { icon });
+
+      // Build rich aesthetic popup content
+      const eventHref = getEventHref(event);
+      const badgeText = isSoon ? "Soon" : getTypeLabel(event.type);
+      const badgeColor = isSoon ? "bg-pink-500 text-white" : "bg-violet-100 text-violet-700";
+
+      const popupContent = `
+        <div class="p-2 space-y-2 font-sans text-slate-900 max-w-64 min-w-56">
+          <div class="flex items-center gap-1.5">
+            <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase ${badgeColor}">
+              ${badgeText}
+            </span>
+          </div>
+          <h4 class="font-serif text-base font-bold leading-tight text-slate-950">${event.title}</h4>
+          <p class="text-xs text-slate-500 flex items-center gap-1">
+            <span>📍</span> ${event.city}, ${getCountryLabel(event.country)}
+          </p>
+          <p class="text-xs text-slate-600 flex items-center gap-1">
+            <span>📅</span> ${formatEventDateRange(event)}
+          </p>
+          <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between">
+            <a href="${eventHref}" class="text-xs font-semibold text-violet-600 hover:text-violet-800 transition flex items-center gap-1">
+              Details page &rarr;
+            </a>
+          </div>
+        </div>
+      `;
+
+      marker.bindPopup(popupContent, {
+        closeButton: false,
+        className: "custom-map-popup",
+      });
+
+      marker.on("click", () => {
+        handleMarkerClickInternal(event.id);
+      });
+
+      markersMapRef.current[event.id] = marker;
+      clusterGroup.addLayer(marker);
+      bounds.push([event.lat, event.lng]);
+    });
+
+    // Fit bounds if there are events, but avoid zoom extremes
+    if (bounds.length > 0) {
+      if (bounds.length === 1) {
+        map.setView(bounds[0], 8, { animate: true });
+      } else {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
+      }
+    }
+  }, [events, handleMarkerClickInternal, mapReady]);
+
+  // Handle active event highlight/focus
+  useEffect(() => {
+    const map = mapRef.current;
+    const clusterGroup = clusterGroupRef.current;
+    if (!map || !clusterGroup || !highlightedEventId) return;
+
+    const marker = markersMapRef.current[highlightedEventId];
+    if (marker) {
+      const position = marker.getLatLng();
+      map.setView(position, 10, { animate: true });
+      
+      // If marker is in a cluster, unpack it
+      clusterGroup.zoomToShowLayer(marker, () => {
+        marker.openPopup();
+      });
+    }
+  }, [highlightedEventId]);
+
+  return (
+    <div className="relative h-full w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-inner">
+      <div ref={mapContainerRef} className="h-full w-full z-10" />
+    </div>
+  );
+}

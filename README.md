@@ -1,0 +1,51 @@
+# CI Treasure Hunt — Website
+
+A global directory of Contact Improvisation events, communities, venues, and teachers.
+
+Built with Next.js, Tailwind CSS, and Supabase.
+
+---
+
+## What it is
+
+- **Event calendar** — festivals, intensives, workshops, jams worldwide
+- **Community directory** — CI communities with layered access to private chat groups
+- **Teacher & venue profiles** — in progress
+
+Live at [citreasurehunt.com](https://citreasurehunt.com) *(launching soon)*
+
+---
+
+## Stack
+
+| Layer | Tool |
+|-------|------|
+| Frontend | Next.js (App Router) |
+| Styling | Tailwind CSS v4 + shadcn/ui |
+| Database | Supabase (PostgreSQL, eu-central-1) |
+| Auth | Supabase Auth (Magic Link) |
+| Hosting | Vercel |
+
+---
+
+## Local development
+
+```bash
+# Install dependencies
+npm install
+
+# Copy environment variables
+cp .env.example .env.local
+# Fill in NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Run dev server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
