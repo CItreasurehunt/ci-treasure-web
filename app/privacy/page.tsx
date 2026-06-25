@@ -3,13 +3,13 @@ export default function PrivacyPage() {
     <main className="mx-auto min-h-screen max-w-3xl px-5 py-14 sm:px-8">
       <h1 className="font-serif text-4xl text-slate-950">Privacy Policy</h1>
       <div className="mt-8 space-y-6 text-base leading-8 text-slate-700">
-        <p className="text-sm text-slate-500">Last updated: March 2026</p>
+        <p className="text-sm text-slate-500">Last updated: June 2026</p>
         <section>
           <h2 className="font-semibold text-slate-950">1. Controller</h2>
           <p>
-            Max Mustermann
+            Jan Auras
             <br />
-            Musterstrasse 12
+            Lenbachstr. 17
             <br />
             10115 Berlin
             <br />

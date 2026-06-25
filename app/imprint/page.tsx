@@ -6,9 +6,9 @@ export default function ImprintPage() {
         <section>
           <h2 className="font-semibold text-slate-950">Information according to § 5 TMG</h2>
           <p>
-            Max Mustermann
+            Jan Auras
             <br />
-            Musterstrasse 12
+            Lenbachstr. 17
             <br />
             10115 Berlin
             <br />
@@ -30,7 +30,7 @@ export default function ImprintPage() {
         </section>
         <section>
           <h2 className="font-semibold text-slate-950">Responsible for content according to § 18 Abs. 2 MStV</h2>
-          <p>Max Mustermann, address as above.</p>
+          <p>Jan Auras, address as above.</p>
         </section>
         <section>
           <h2 className="font-semibold text-slate-950">Liability for content</h2>
