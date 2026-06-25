@@ -102,7 +102,16 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-semibold text-slate-950">8. Changes to this policy</h2>
+          <h2 className="font-semibold text-slate-950">8. Reports</h2>
+          <p>
+            When you submit a report via the report form on event, venue, or teacher pages, a daily-rotating hash
+            of your IP address is stored to prevent abuse. This hash cannot be used to identify you and is not
+            shared with third parties. Legal basis: Art. 6(1)(f) GDPR — legitimate interest in preventing spam
+            and abuse.
+          </p>
+        </section>
+        <section>
+          <h2 className="font-semibold text-slate-950">9. Changes to this policy</h2>
           <p>
             This policy will be updated when new features affecting data processing are added. The date at the top of
             this page reflects the most recent revision.

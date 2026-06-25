@@ -28,6 +28,7 @@ import { getAllVenueSlugs, getVenueBySlug, getVenueEvents } from "@/lib/venues";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL } from "@/lib/site";
 import { EventListItem } from "@/lib/events";
+import { ReportButton } from "@/components/report-button";
 
 export const revalidate = 3600;
 
@@ -240,6 +241,14 @@ export default async function VenuePage({ params }: VenuePageProps) {
             </aside>
           </div>
         </section>
+        <div className="text-center text-sm text-slate-400">
+          <ReportButton
+            entity_type="venue"
+            entity_id={venue.id}
+            entity_title={venue.name}
+            entity_slug={venue.slug}
+          />
+        </div>
       </div>
     </main>
   );

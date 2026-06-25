@@ -3,6 +3,7 @@ import { ArrowLeft, CalendarDays, Clock3, ExternalLink, Mail, MapPin } from "luc
 import { notFound } from "next/navigation";
 
 import { ShareButton } from "@/components/share-button";
+import { ReportButton } from "@/components/report-button";
 import { SegmentsSection } from "@/components/segments-section";
 import { Button } from "@/components/ui/button";
 import {
@@ -131,7 +132,7 @@ export default async function EventPage({ params }: EventPageProps) {
           <Button asChild variant="outline" className="border-[--color-sand-strong] bg-white/80">
             <Link href="/">
               <ArrowLeft />
-              Back to calendar
+              Back to events
             </Link>
           </Button>
           <ShareButton
@@ -294,6 +295,14 @@ export default async function EventPage({ params }: EventPageProps) {
             </aside>
           </div>
         </section>
+        <div className="text-center text-sm text-slate-400">
+          <ReportButton
+            entity_type="event"
+            entity_id={event.id}
+            entity_title={event.title}
+            entity_slug={event.slug}
+          />
+        </div>
       </div>
     </main>
   );
