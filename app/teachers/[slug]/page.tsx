@@ -216,6 +216,13 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
             </aside>
           </div>
         </section>
+        <p className="text-center text-sm text-slate-400">
+          Is this your profile?{" "}
+          <a href="mailto:hello@citreasurehunt.com" className="underline hover:text-slate-600">
+            Get in touch
+          </a>{" "}
+          to update it.
+        </p>
       </div>
     </main>
   );

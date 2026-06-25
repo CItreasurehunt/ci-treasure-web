@@ -16,8 +16,8 @@ export default function PrivacyPage() {
             Germany
             <br />
             Email:{" "}
-            <a href="mailto:citreasurehunt@gmail.com" className="underline">
-              citreasurehunt@gmail.com
+            <a href="mailto:hello@citreasurehunt.com" className="underline">
+              hello@citreasurehunt.com
             </a>
             <br />
             Phone: available on request
@@ -86,7 +86,7 @@ export default function PrivacyPage() {
           <p>
             Under the GDPR you have the right to access, correct, or delete personal data we hold about you, to
             restrict or object to processing, and to data portability where applicable. To exercise these rights,
-            contact us at citreasurehunt@gmail.com.
+            contact us at hello@citreasurehunt.com.
           </p>
           <p className="mt-2">
             You also have the right to lodge a complaint with the supervisory authority responsible for Berlin:{" "}

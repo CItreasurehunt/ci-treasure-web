@@ -19,8 +19,8 @@ export default function ImprintPage() {
           <h2 className="font-semibold text-slate-950">Contact</h2>
           <p>
             Email:{" "}
-            <a href="mailto:citreasurehunt@gmail.com" className="underline">
-              citreasurehunt@gmail.com
+            <a href="mailto:hello@citreasurehunt.com" className="underline">
+              hello@citreasurehunt.com
             </a>
             <br />
             Phone: available on request
