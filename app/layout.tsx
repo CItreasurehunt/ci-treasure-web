@@ -55,16 +55,16 @@ export default function RootLayout({
           <SiteHeader />
           {children}
           <footer className="border-t border-slate-200 bg-white">
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 text-sm text-slate-700 sm:px-8 lg:grid lg:grid-cols-3 lg:items-center lg:px-10">
-              <div className="flex flex-col gap-4">
+            <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-6 px-5 py-8 text-sm text-slate-700 sm:px-8 lg:grid lg:grid-cols-3 lg:items-center lg:px-10">
+              <div className="flex flex-col items-center gap-4 lg:items-start">
                 <p className="font-serif text-2xl text-slate-950">CI Treasure Hunt</p>
-                <div className="flex flex-wrap gap-x-5 gap-y-2">
+                <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 lg:justify-start">
                   <Link href="/imprint">Imprint</Link>
                   <Link href="/privacy">Privacy</Link>
                   <Link href="/terms">Terms</Link>
                 </div>
               </div>
-              <div className="lg:text-center">
+              <div className="text-center">
                 <a href="mailto:hello@citreasurehunt.com" className="text-slate-500 transition hover:text-slate-800">
                   hello@citreasurehunt.com
                 </a>

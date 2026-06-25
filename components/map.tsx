@@ -72,10 +72,12 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick }: 
       fixLeafletIcons();
 
       // Create Map with default focus on Europe
+      const isMobile = window.innerWidth < 640;
       const map = L.map(mapContainerRef.current, {
         scrollWheelZoom: true,
         worldCopyJump: true,
-      }).setView([48, 12], 4);
+        minZoom: 2,
+      }).setView([48, 12], isMobile ? 2 : 4);
 
       // CartoDB Positron - Light Grayscale/Silver tiles
       // Fits violet theme perfectly, works out-of-the-box in prod (no keys needed)

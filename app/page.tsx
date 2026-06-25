@@ -46,7 +46,7 @@ export default async function Home() {
           <img
             src="/ci-hero.jpg"
             alt="Contact improvisation dancers"
-            className="hidden lg:block w-72 xl:w-96 h-52 xl:h-64 rounded-2xl object-cover shadow-lg"
+            className="w-full h-52 rounded-2xl object-cover shadow-lg lg:w-72 xl:w-96 lg:h-52 xl:h-64"
           />
         </div>
 
