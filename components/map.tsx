@@ -178,8 +178,8 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick }: 
       bounds.push([event.lat, event.lng]);
     });
 
-    // Fit bounds if there are events, but avoid zoom extremes
-    if (bounds.length > 0) {
+    // On desktop: fit all markers into view; on mobile keep the initial Europe view
+    if (bounds.length > 0 && window.innerWidth >= 640) {
       if (bounds.length === 1) {
         map.setView(bounds[0], 8, { animate: true });
       } else {
