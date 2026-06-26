@@ -5,6 +5,7 @@ import {
   Facebook,
   Globe,
   Instagram,
+  Mail,
   MapPin,
   MessageSquare,
   Send,
@@ -86,6 +87,13 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                     href={teacher.website.startsWith('http') ? teacher.website : `https://${teacher.website}`}
                     icon={<Globe />}
                     label="Website"
+                  />
+                )}
+                {teacher.public_email && (
+                  <SocialLink
+                    href={`mailto:${teacher.public_email}`}
+                    icon={<Mail />}
+                    label="Email"
                   />
                 )}
                 {teacher.instagram && (
