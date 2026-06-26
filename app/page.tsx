@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { EventsDashboard } from "@/components/events-dashboard";
 import { getCountryLabel, getUpcomingEvents } from "@/lib/events";
@@ -56,7 +57,9 @@ export default async function Home() {
           </div>
         )}
 
-        <EventsDashboard events={events} />
+        <Suspense>
+          <EventsDashboard events={events} />
+        </Suspense>
       </section>
     </main>
   );

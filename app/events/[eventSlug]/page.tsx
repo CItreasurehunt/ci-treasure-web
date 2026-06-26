@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock3, ExternalLink, Mail, MapPin } from "lucide-react";
+import { CalendarDays, Clock3, ExternalLink, Mail, MapPin } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { ShareButton } from "@/components/share-button";
 import { ReportButton } from "@/components/report-button";
 import { SegmentsSection } from "@/components/segments-section";
-import { Button } from "@/components/ui/button";
+import BackButton from "@/components/back-button";
 import {
   type SeriesSibling,
   formatEventDateRange,
@@ -129,12 +129,7 @@ export default async function EventPage({ params }: EventPageProps) {
       />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="flex flex-wrap items-center gap-3">
-          <Button asChild variant="outline" className="border-[--color-sand-strong] bg-white/80">
-            <Link href="/">
-              <ArrowLeft />
-              Back to events
-            </Link>
-          </Button>
+          <BackButton label="Back to events" />
           <ShareButton
             url={`${SITE_URL}/events/${event.slug}`}
             title={event.title}

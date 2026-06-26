@@ -20,6 +20,7 @@ import {
   getAllPublicTeacherSlugs
 } from "@/lib/teachers";
 import { ReportButton } from "@/components/report-button";
+import BackButton from "@/components/back-button";
 import {
   getCountryLabel,
   formatEventDateRange,
@@ -56,6 +57,9 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
   return (
     <main className="min-h-screen bg-[--color-cream] px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        <div>
+          <BackButton />
+        </div>
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
           <div className="border-b border-[--color-sand-strong] bg-[linear-gradient(135deg,#1f3b46_0%,#3a6a73_50%,#ead9b1_100%)] px-6 py-10 sm:px-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">

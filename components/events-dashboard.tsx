@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Search, Map, List, X } from "lucide-react";
 
@@ -27,26 +28,41 @@ type EventsDashboardProps = {
 };
 
 export function EventsDashboard({ events }: EventsDashboardProps) {
-  // Filters state
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Text search stays local (no need to persist across navigation)
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [soonOnly, setSoonOnly] = useState(false);
-  
+
+  // Dropdown/checkbox filters live in the URL so the back button restores them
+  const selectedCountry = searchParams.get("country") ?? "";
+  const selectedType = searchParams.get("type") ?? "";
+  const selectedMonth = searchParams.get("month") ?? "";
+  const soonOnly = searchParams.get("soon") === "1";
+
+  function setParam(key: string, value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set(key, value);
+    else params.delete(key);
+    const qs = params.toString();
+    router.replace(qs ? `/?${qs}` : "/", { scroll: false });
+  }
+
+  const setSelectedCountry = (v: string) => setParam("country", v);
+  const setSelectedType = (v: string) => setParam("type", v);
+  const setSelectedMonth = (v: string) => setParam("month", v);
+  const setSoonOnly = (v: boolean) => setParam("soon", v ? "1" : "");
+
   // Interaction state
   const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null);
-  
+
   // Mobile view state: 'list' | 'map'
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
 
   // Reset all filters
   const resetFilters = () => {
     setSearchQuery("");
-    setSelectedCountry("");
-    setSelectedType("");
-    setSelectedMonth("");
-    setSoonOnly(false);
+    router.replace("/", { scroll: false });
     setHighlightedEventId(null);
   };
 
@@ -249,7 +265,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
               <input
                 type="checkbox"
                 checked={soonOnly}
-                onChange={(e) => setSoonOnly(e.target.checked)}
+                onChange={(e) => setSoonOnly(e.target.checked as boolean)}
                 className="rounded border-slate-300 text-violet-600 outline-none transition focus:ring-violet-500/20"
               />
               <span>Happening soon (14 days)</span>

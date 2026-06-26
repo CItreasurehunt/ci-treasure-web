@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function BackButton() {
+export default function BackButton({ label = "Back" }: { label?: string }) {
   const router = useRouter();
   return (
     <Button
@@ -13,7 +13,7 @@ export default function BackButton() {
       onClick={() => router.back()}
     >
       <ArrowLeft className="mr-2 h-4 w-4" />
-      Back
+      {label}
     </Button>
   );
 }
