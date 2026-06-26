@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: "Find and join Contact Improvisation communities around the world.",
 };
 
-export const revalidate = 3600; // recheck Airtable at most once per hour
+export const revalidate = 21600; // recheck Airtable at most every 6 hours
 
 export default async function CommunitiesPage() {
   const { communities, countries, communityCount, countryCount, error } =
