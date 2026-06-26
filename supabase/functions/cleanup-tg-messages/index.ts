@@ -1,0 +1,54 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')!
+
+const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+Deno.serve(async (req) => {
+  if (req.headers.get('Authorization') !== `Bearer ${SERVICE_KEY}`) {
+    return new Response('unauthorized', { status: 401 })
+  }
+
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  )
+
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data: rows, error } = await supabase
+    .from('tg_announcements')
+    .select('id, chat_id, message_id')
+    .lt('sent_at', cutoff)
+    .is('deleted_at', null)
+
+  if (error) {
+    console.error('DB error:', error)
+    return new Response('db error', { status: 500 })
+  }
+
+  let deleted = 0
+  for (const row of rows ?? []) {
+    const res  = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/deleteMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: row.chat_id.toString(), message_id: row.message_id }),
+    })
+    const data = await res.json()
+
+    // 400 = message already deleted by hand — treat as done
+    if (data.ok || data.error_code === 400) {
+      await supabase
+        .from('tg_announcements')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', row.id)
+      deleted++
+    } else {
+      console.error('Delete failed:', row.message_id, JSON.stringify(data))
+    }
+  }
+
+  const summary = `Deleted ${deleted}/${rows?.length ?? 0} messages`
+  console.log(summary)
+  return new Response(summary, { status: 200 })
+})
