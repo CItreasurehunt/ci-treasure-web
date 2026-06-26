@@ -31,10 +31,9 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Text search stays local (no need to persist across navigation)
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Dropdown/checkbox filters live in the URL so the back button restores them
+  // All filters live in the URL so the back button restores them
+  const searchQuery = searchParams.get("q") ?? "";
+  const setSearchQuery = (v: string) => setParam("q", v);
   const selectedCountry = searchParams.get("country") ?? "";
   const selectedType = searchParams.get("type") ?? "";
   const selectedMonth = searchParams.get("month") ?? "";
@@ -61,7 +60,6 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
   // Reset all filters
   const resetFilters = () => {
-    setSearchQuery("");
     router.replace("/", { scroll: false });
     setHighlightedEventId(null);
   };
