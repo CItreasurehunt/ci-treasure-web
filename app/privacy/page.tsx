@@ -49,12 +49,13 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-semibold text-slate-950">4. Analytics</h2>
           <p>
-            This website uses Vercel Web Analytics to measure aggregate traffic (page views, referrers, top pages).
-            Vercel Analytics is designed to be privacy-friendly: it does not use cookies or persistent identifiers,
-            and does not track visitors across sites. A short-lived hash derived from the visitor&apos;s IP address
-            and user agent is used for unique visitor counting and is not stored. The resulting data is aggregate
-            only. It is processed by Vercel Inc. (US) under Standard Contractual Clauses. Legal basis:{" "}
-            Art.&nbsp;6(1)(f) GDPR — legitimate interest in understanding how the site is used so we can improve it.
+            This website uses Vercel Web Analytics (aggregate traffic: page views, referrers, top pages) and Vercel
+            Speed Insights (Core Web Vitals: loading speed, layout stability, interactivity). Both tools are designed
+            to be privacy-friendly: they do not use cookies or persistent identifiers and do not track visitors across
+            sites. A short-lived hash derived from the visitor&apos;s IP address and user agent is used for unique
+            visitor counting and is not stored. All data is aggregate only. It is processed by Vercel Inc. (US) under
+            Standard Contractual Clauses. Legal basis:{" "}
+            Art.&nbsp;6(1)(f) GDPR — legitimate interest in understanding how the site is used and performs so we can improve it.
           </p>
         </section>
         <section>
