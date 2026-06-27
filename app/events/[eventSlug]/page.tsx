@@ -56,6 +56,15 @@ export async function generateMetadata({ params }: { params: Promise<{ eventSlug
   };
 }
 
+function renderDescription(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 export default async function EventPage({ params }: EventPageProps) {
   const { eventSlug } = await params;
   const parsed = parseEventSlug(eventSlug);
@@ -211,7 +220,7 @@ export default async function EventPage({ params }: EventPageProps) {
                 <section className="space-y-3">
                   <h2 className="font-serif text-2xl text-slate-950">About this event</h2>
                   <p className="whitespace-pre-line text-base leading-8 text-slate-700">
-                    {event.description}
+                    {renderDescription(event.description)}
                   </p>
                 </section>
               ) : null}
