@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, Clock3, ExternalLink, Mail, MapPin } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { ShareButton } from "@/components/share-button";
 import { ReportButton } from "@/components/report-button";
@@ -67,6 +67,10 @@ export default async function EventPage({ params }: EventPageProps) {
   const event = await getEventBySlug(parsed.shortId);
   if (!event) {
     notFound();
+  }
+
+  if (eventSlug !== event.slug) {
+    redirect(`/events/${event.slug}`);
   }
 
   const timeRange = event.startTime || event.endTime ? formatTimeRange(event) : "";
