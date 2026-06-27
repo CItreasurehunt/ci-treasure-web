@@ -156,6 +156,18 @@ export function mapEventRow(row: SupabaseEventRow): EventListItem {
   };
 }
 
+const LINK_CANONICAL_ORDER: Record<string, number> = {
+  website: 0, registration: 1, info_pack: 2, schedule: 3,
+  facebook_event: 4, video: 5, telegram: 6, whatsapp: 7,
+  instagram: 8, youtube: 9, other: 10,
+  // legacy aliases
+  facebook: 4, info: 2, program: 3,
+};
+
+function linkSortKey(type: string): number {
+  return LINK_CANONICAL_ORDER[type] ?? 11;
+}
+
 function normalizeLinkItems(payload: unknown): LinkItem[] {
   const rawItems =
     typeof payload === "object" && payload && "items" in payload
@@ -180,7 +192,8 @@ function normalizeLinkItems(payload: unknown): LinkItem[] {
       }
       return { type, url, ...(label ? { label } : {}) };
     })
-    .filter((item): item is LinkItem => Boolean(item));
+    .filter((item): item is LinkItem => Boolean(item))
+    .sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
 }
 
 function normalizePriceItems(payload: unknown): PriceItem[] {
