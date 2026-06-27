@@ -1,6 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { mapEventRow, SupabaseEventRow, LinkItem } from "./events";
 
+function normalizeAddress(raw: unknown): string | null {
+  if (!raw) return null;
+  if (typeof raw === "string") return raw;
+  if (typeof raw === "object" && raw !== null) {
+    const obj = raw as Record<string, unknown>;
+    const text = obj.full ?? obj.text ?? obj.venue_name ?? null;
+    return typeof text === "string" ? text : null;
+  }
+  return null;
+}
+
 export type Venue = {
   id: string;
   name: string;
@@ -46,7 +57,7 @@ export async function getVenueBySlug(slug: string): Promise<Venue | null> {
     city: data.city,
     country: data.country,
     region: data.region,
-    address: data.address,
+    address: normalizeAddress(data.address),
     lat: data.lat,
     lng: data.lng,
     description: data.description,
