@@ -171,13 +171,14 @@ function normalizeLinkItems(payload: unknown): LinkItem[] {
       if (!item || typeof item !== "object") {
         return null;
       }
-      const typed = item as { type?: unknown; url?: unknown };
+      const typed = item as { type?: unknown; url?: unknown; label?: unknown };
       const type = typeof typed.type === "string" ? typed.type : "website";
       const url = typeof typed.url === "string" ? typed.url : "";
+      const label = typeof typed.label === "string" ? typed.label : undefined;
       if (!url) {
         return null;
       }
-      return { type, url };
+      return { type, url, ...(label ? { label } : {}) };
     })
     .filter((item): item is LinkItem => Boolean(item));
 }
