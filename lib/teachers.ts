@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { type EventListItem, type SupabaseEventRow, mapEventRow } from "./events";
 
+function hasSupabaseEnv() {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
 export type TeacherProfile = {
   id: string;
   name: string;
@@ -27,6 +31,9 @@ export type TeacherProfile = {
 };
 
 export async function getAllPublicTeachers(): Promise<TeacherProfile[]> {
+  if (!hasSupabaseEnv()) {
+    return [];
+  }
   const supabase = await createClient();
 
   // Fetch teachers
@@ -69,6 +76,9 @@ export async function getAllPublicTeachers(): Promise<TeacherProfile[]> {
 }
 
 export async function getTeacherBySlug(slug: string): Promise<TeacherProfile | null> {
+  if (!hasSupabaseEnv()) {
+    return null;
+  }
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
@@ -85,6 +95,9 @@ export async function getTeacherBySlug(slug: string): Promise<TeacherProfile | n
 }
 
 export async function getTeacherEvents(profileId: string): Promise<EventListItem[]> {
+  if (!hasSupabaseEnv()) {
+    return [];
+  }
   const supabase = await createClient();
   const fields = `events (id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, status)`;
 
@@ -109,6 +122,9 @@ export async function getTeacherEvents(profileId: string): Promise<EventListItem
 }
 
 export async function getAllPublicTeacherSlugs(): Promise<string[]> {
+  if (!hasSupabaseEnv()) {
+    return [];
+  }
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
