@@ -262,7 +262,7 @@ export default async function EventPage({ params }: EventPageProps) {
                       href={`mailto:${event.contactEmail}`}
                       className="inline-flex items-center justify-between rounded-2xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-[--color-pine] hover:text-[--color-pine]"
                     >
-                      Contact organiser
+                      Email
                       <Mail className="size-4" />
                     </a>
                   ) : null}

@@ -443,16 +443,21 @@ export function getTypeLabel(type: string) {
 export function getLinkLabel(type: string, label?: string) {
   if (label) return label;
   const labels: Record<string, string> = {
-    registration: "Register",
     website: "Website",
-    facebook: "Facebook",
-    instagram: "Instagram",
+    registration: "Registration",
+    info_pack: "Info pack",
+    schedule: "Schedule",
+    facebook_event: "Facebook event",
+    video: "Video",
     telegram: "Telegram",
     whatsapp: "WhatsApp",
-    info: "Info pack",
-    video: "Video",
+    instagram: "Instagram",
     youtube: "YouTube",
-    program: "Program",
+    other: "Open link",
+    // legacy — kept for any missed renames
+    facebook: "Facebook event",
+    info: "Info pack",
+    program: "Schedule",
   };
   return labels[type] ?? "Open link";
 }
