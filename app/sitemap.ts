@@ -1,31 +1,65 @@
 import type { MetadataRoute } from "next";
+import { createClient } from "@supabase/supabase-js";
 import { SITE_URL } from "@/lib/site";
-import { getAllPublishedEventSlugs } from "@/lib/events";
-import { getAllPublicTeacherSlugs } from "@/lib/teachers";
+
+export const revalidate = 3600;
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+function slugify(value: string) {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [eventSlugs, teacherSlugs] = await Promise.all([
-    getAllPublishedEventSlugs(),
-    getAllPublicTeacherSlugs(),
+  const [{ data: events }, { data: venues }, { data: profiles }] = await Promise.all([
+    supabase
+      .from("events")
+      .select("short_id, title, updated_at")
+      .eq("status", "published")
+      .eq("hide", false),
+    supabase
+      .from("venues")
+      .select("slug, updated_at")
+      .eq("visibility", "public"),
+    supabase
+      .from("profiles")
+      .select("slug, updated_at")
+      .eq("visibility", "public")
+      .eq("is_teacher", true),
   ]);
 
-  const eventEntries = eventSlugs.map((slug) => ({
-    url: `${SITE_URL}/events/${slug}`,
-    changeFrequency: "weekly" as const,
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: SITE_URL, changeFrequency: "daily", priority: 1.0 },
+    { url: `${SITE_URL}/communities`, changeFrequency: "weekly", priority: 0.7 },
+  ];
+
+  const eventUrls: MetadataRoute.Sitemap = (events ?? []).map((e) => ({
+    url: `${SITE_URL}/events/${e.short_id}-${slugify(e.title)}`,
+    lastModified: new Date(e.updated_at),
+    changeFrequency: "weekly",
     priority: 0.8,
   }));
 
-  const teacherEntries = teacherSlugs.map((slug) => ({
-    url: `${SITE_URL}/teachers/${slug}`,
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
+  const venueUrls: MetadataRoute.Sitemap = (venues ?? [])
+    .filter((v) => v.slug)
+    .map((v) => ({
+      url: `${SITE_URL}/venues/${v.slug}`,
+      lastModified: v.updated_at ? new Date(v.updated_at) : undefined,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    }));
 
-  return [
-    { url: SITE_URL, changeFrequency: "daily", priority: 1 },
-    { url: `${SITE_URL}/communities`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${SITE_URL}/teachers`, changeFrequency: "daily", priority: 0.7 },
-    ...eventEntries,
-    ...teacherEntries,
-  ];
+  const teacherUrls: MetadataRoute.Sitemap = (profiles ?? [])
+    .filter((p) => p.slug)
+    .map((p) => ({
+      url: `${SITE_URL}/teachers/${p.slug}`,
+      lastModified: p.updated_at ? new Date(p.updated_at) : undefined,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    }));
+
+  return [...staticPages, ...eventUrls, ...venueUrls, ...teacherUrls];
 }
