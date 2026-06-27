@@ -231,7 +231,13 @@ export default async function EventPage({ params }: EventPageProps) {
                 <div className="grid gap-8 md:grid-cols-2">
                   {event.teachers.length > 0 ? <PeopleSection title="Teachers" items={event.teachers} /> : null}
                   {event.organizers.length > 0 ? (
-                    <PeopleSection title="Organizers" items={event.organizers} />
+                    <PeopleSection
+                      title="Organizers"
+                      items={event.organizers.map((o) => ({
+                        ...o,
+                        role: o.role === "hosting_venue" ? "Venue" : null,
+                      }))}
+                    />
                   ) : null}
                 </div>
               ) : null}
