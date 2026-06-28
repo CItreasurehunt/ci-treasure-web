@@ -20,6 +20,7 @@ export type SupabaseEventRow = {
   price: unknown;
   segments: unknown;
   venue_id: string | null;
+  address: { venue_name?: string } | null;
   lat: number | null;
   lng: number | null;
   contact_email?: string | null;
@@ -406,7 +407,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     segments: normalizeSegments(eventRow.segments),
     teachers: normalizePeople(teacherResponse.data as SupabaseProfileJoin[] | undefined),
     organizers: normalizePeople(organizerResponse.data as SupabaseProfileJoin[] | undefined),
-    venueName: venueData?.name ?? (eventRow.address as { venue_name?: string } | null)?.venue_name ?? null,
+    venueName: venueData?.name ?? eventRow.address?.venue_name ?? null,
     venueAddress: venueData?.address ?? null,
     venueSlug: venueData?.visibility === "public" ? (venueData.slug ?? null) : null,
     contactEmail: eventRow.contact_email ?? null,
