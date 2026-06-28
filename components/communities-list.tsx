@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { CalendarDays, ExternalLink, MapPin, MessageCircle, Send } from "lucide-react";
 
-import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, isPrivateGroupInvite, type Community } from "@/lib/airtable";
+import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, hasPrivateGroupLink, isPrivateGroupInvite, type Community } from "@/lib/airtable";
 import { TELEGRAM_URL } from "@/lib/site";
 
 type CommunitiesListProps = {
@@ -151,25 +151,28 @@ function CommunityCard({
         {community.newsletterUrl && <PlatformIcon href={community.newsletterUrl} icon={<Send className="size-4" />} label="Newsletter" />}
       </div>
 
-      {joinUrl ? (
-        <a
-          href={joinUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-auto inline-flex w-full justify-center rounded-full bg-[--color-ember] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-ember]/90"
-        >
-          Join
-        </a>
-      ) : (
-        <a
-          href={TELEGRAM_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-auto inline-flex w-full justify-center rounded-full border border-[--color-sand-strong] bg-white px-4 py-2.5 text-sm font-semibold text-[--color-pine] transition hover:border-[--color-pine] hover:bg-slate-50"
-        >
-          Request access
-        </a>
-      )}
+      <div className="mt-auto flex flex-col gap-2">
+        {joinUrl && (
+          <a
+            href={joinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex w-full justify-center rounded-full bg-[--color-ember] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-ember]/90"
+          >
+            Join
+          </a>
+        )}
+        {(hasPrivateGroupLink(community) || !joinUrl) && (
+          <a
+            href={TELEGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex w-full justify-center rounded-full border border-[--color-sand-strong] bg-white px-4 py-2.5 text-sm font-semibold text-[--color-pine] transition hover:border-[--color-pine] hover:bg-slate-50"
+          >
+            Request access
+          </a>
+        )}
+      </div>
     </div>
   );
 }

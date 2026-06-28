@@ -183,6 +183,14 @@ export function isPrivateGroupInvite(url: string | null): boolean {
   );
 }
 
+export function hasPrivateGroupLink(community: Community): boolean {
+  return (
+    isPrivateGroupInvite(community.telegramChannelUrl) ||
+    isPrivateGroupInvite(community.whatsappChannelUrl) ||
+    isPrivateGroupInvite(community.otherResourceUrl)
+  );
+}
+
 export function getPrimaryJoinUrl(community: Community): string | null {
   const telegramUrl = !isPrivateGroupInvite(community.telegramChannelUrl)
     ? community.telegramChannelUrl
