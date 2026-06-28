@@ -114,9 +114,16 @@ function hasSupabaseEnv() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
+const SLUG_CHAR_MAP: Record<string, string> = {
+  ł: "l", ø: "o", ß: "ss", đ: "d", ð: "d", þ: "th", æ: "ae", å: "a",
+};
+
 function slugify(value: string) {
   return value
     .toLowerCase()
+    .replace(/[łøßđðþæå]/g, (c) => SLUG_CHAR_MAP[c] ?? c)
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
