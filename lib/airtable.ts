@@ -256,7 +256,7 @@ async function fetchCommunitiesPage(offset?: string): Promise<{
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    next: { revalidate: 24 * 60 * 60 },
+    next: { revalidate: 21600 },
   });
 
   if (!response.ok) {
