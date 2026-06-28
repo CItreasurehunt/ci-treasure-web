@@ -358,6 +358,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
             events={filteredEvents}
             highlightedEventId={highlightedEventId}
             onMarkerClick={handleMarkerClick}
+            visible={mobileView === "map"}
           />
         </div>
       </div>

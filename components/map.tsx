@@ -25,14 +25,17 @@ type EventMapProps = {
   events: EventListItem[];
   highlightedEventId: string | null;
   onMarkerClick?: (eventId: string) => void;
+  visible?: boolean;
 };
 
-export default function EventMap({ events, highlightedEventId, onMarkerClick }: EventMapProps) {
+export default function EventMap({ events, highlightedEventId, onMarkerClick, visible }: EventMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const markersMapRef = useRef<Record<string, L.Marker>>({});
   const [mapReady, setMapReady] = useState(false);
+  // Skip fitBounds on first mobile render (keep Europe default); fit on subsequent filter changes
+  const hasFitOnceMobile = useRef(false);
 
   // Helper to determine if event is within the next 14 days
   const isEventSoon = (startDateStr: string) => {
@@ -178,15 +181,43 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick }: 
       bounds.push([event.lat, event.lng]);
     });
 
-    // On desktop: fit all markers into view; on mobile keep the initial Europe view
-    if (bounds.length > 0 && window.innerWidth >= 640) {
-      if (bounds.length === 1) {
-        map.setView(bounds[0], 8, { animate: true });
-      } else {
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
+    // Always fit on desktop; on mobile skip only the very first render (initial Europe view),
+    // then fit on every subsequent change (filter, etc.)
+    if (bounds.length > 0) {
+      const isMobile = window.innerWidth < 640;
+      if (!isMobile || hasFitOnceMobile.current) {
+        if (bounds.length === 1) {
+          map.setView(bounds[0], 8, { animate: true });
+        } else {
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
+        }
       }
+      hasFitOnceMobile.current = true;
     }
   }, [events, handleMarkerClickInternal, mapReady]);
+
+  // When the map container becomes visible (mobile switching to map view), Leaflet needs to
+  // recalculate its dimensions and re-fit to the current markers
+  useEffect(() => {
+    if (!visible) return;
+    const map = mapRef.current;
+    if (!map) return;
+
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+      const currentBounds = Object.values(markersMapRef.current).map((m) => {
+        const ll = m.getLatLng();
+        return [ll.lat, ll.lng] as L.LatLngTuple;
+      });
+      if (currentBounds.length === 1) {
+        map.setView(currentBounds[0], 8, { animate: false });
+      } else if (currentBounds.length > 1) {
+        map.fitBounds(currentBounds, { padding: [40, 40], maxZoom: 9 });
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [visible]);
 
   // Handle active event highlight/focus
   useEffect(() => {
