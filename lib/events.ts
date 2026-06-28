@@ -387,11 +387,12 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     supabase.from("event_teachers").select("role, profiles(name, slug)").eq("event_id", eventRow.id),
     supabase.from("event_organizers").select("role, profiles(name, slug)").eq("event_id", eventRow.id),
     eventRow.venue_id
-      ? supabase.from("venues").select("name, address, slug").eq("id", eventRow.venue_id).single()
+      ? supabase.from("venues").select("name, address, slug, visibility").eq("id", eventRow.venue_id).single()
       : Promise.resolve({ data: null, error: null }),
   ]);
 
   const linkItems = normalizeLinkItems(eventRow.links);
+  const venueData = venueResponse.data as { name?: string; address?: string; slug?: string; visibility?: string } | null;
 
   return {
     ...base,
@@ -405,9 +406,9 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     segments: normalizeSegments(eventRow.segments),
     teachers: normalizePeople(teacherResponse.data as SupabaseProfileJoin[] | undefined),
     organizers: normalizePeople(organizerResponse.data as SupabaseProfileJoin[] | undefined),
-    venueName: (venueResponse.data as { name?: string } | null)?.name ?? null,
-    venueAddress: (venueResponse.data as { address?: string } | null)?.address ?? null,
-    venueSlug: (venueResponse.data as { slug?: string } | null)?.slug ?? null,
+    venueName: venueData?.name ?? null,
+    venueAddress: venueData?.address ?? null,
+    venueSlug: venueData?.visibility === "public" ? (venueData.slug ?? null) : null,
     contactEmail: eventRow.contact_email ?? null,
     primaryRegistrationUrl:
       linkItems.find((item) => item.type === "registration")?.url ?? linkItems[0]?.url ?? null,
