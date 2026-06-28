@@ -30,6 +30,12 @@ test.describe('Public Smoke Tests', () => {
       const initialEventCards = page.locator('div[id^="event-card-"]');
       const initialCount = await initialEventCards.count();
 
+      // On mobile the filters are collapsed — open them first
+      const filtersToggle = page.getByRole('button', { name: /Filters/i });
+      if (await filtersToggle.isVisible()) {
+        await filtersToggle.click();
+      }
+
       const secondOptionValue = await countrySelect.locator('option').nth(1).getAttribute('value');
       if (secondOptionValue) {
         await countrySelect.selectOption(secondOptionValue);
