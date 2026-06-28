@@ -174,17 +174,35 @@ function extractCountries(communities: Community[]): Array<{ value: string; labe
     .map((country) => ({ value: country, label: country }));
 }
 
+export function isPrivateGroupInvite(url: string | null): boolean {
+  if (!url) return false;
+  return (
+    /^https?:\/\/chat\.whatsapp\.com\//i.test(url) ||
+    /^https?:\/\/t\.me\/(\+|joinchat\/)/i.test(url) ||
+    /^https?:\/\/signal\.group\//i.test(url)
+  );
+}
+
 export function getPrimaryJoinUrl(community: Community): string | null {
+  const telegramUrl = !isPrivateGroupInvite(community.telegramChannelUrl)
+    ? community.telegramChannelUrl
+    : null;
+  const whatsappUrl = !isPrivateGroupInvite(community.whatsappChannelUrl)
+    ? community.whatsappChannelUrl
+    : null;
+  const otherUrl = !isPrivateGroupInvite(community.otherResourceUrl)
+    ? community.otherResourceUrl
+    : null;
   return (
     community.websiteUrl ??
     community.calendarUrl ??
     community.facebookGroupUrl ??
     community.facebookPageUrl ??
     community.instagramUrl ??
-    community.telegramChannelUrl ??
-    community.whatsappChannelUrl ??
+    telegramUrl ??
+    whatsappUrl ??
     community.newsletterUrl ??
-    community.otherResourceUrl ??
+    otherUrl ??
     null
   );
 }

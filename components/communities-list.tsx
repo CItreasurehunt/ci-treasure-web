@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { CalendarDays, ExternalLink, MapPin, MessageCircle, Send } from "lucide-react";
 
-import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, type Community } from "@/lib/airtable";
+import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, isPrivateGroupInvite, type Community } from "@/lib/airtable";
 import { TELEGRAM_URL } from "@/lib/site";
 
 type CommunitiesListProps = {
@@ -146,8 +146,8 @@ function CommunityCard({
         {community.facebookPageUrl && <PlatformIcon href={community.facebookPageUrl} icon={<FacebookIcon />} label="Facebook" />}
         {community.instagramUrl && <PlatformIcon href={community.instagramUrl} icon={<InstagramIcon />} label="Instagram" />}
         {community.calendarUrl && <PlatformIcon href={community.calendarUrl} icon={<CalendarDays className="size-4" />} label="Calendar" />}
-        {community.telegramChannelUrl && <PlatformIcon href={community.telegramChannelUrl} icon={<MessageCircle className="size-4" />} label="Telegram" />}
-        {community.whatsappChannelUrl && <PlatformIcon href={community.whatsappChannelUrl} icon={<MessageCircle className="size-4" />} label="WhatsApp" />}
+        {community.telegramChannelUrl && !isPrivateGroupInvite(community.telegramChannelUrl) && <PlatformIcon href={community.telegramChannelUrl} icon={<MessageCircle className="size-4" />} label="Telegram" />}
+        {community.whatsappChannelUrl && !isPrivateGroupInvite(community.whatsappChannelUrl) && <PlatformIcon href={community.whatsappChannelUrl} icon={<MessageCircle className="size-4" />} label="WhatsApp" />}
         {community.newsletterUrl && <PlatformIcon href={community.newsletterUrl} icon={<Send className="size-4" />} label="Newsletter" />}
       </div>
 
