@@ -110,13 +110,15 @@ export default async function EventPage({ params }: EventPageProps) {
     organizer:
       event.organizers.length > 0
         ? event.organizers.map((organizer) => ({
-            "@type": "Organization",
+            "@type": "Person",
             name: organizer.name,
+            ...(organizer.slug ? { url: `${SITE_URL}/teachers/${organizer.slug}` } : {}),
           }))
         : undefined,
     performer: event.teachers.map((teacher) => ({
       "@type": "Person",
       name: teacher.name,
+      ...(teacher.slug ? { url: `${SITE_URL}/teachers/${teacher.slug}` } : {}),
     })),
     offers:
       event.priceItems.length > 0
