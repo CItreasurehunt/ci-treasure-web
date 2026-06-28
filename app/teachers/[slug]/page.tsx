@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   CalendarDays,
+  ExternalLink,
   Facebook,
   Globe,
   Instagram,
@@ -10,8 +11,6 @@ import {
   MessageSquare,
   Send,
   Youtube,
-  GraduationCap,
-  History
 } from "lucide-react";
 
 import {
@@ -62,80 +61,26 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
         </div>
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
           <div className="border-b border-[--color-sand-strong] bg-[linear-gradient(135deg,#1f3b46_0%,#3a6a73_50%,#ead9b1_100%)] px-6 py-10 sm:px-8">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {teacher.is_teacher && <RoleBadge>Teacher</RoleBadge>}
-                  {teacher.is_organizer && <RoleBadge>Organizer</RoleBadge>}
-                  {teacher.is_musician && <RoleBadge>Musician</RoleBadge>}
-                </div>
-                <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
-                  {teacher.name}
-                </h1>
-                {(teacher.city || teacher.country) && (
-                  <p className="flex items-center gap-2 text-lg text-white/90">
-                    <MapPin className="h-5 w-5 text-white/70" />
-                    {teacher.city}{teacher.city && teacher.country ? ", " : ""}{teacher.country ? getCountryLabel(teacher.country) : ""}
-                    {teacher.country && (
-                      <span className="ml-1" title={getCountryLabel(teacher.country)}>
-                        {getCountryFlag(teacher.country)}
-                      </span>
-                    )}
-                  </p>
-                )}
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {teacher.is_teacher && <RoleBadge>Teacher</RoleBadge>}
+                {teacher.is_organizer && <RoleBadge>Organizer</RoleBadge>}
+                {teacher.is_musician && <RoleBadge>Musician</RoleBadge>}
               </div>
-
-              <div className="flex flex-wrap gap-3">
-                {teacher.website && (
-                  <SocialLink
-                    href={teacher.website.startsWith('http') ? teacher.website : `https://${teacher.website}`}
-                    icon={<Globe />}
-                    label="Website"
-                  />
-                )}
-                {teacher.public_email && (
-                  <SocialLink
-                    href={`mailto:${teacher.public_email}`}
-                    icon={<Mail />}
-                    label="Email"
-                  />
-                )}
-                {teacher.instagram && (
-                  <SocialLink
-                    href={teacher.instagram.startsWith('http') ? teacher.instagram : `https://instagram.com/${teacher.instagram.replace('@', '')}`}
-                    icon={<Instagram />}
-                    label="Instagram"
-                  />
-                )}
-                {teacher.facebook && (
-                  <SocialLink
-                    href={teacher.facebook.startsWith('http') ? teacher.facebook : `https://facebook.com/${teacher.facebook}`}
-                    icon={<Facebook />}
-                    label="Facebook"
-                  />
-                )}
-                {teacher.youtube && (
-                  <SocialLink
-                    href={teacher.youtube.startsWith('http') ? teacher.youtube : `https://youtube.com/${teacher.youtube}`}
-                    icon={<Youtube />}
-                    label="YouTube"
-                  />
-                )}
-                {teacher.telegram && (
-                  <SocialLink
-                    href={teacher.telegram.startsWith('http') ? teacher.telegram : `https://t.me/${teacher.telegram.replace('@', '')}`}
-                    icon={<Send />}
-                    label="Telegram"
-                  />
-                )}
-                {teacher.newsletter && (
-                  <SocialLink
-                    href={teacher.newsletter.startsWith('http') ? teacher.newsletter : `https://${teacher.newsletter}`}
-                    icon={<MessageSquare />}
-                    label="Newsletter"
-                  />
-                )}
-              </div>
+              <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
+                {teacher.name}
+              </h1>
+              {(teacher.city || teacher.country) && (
+                <p className="flex items-center gap-2 text-lg text-white/90">
+                  <MapPin className="h-5 w-5 text-white/70" />
+                  {teacher.city}{teacher.city && teacher.country ? ", " : ""}{teacher.country ? getCountryLabel(teacher.country) : ""}
+                  {teacher.country && (
+                    <span className="ml-1" title={getCountryLabel(teacher.country)}>
+                      {getCountryFlag(teacher.country)}
+                    </span>
+                  )}
+                </p>
+              )}
             </div>
           </div>
 
@@ -190,42 +135,36 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
             </div>
 
             <aside className="space-y-6">
-              {(teacher.year_starting_practice || teacher.year_starting_teaching || teacher.significant_teachers) && (
-                <section className="rounded-[1.75rem] border border-[--color-sand-strong] bg-[--color-cream] p-6 space-y-6">
-                  <h2 className="font-serif text-2xl text-slate-950">Professional Background</h2>
-
-                  <div className="space-y-4">
-                    {teacher.year_starting_practice && (
-                      <div className="flex items-start gap-3">
-                        <History className="h-5 w-5 text-[--color-pine] shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Practicing since</p>
-                          <p className="text-lg font-semibold text-slate-900">{teacher.year_starting_practice}</p>
-                        </div>
-                      </div>
+              {(teacher.website || teacher.public_email || teacher.instagram || teacher.facebook || teacher.youtube || teacher.telegram || teacher.newsletter) && (
+                <section className="rounded-[1.75rem] border border-[--color-sand-strong] bg-[--color-cream] p-6">
+                  <h2 className="font-serif text-2xl text-slate-950">Links</h2>
+                  <div className="mt-4 flex flex-col gap-3">
+                    {teacher.website && (
+                      <SocialLink href={teacher.website.startsWith('http') ? teacher.website : `https://${teacher.website}`} icon={<Globe className="h-4 w-4" />} label="Website" />
                     )}
-
-                    {teacher.year_starting_teaching && (
-                      <div className="flex items-start gap-3">
-                        <GraduationCap className="h-5 w-5 text-[--color-pine] shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Teaching since</p>
-                          <p className="text-lg font-semibold text-slate-900">{teacher.year_starting_teaching}</p>
-                        </div>
-                      </div>
+                    {teacher.public_email && (
+                      <SocialLink href={`mailto:${teacher.public_email}`} icon={<Mail className="h-4 w-4" />} label="Email" />
                     )}
-
-                    {teacher.significant_teachers && (
-                      <div className="space-y-2 border-t border-[--color-sand-strong] pt-4">
-                        <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Mentors & Lineage</p>
-                        <p className="text-slate-700 leading-relaxed italic">
-                          {teacher.significant_teachers}
-                        </p>
-                      </div>
+                    {teacher.facebook && (
+                      <SocialLink href={teacher.facebook.startsWith('http') ? teacher.facebook : `https://facebook.com/${teacher.facebook}`} icon={<Facebook className="h-4 w-4" />} label="Facebook" />
+                    )}
+                    {teacher.instagram && (
+                      <SocialLink href={teacher.instagram.startsWith('http') ? teacher.instagram : `https://instagram.com/${teacher.instagram.replace('@', '')}`} icon={<Instagram className="h-4 w-4" />} label="Instagram" />
+                    )}
+                    {teacher.youtube && (
+                      <SocialLink href={teacher.youtube.startsWith('http') ? teacher.youtube : `https://youtube.com/${teacher.youtube}`} icon={<Youtube className="h-4 w-4" />} label="YouTube" />
+                    )}
+                    {teacher.telegram && (
+                      <SocialLink href={teacher.telegram.startsWith('http') ? teacher.telegram : `https://t.me/${teacher.telegram.replace('@', '')}`} icon={<Send className="h-4 w-4" />} label="Telegram" />
+                    )}
+                    {teacher.newsletter && (
+                      <SocialLink href={teacher.newsletter.startsWith('http') ? teacher.newsletter : `https://${teacher.newsletter}`} icon={<MessageSquare className="h-4 w-4" />} label="Newsletter" />
                     )}
                   </div>
                 </section>
               )}
+
+              {/* Professional Background (year_starting_practice, year_starting_teaching, significant_teachers) — hidden for now; re-enable when data is more complete */}
             </aside>
           </div>
         </section>
@@ -261,12 +200,14 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
     <a
       href={href}
       target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
-      title={label}
+      rel="noreferrer"
+      className="inline-flex items-center justify-between rounded-xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-[--color-pine] hover:text-[--color-pine]"
     >
-      {icon}
-      <span className="hidden sm:inline">{label}</span>
+      <span className="flex items-center gap-3">
+        <span className="text-[--color-pine]">{icon}</span>
+        <span>{label}</span>
+      </span>
+      <ExternalLink className="h-4 w-4 opacity-30" />
     </a>
   );
 }
