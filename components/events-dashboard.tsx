@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Search, Map, List, X } from "lucide-react";
+import { Search, Map, List, X, Filter } from "lucide-react";
 
 import { EventCard } from "./event-card";
 import { Button } from "./ui/button";
@@ -57,6 +57,9 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
   // Mobile view state: 'list' | 'map'
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const activeFilterCount = [selectedCountry, selectedType, selectedMonth, soonOnly ? "1" : ""].filter(Boolean).length;
 
   // Reset all filters
   const resetFilters = () => {
@@ -186,35 +189,53 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
             )}
           </div>
 
-          {/* Toggle buttons for Mobile split view */}
-          <div className="flex border-t border-slate-100 pt-3 sm:border-none sm:pt-0 lg:hidden">
+          {/* Mobile controls: Filters toggle + List/Map toggle */}
+          <div className="flex gap-2 border-t border-slate-100 pt-3 sm:border-none sm:pt-0 lg:hidden">
             <button
-              onClick={() => setMobileView("list")}
-              className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition ${
-                mobileView === "list"
+              onClick={() => setFiltersOpen((o) => !o)}
+              className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+                filtersOpen || activeFilterCount > 0
                   ? "bg-violet-100 text-violet-700"
                   : "text-slate-600 hover:bg-slate-50"
               }`}
             >
-              <List className="size-4" />
-              List
+              <Filter className="size-4" />
+              Filters
+              {activeFilterCount > 0 && !filtersOpen && (
+                <span className="rounded-full bg-violet-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
-            <button
-              onClick={() => setMobileView("map")}
-              className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition ${
-                mobileView === "map"
-                  ? "bg-violet-100 text-violet-700"
-                  : "text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <Map className="size-4" />
-              Map
-            </button>
+            <div className="flex flex-1">
+              <button
+                onClick={() => setMobileView("list")}
+                className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition ${
+                  mobileView === "list"
+                    ? "bg-violet-100 text-violet-700"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <List className="size-4" />
+                List
+              </button>
+              <button
+                onClick={() => setMobileView("map")}
+                className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition ${
+                  mobileView === "map"
+                    ? "bg-violet-100 text-violet-700"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <Map className="size-4" />
+                Map
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Extended filters */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 md:pt-4">
+        {/* Extended filters — always visible on desktop, collapsed on mobile behind Filters button */}
+        <div className={`flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 md:pt-4 ${filtersOpen ? "flex" : "hidden"} lg:flex`}>
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             {/* Country Selector */}
             <select
