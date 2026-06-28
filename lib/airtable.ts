@@ -16,7 +16,9 @@ export const AIRTABLE_FIELD_MAPPING = {
   facebookPageUrl: "Facebook Page",
   instagramUrl: "Instagram",
   telegramChannelUrl: "Telegram Channel",
+  telegramGroupUrl: "Telegram Group",
   whatsappChannelUrl: "WhatsApp Channel",
+  whatsappGroupUrl: "Whatsapp Group",
   calendarUrl: "Calendar",
   newsletterUrl: "Mailing List / Newsletter",
   otherResourceUrl: "Other Platform or Resource",
@@ -41,7 +43,9 @@ export type Community = {
   facebookPageUrl: string | null;
   instagramUrl: string | null;
   telegramChannelUrl: string | null;
+  telegramGroupUrl: string | null;
   whatsappChannelUrl: string | null;
+  whatsappGroupUrl: string | null;
   calendarUrl: string | null;
   newsletterUrl: string | null;
   otherResourceUrl: string | null;
@@ -84,6 +88,15 @@ function normalizeString(value: unknown): string | null {
   }
 
   return null;
+}
+
+function normalizeUrl(value: unknown): string | null {
+  const str = normalizeString(value);
+  if (!str) return null;
+  if (/^https?:\/\//i.test(str)) return str;
+  if (/^mailto:/i.test(str)) return str;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str)) return `mailto:${str}`;
+  return `https://${str}`;
 }
 
 function normalizeNumber(value: unknown): number | null {
@@ -136,15 +149,17 @@ function normalizeRecord(record: Record<string, unknown>, id: string): Community
     country: deriveCountry(record),
     addressForMap: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.addressForMap)),
     description: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.description)),
-    websiteUrl: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.websiteUrl)),
-    facebookGroupUrl: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.facebookGroupUrl)),
-    facebookPageUrl: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.facebookPageUrl)),
-    instagramUrl: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.instagramUrl)),
-    telegramChannelUrl: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.telegramChannelUrl)),
-    whatsappChannelUrl: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.whatsappChannelUrl)),
-    calendarUrl: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.calendarUrl)),
-    newsletterUrl: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.newsletterUrl)),
-    otherResourceUrl: normalizeString(getFieldValue(record, AIRTABLE_FIELD_MAPPING.otherResourceUrl)),
+    websiteUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.websiteUrl)),
+    facebookGroupUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.facebookGroupUrl)),
+    facebookPageUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.facebookPageUrl)),
+    instagramUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.instagramUrl)),
+    telegramChannelUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.telegramChannelUrl)),
+    telegramGroupUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.telegramGroupUrl)),
+    whatsappChannelUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.whatsappChannelUrl)),
+    whatsappGroupUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.whatsappGroupUrl)),
+    calendarUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.calendarUrl)),
+    newsletterUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.newsletterUrl)),
+    otherResourceUrl: normalizeUrl(getFieldValue(record, AIRTABLE_FIELD_MAPPING.otherResourceUrl)),
     latitude: normalizeNumber(getFieldValue(record, AIRTABLE_FIELD_MAPPING.latitude)),
     longitude: normalizeNumber(getFieldValue(record, AIRTABLE_FIELD_MAPPING.longitude)),
   };
@@ -184,7 +199,9 @@ export function isPrivateGroupInvite(url: string | null): boolean {
 }
 
 export function hasPrivateGroupLink(community: Community): boolean {
-  return (
+  return !!(
+    community.telegramGroupUrl ||
+    community.whatsappGroupUrl ||
     isPrivateGroupInvite(community.telegramChannelUrl) ||
     isPrivateGroupInvite(community.whatsappChannelUrl) ||
     isPrivateGroupInvite(community.otherResourceUrl)
@@ -201,6 +218,7 @@ export function getPrimaryJoinUrl(community: Community): string | null {
   const otherUrl = !isPrivateGroupInvite(community.otherResourceUrl)
     ? community.otherResourceUrl
     : null;
+  // telegramGroupUrl and whatsappGroupUrl are always private — never expose as join URL
   return (
     community.websiteUrl ??
     community.calendarUrl ??
