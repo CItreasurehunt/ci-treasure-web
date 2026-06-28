@@ -350,7 +350,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
   const { data: eventRow, error } = await supabase
     .from("events")
     .select(
-      "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, contact_email, series_id, series_order, event_series(title)",
+      "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, address, contact_email, series_id, series_order, event_series(title)",
     )
     .ilike("short_id", shortId)
     .single();
@@ -406,7 +406,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     segments: normalizeSegments(eventRow.segments),
     teachers: normalizePeople(teacherResponse.data as SupabaseProfileJoin[] | undefined),
     organizers: normalizePeople(organizerResponse.data as SupabaseProfileJoin[] | undefined),
-    venueName: venueData?.name ?? null,
+    venueName: venueData?.name ?? (eventRow.address as { venue_name?: string } | null)?.venue_name ?? null,
     venueAddress: venueData?.address ?? null,
     venueSlug: venueData?.visibility === "public" ? (venueData.slug ?? null) : null,
     contactEmail: eventRow.contact_email ?? null,
