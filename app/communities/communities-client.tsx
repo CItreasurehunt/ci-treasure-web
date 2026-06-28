@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { CalendarDays, ExternalLink, Globe, MapPin, MessageCircle, Send } from "lucide-react";
 
-import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, type Community } from "@/lib/airtable";
+import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, hasPrivateGroupLink, isPrivateGroupInvite, type Community } from "@/lib/airtable";
 import { TELEGRAM_URL } from "@/lib/site";
 
 type CommunitiesClientProps = {
@@ -252,7 +252,7 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
             <CalendarDays className="size-4" />
           </a>
         )}
-        {community.telegramChannelUrl && (
+        {community.telegramChannelUrl && !isPrivateGroupInvite(community.telegramChannelUrl) && (
           <a
             href={community.telegramChannelUrl}
             target="_blank"
@@ -263,7 +263,7 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
             <MessageCircle className="size-4" />
           </a>
         )}
-        {community.whatsappChannelUrl && (
+        {community.whatsappChannelUrl && !isPrivateGroupInvite(community.whatsappChannelUrl) && (
           <a
             href={community.whatsappChannelUrl}
             target="_blank"
@@ -299,30 +299,33 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
       </div>
 
       {/* Join CTA */}
-      {joinUrl ? (
-        <a
-          href={joinUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-auto inline-flex w-full justify-center rounded-full bg-[--color-ember] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-ember]/90"
-        >
-          Join
-        </a>
-      ) : (
-        <div className="mt-auto space-y-2">
+      <div className="mt-auto flex flex-col gap-2">
+        {joinUrl && (
           <a
-            href={TELEGRAM_URL}
+            href={joinUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-full justify-center rounded-full border border-[--color-sand-strong] bg-white px-4 py-2.5 text-sm font-semibold text-[--color-pine] transition hover:border-[--color-pine] hover:bg-[--color-sand]"
+            className="inline-flex w-full justify-center rounded-full bg-[--color-ember] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-ember]/90"
           >
-            Request access via Telegram
+            Join
           </a>
-          <p className="text-center text-xs leading-5 text-slate-500">
-            Private chat links are shared there to reduce spam.
-          </p>
-        </div>
-      )}
+        )}
+        {(hasPrivateGroupLink(community) || !joinUrl) && (
+          <div className="space-y-1">
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full justify-center rounded-full border border-[--color-sand-strong] bg-white px-4 py-2.5 text-sm font-semibold text-[--color-pine] transition hover:border-[--color-pine] hover:bg-[--color-sand]"
+            >
+              Request access via Telegram
+            </a>
+            <p className="text-center text-xs leading-5 text-slate-500">
+              Private chat links are shared there to reduce spam.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
