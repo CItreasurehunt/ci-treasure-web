@@ -209,6 +209,11 @@ export default async function EventPage({ params }: EventPageProps) {
                         </Link>
                         <span className="text-sm text-slate-600">{getEventLocation(event)}</span>
                       </div>
+                    ) : event.venueName ? (
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold text-slate-900">{event.venueName}</span>
+                        <span className="text-sm text-slate-600">{getEventLocation(event)}</span>
+                      </div>
                     ) : (
                       getEventLocation(event)
                     )
