@@ -88,6 +88,7 @@ export default async function EventPage({ params }: EventPageProps) {
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.title,
+    image: event.imageUrl ?? undefined,
     description: event.description
       ? stripMarkdown(event.description).slice(0, 200)
       : undefined,
