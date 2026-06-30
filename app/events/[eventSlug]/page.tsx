@@ -365,7 +365,7 @@ function PeopleSection({
           const content = (
             <>
               <span className="font-medium text-slate-950 group-hover:text-[--color-pine] transition-colors">{item.name}</span>
-              {item.role ? <span className="text-slate-500"> · {item.role}</span> : null}
+              {item.role && item.role !== 'teacher' ? <span className="text-slate-500"> · {item.role.charAt(0).toUpperCase() + item.role.slice(1)}</span> : null}
             </>
           );
 
