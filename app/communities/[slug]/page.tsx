@@ -1,0 +1,405 @@
+import { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  ArrowLeft,
+  CalendarDays,
+  ExternalLink,
+  Globe,
+  Instagram,
+  MapPin,
+  MessageCircle,
+  Send,
+  Youtube,
+  Users,
+  Languages,
+  Target,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import BackButton from "@/components/back-button";
+import VenueMap from "@/components/venue-map";
+import {
+  formatEventDateRange,
+  getCountryLabel,
+  getEventHref,
+  getEventLocation,
+  getTypeLabel,
+  EventListItem as EventListItemType,
+} from "@/lib/events";
+import {
+  getAllCommunitySlugs,
+  getCommunityBySlug,
+  getCommunityEventsByCountry,
+  isPrivateGroupInvite,
+} from "@/lib/communities";
+import { getCountryFlag } from "@/lib/utils";
+import { SITE_URL, TELEGRAM_URL } from "@/lib/site";
+import { ReportButton } from "@/components/report-button";
+
+export const revalidate = 3600;
+
+type CommunityPageProps = {
+  params: Promise<{
+    slug: string;
+  }>;
+};
+
+export async function generateStaticParams() {
+  const slugs = await getAllCommunitySlugs();
+  return slugs.map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: CommunityPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const community = await getCommunityBySlug(slug);
+  if (!community) return {};
+
+  return {
+    title: `${community.name} — ${community.city}, ${getCountryLabel(community.country ?? "")} — CI Treasure Hunt`,
+    description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
+    openGraph: {
+      title: community.name,
+      description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
+      url: `${SITE_URL}/communities/${community.slug}`,
+    },
+  };
+}
+
+export default async function CommunityPage({ params }: CommunityPageProps) {
+  const { slug } = await params;
+  const community = await getCommunityBySlug(slug);
+
+  if (!community) {
+    notFound();
+  }
+
+  const relatedEvents = await getCommunityEventsByCountry(community.country);
+
+  return (
+    <main className="min-h-screen bg-[--color-cream] px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        <div className="flex flex-wrap items-center gap-3">
+          <BackButton />
+        </div>
+
+        <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
+          <div className="border-b border-[--color-sand-strong] px-6 py-10 sm:px-8">
+            <div className="max-w-3xl space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl" aria-hidden="true">
+                  {getCountryFlag(community.country ?? "")}
+                </span>
+                <p className="text-sm font-semibold uppercase tracking-widest text-[--color-pine]">
+                  {community.city}{community.city && community.country && ", "}{getCountryLabel(community.country ?? "")}
+                  {community.region ? ` · ${community.region}` : ""}
+                </p>
+              </div>
+              <div className="space-y-3">
+                <h1 className="font-serif text-4xl leading-tight tracking-tight text-slate-950 sm:text-5xl">
+                  {community.name}
+                </h1>
+                <div className="flex flex-wrap gap-2">
+                  {community.type && (
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                      {community.type}
+                    </Badge>
+                  )}
+                  {community.activity_level && (
+                    <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-100">
+                      {community.activity_level}
+                    </Badge>
+                  )}
+                  {community.verified && (
+                    <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-100">
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr]">
+            <div className="space-y-10">
+              {community.description && (
+                <section className="space-y-4">
+                  <h2 className="font-serif text-2xl text-slate-950">About the community</h2>
+                  <p className="whitespace-pre-line text-lg leading-8 text-slate-700">
+                    {community.description}
+                  </p>
+                </section>
+              )}
+
+              <section className="grid gap-6 sm:grid-cols-2">
+                {community.focus && community.focus.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-500">
+                      <Target className="h-4 w-4" /> Focus Areas
+                    </h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {community.focus.map((f) => (
+                        <span key={f} className="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {community.languages && community.languages.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-500">
+                      <Languages className="h-4 w-4" /> Languages
+                    </h3>
+                    <p className="text-slate-700">{community.languages.join(", ")}</p>
+                  </div>
+                )}
+                {community.audience_size && (
+                  <div className="space-y-2">
+                    <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-500">
+                      <Users className="h-4 w-4" /> Audience
+                    </h3>
+                    <p className="text-slate-700">~{community.audience_size} members</p>
+                  </div>
+                )}
+              </section>
+
+              {community.lat && community.lng && (
+                <section className="space-y-4">
+                  <h2 className="font-serif text-2xl text-slate-950">Location</h2>
+                  <VenueMap lat={community.lat} lng={community.lng} name={community.name} />
+                </section>
+              )}
+
+              {(community.venue || community.profile) && (
+                <section className="space-y-4 rounded-2xl border border-[--color-sand-strong] bg-slate-50 p-6">
+                  <h2 className="font-serif text-xl text-slate-950">Related Pages</h2>
+                  <div className="flex flex-col gap-3">
+                    {community.venue && (
+                      <Link
+                        href={`/venues/${community.venue.slug}`}
+                        className="group flex items-center justify-between text-slate-700 hover:text-[--color-pine]"
+                      >
+                        <span className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          This space also has a venue page
+                        </span>
+                        <ArrowLeft className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-1" />
+                      </Link>
+                    )}
+                    {community.profile && (
+                      <Link
+                        href={`/teachers/${community.profile.slug}`}
+                        className="group flex items-center justify-between text-slate-700 hover:text-[--color-pine]"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Run by {community.profile.name}
+                        </span>
+                        <ArrowLeft className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-1" />
+                      </Link>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {relatedEvents.length > 0 && (
+                <section className="space-y-6">
+                  <h2 className="font-serif text-3xl text-slate-950">Upcoming events in {getCountryLabel(community.country ?? "")}</h2>
+                  <div className="grid gap-4">
+                    {relatedEvents.map((event) => (
+                      <EventListItem key={event.id} event={event} />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+
+            <aside className="space-y-6">
+              <section className="rounded-[1.75rem] border border-[--color-sand-strong] bg-[--color-cream] p-6">
+                <h2 className="font-serif text-2xl text-slate-950">Links & Resources</h2>
+                <div className="mt-5 flex flex-col gap-3">
+                  {community.website && (
+                    <SocialLink href={community.website} icon={<Globe className="h-4 w-4" />} label="Website" />
+                  )}
+                  {community.instagram && (
+                    <SocialLink
+                      href={community.instagram}
+                      icon={<Instagram className="h-4 w-4" />}
+                      label="Instagram"
+                    />
+                  )}
+                  {community.facebook_group && (
+                    <SocialLink
+                      href={community.facebook_group}
+                      icon={<FacebookIcon />}
+                      label="Facebook Group"
+                    />
+                  )}
+                  {community.facebook_page && (
+                    <SocialLink
+                      href={community.facebook_page}
+                      icon={<FacebookIcon />}
+                      label="Facebook Page"
+                    />
+                  )}
+                  {community.telegram_channel && !isPrivateGroupInvite(community.telegram_channel) && (
+                    <SocialLink
+                      href={community.telegram_channel}
+                      icon={<MessageCircle className="h-4 w-4" />}
+                      label="Telegram"
+                    />
+                  )}
+                  {community.whatsapp_channel && !isPrivateGroupInvite(community.whatsapp_channel) && (
+                    <SocialLink
+                      href={community.whatsapp_channel}
+                      icon={<MessageCircle className="h-4 w-4" />}
+                      label="WhatsApp"
+                    />
+                  )}
+                  {community.youtube && (
+                    <SocialLink
+                      href={community.youtube}
+                      icon={<Youtube className="h-4 w-4" />}
+                      label="YouTube"
+                    />
+                  )}
+                  {community.calendar && (
+                    <SocialLink
+                      href={community.calendar}
+                      icon={<CalendarDays className="h-4 w-4" />}
+                      label="Calendar"
+                    />
+                  )}
+                  {community.newsletter && (
+                    <SocialLink
+                      href={community.newsletter}
+                      icon={<Send className="h-4 w-4" />}
+                      label="Newsletter"
+                    />
+                  )}
+                  {community.other_resource && (
+                    <SocialLink
+                      href={community.other_resource}
+                      icon={<ExternalLink className="h-4 w-4" />}
+                      label="Other Resource"
+                    />
+                  )}
+
+                  {!community.website &&
+                    !community.instagram &&
+                    !community.facebook_group &&
+                    !community.facebook_page &&
+                    !community.telegram_channel &&
+                    !community.whatsapp_channel &&
+                    !community.youtube &&
+                    !community.calendar &&
+                    !community.newsletter &&
+                    !community.other_resource && (
+                      <p className="text-sm text-slate-500 italic">No links available.</p>
+                    )}
+                </div>
+              </section>
+
+              {community.has_invites && (
+                <section className="rounded-[1.75rem] border border-[--color-pine]/20 bg-[--color-pine]/5 p-6">
+                  <h2 className="font-serif text-xl text-slate-950">Join this community</h2>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Private chat links are shared in our Telegram group to reduce spam.
+                  </p>
+                  <a
+                    href={TELEGRAM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[--color-pine] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90"
+                  >
+                    <TelegramIcon className="h-4 w-4" />
+                    Request access via Telegram
+                  </a>
+                </section>
+              )}
+            </aside>
+          </div>
+        </section>
+        <div className="text-center text-sm text-slate-400">
+          <ReportButton
+            entity_type="community"
+            entity_id={community.id}
+            entity_title={community.name}
+            entity_slug={community.slug}
+          />
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function EventListItem({ event }: { event: EventListItemType }) {
+  return (
+    <Link
+      href={getEventHref(event)}
+      className="group flex flex-col justify-between gap-4 rounded-2xl border border-[--color-sand-strong] bg-white p-5 transition hover:border-violet-300 hover:shadow-md sm:flex-row sm:items-center"
+    >
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="bg-violet-50 text-xs font-semibold uppercase tracking-wider text-violet-700"
+          >
+            {getTypeLabel(event.type)}
+          </Badge>
+          <span className="text-xs text-slate-500">{getCountryFlag(event.country)}</span>
+        </div>
+        <h4 className="font-serif text-xl font-bold text-slate-950 group-hover:text-violet-700 transition">
+          {event.title}
+        </h4>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+          <p className="flex items-center gap-1.5">
+            <CalendarDays className="h-3.5 w-3.5" />
+            {formatEventDateRange(event)}
+          </p>
+          <p className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" />
+            {getEventLocation(event)}
+          </p>
+        </div>
+      </div>
+      <div className="text-violet-600 opacity-0 transition group-hover:opacity-100 sm:block hidden">
+        <ArrowLeft className="h-5 w-5 rotate-180" />
+      </div>
+    </Link>
+  );
+}
+
+function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center justify-between rounded-xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-[--color-pine] hover:text-[--color-pine]"
+    >
+      <span className="flex items-center gap-3">
+        <span className="text-[--color-pine]">{icon}</span>
+        <span className="capitalize">{label}</span>
+      </span>
+      <ExternalLink className="h-4 w-4 opacity-30" />
+    </a>
+  );
+}
+
+function FacebookIcon() {
+  return (
+    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  );
+}
+
+function TelegramIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M21.9 4.6 18.6 20c-.2 1.1-.8 1.4-1.7.9l-5.1-3.8-2.5 2.4c-.3.3-.5.5-1 .5l.4-5.2 9.5-8.6c.4-.4-.1-.6-.6-.2L5.8 13.4.7 11.8c-1.1-.3-1.1-1.1.2-1.6L20.8 2.5c.9-.3 1.7.2 1.1 2.1Z" />
+    </svg>
+  );
+}
