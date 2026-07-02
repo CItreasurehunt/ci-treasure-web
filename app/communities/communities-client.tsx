@@ -33,7 +33,7 @@ export function CommunitiesClient({
   // Error state
   if (initialError) {
     return (
-      <div className="min-h-screen bg-[--color-cream] px-4 py-12">
+      <div className="min-h-screen bg-[--color-cream] px-5 py-10 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50 p-6">
             <h1 className="mb-2 font-serif text-2xl text-amber-900">
@@ -50,11 +50,11 @@ export function CommunitiesClient({
   }
 
   return (
-    <div className="min-h-screen bg-[--color-cream] px-4 py-12">
+    <div className="min-h-screen overflow-x-hidden bg-[--color-cream] px-5 py-10 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <header className="mb-10">
-          <h1 className="mb-3 font-serif text-4xl text-slate-900 md:text-5xl">
+          <h1 className="mb-3 font-serif text-3xl text-slate-900 md:text-5xl">
             CI Communities Worldwide
           </h1>
           <p className="mb-6 max-w-2xl text-lg text-slate-600">
@@ -175,11 +175,13 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
     <div className="flex flex-col rounded-2xl border border-[--color-sand-strong] bg-white p-4 transition hover:shadow-lg">
       {/* Name + location */}
       <h3 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">{community.name}</h3>
-      <p className="mb-3 flex items-center gap-1 text-sm text-slate-500">
+      <p className="mb-3 flex min-w-0 items-center gap-1 text-sm text-slate-500">
         <MapPin className="size-3 shrink-0 text-[--color-ember]" />
-        {community.city}
-        {community.city && community.country && ", "}
-        {community.country}
+        <span className="min-w-0 wrap-break-word">
+          {community.city}
+          {community.city && community.country && ", "}
+          {community.country}
+        </span>
       </p>
 
       {/* Platform links */}
