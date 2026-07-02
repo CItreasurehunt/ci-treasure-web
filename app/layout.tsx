@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail } from "lucide-react";
+import { Coffee, Mail } from "lucide-react";
 import { Fraunces, Manrope } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -64,9 +64,18 @@ export default function RootLayout({
                   <Link href="/terms">Terms</Link>
                 </div>
               </div>
-              <div className="text-center">
+              <div className="flex flex-col items-center gap-2 text-center">
                 <a href="mailto:hello@citreasurehunt.com" className="text-slate-500 transition hover:text-slate-800">
                   hello@citreasurehunt.com
+                </a>
+                <a
+                  href="https://buymeacoffee.com/citreasurehunt"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-yellow-50 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-100"
+                >
+                  <Coffee className="size-3.5" />
+                  Support my work ❤️
                 </a>
               </div>
               <div className="flex items-center gap-3 lg:justify-end">
