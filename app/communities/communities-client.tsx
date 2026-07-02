@@ -260,7 +260,7 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
               href={TELEGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full justify-center rounded-full border border-[--color-sand-strong] bg-white px-4 py-2.5 text-sm font-semibold text-[--color-pine] transition hover:border-[--color-pine] hover:bg-[--color-sand]"
+              className="inline-flex w-full justify-center rounded-full bg-[--color-pine] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90"
             >
               Request access via Telegram
             </a>

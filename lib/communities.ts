@@ -80,7 +80,7 @@ export type CommunityDetail = {
   focus: string[] | null;
   activity_level: string | null;
   languages: string[] | null;
-  audience_size: string | null;
+  audience_size: number | null;
   friendliness: string | null;
   contact_person: string | null;
   website: string | null;
