@@ -34,8 +34,9 @@ import {
   isPrivateGroupInvite,
 } from "@/lib/communities";
 import { getCountryFlag } from "@/lib/utils";
-import { SITE_URL, TELEGRAM_URL } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
 import { ReportButton } from "@/components/report-button";
+import { InviteButtons } from "@/components/invite-buttons";
 
 export const revalidate = 3600;
 
@@ -305,17 +306,11 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
                 <section className="rounded-[1.75rem] border border-[--color-pine]/20 bg-[--color-pine]/5 p-6">
                   <h2 className="font-serif text-xl text-slate-950">Join this community</h2>
                   <p className="mt-2 text-sm text-slate-600">
-                    Private chat links are shared in our Telegram group to reduce spam.
+                    Private chat links are shared here after a quick verification to reduce spam.
                   </p>
-                  <a
-                    href={TELEGRAM_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[--color-pine] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90"
-                  >
-                    <TelegramIcon className="h-4 w-4" />
-                    Request access via Telegram
-                  </a>
+                  <div className="mt-4">
+                    <InviteButtons communityId={community.id} />
+                  </div>
                 </section>
               )}
             </aside>
@@ -392,14 +387,6 @@ function FacebookIcon() {
   return (
     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-    </svg>
-  );
-}
-
-function TelegramIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
-      <path d="M21.9 4.6 18.6 20c-.2 1.1-.8 1.4-1.7.9l-5.1-3.8-2.5 2.4c-.3.3-.5.5-1 .5l.4-5.2 9.5-8.6c.4-.4-.1-.6-.6-.2L5.8 13.4.7 11.8c-1.1-.3-1.1-1.1.2-1.6L20.8 2.5c.9-.3 1.7.2 1.1 2.1Z" />
     </svg>
   );
 }
