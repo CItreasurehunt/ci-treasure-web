@@ -266,6 +266,7 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, on
       clusterGroup.zoomToShowLayer(marker, () => {
         map.setView(marker.getLatLng(), 10, { animate: true });
         marker.openPopup();
+        setShowReset(true);
       });
     }
   }, [highlightedEventId, startProgFit]);

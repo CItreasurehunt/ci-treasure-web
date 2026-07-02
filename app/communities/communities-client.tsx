@@ -104,7 +104,7 @@ export function CommunitiesClient({
         </div>
 
         {/* Content */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 items-start">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredCommunities.map((community) => (
             <CommunityCard
               key={community.id}
@@ -172,9 +172,9 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
   const linkIconClass = "flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200";
 
   return (
-    <div className="flex flex-col rounded-2xl border border-[--color-sand-strong] bg-white p-5 transition hover:shadow-lg">
+    <div className="flex flex-col rounded-2xl border border-[--color-sand-strong] bg-white p-4 transition hover:shadow-lg">
       {/* Name + location */}
-      <h3 className="mb-1 font-serif text-xl text-slate-900">{community.name}</h3>
+      <h3 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">{community.name}</h3>
       <p className="mb-3 flex items-center gap-1 text-sm text-slate-500">
         <MapPin className="size-3 shrink-0 text-[--color-ember]" />
         {community.city}
@@ -237,7 +237,7 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
       )}
 
       {/* Join CTA */}
-      <div className="border-t border-[--color-sand-strong] pt-3 flex flex-col gap-2">
+      <div className="mt-auto pt-3 flex flex-col gap-2">
         {joinUrl && (
           <a
             href={joinUrl}
