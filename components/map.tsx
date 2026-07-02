@@ -36,6 +36,8 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, vi
   const [mapReady, setMapReady] = useState(false);
   // Skip fitBounds on first mobile render (keep Europe default); fit on subsequent filter changes
   const hasFitOnceMobile = useRef(false);
+  // Track previous highlight so we can re-fit when it clears
+  const prevHighlightedRef = useRef<string | null>(null);
 
   // Helper to determine if event is within the next 14 days
   const isEventSoon = (startDateStr: string) => {
@@ -219,18 +221,35 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, vi
     return () => clearTimeout(timer);
   }, [visible]);
 
-  // Handle active event highlight/focus
+  // Handle active event highlight/focus; re-fit all when highlight is cleared
   useEffect(() => {
     const map = mapRef.current;
     const clusterGroup = clusterGroupRef.current;
-    if (!map || !clusterGroup || !highlightedEventId) return;
+    if (!map || !clusterGroup) return;
 
+    if (!highlightedEventId) {
+      // Only reset if we were previously zoomed into a specific event
+      if (prevHighlightedRef.current) {
+        map.closePopup();
+        const allBounds = Object.values(markersMapRef.current).map((m) => {
+          const ll = m.getLatLng();
+          return [ll.lat, ll.lng] as L.LatLngTuple;
+        });
+        if (allBounds.length === 1) {
+          map.setView(allBounds[0], 8, { animate: true });
+        } else if (allBounds.length > 1) {
+          map.fitBounds(allBounds, { padding: [40, 40], maxZoom: 9 });
+        }
+      }
+      prevHighlightedRef.current = null;
+      return;
+    }
+
+    prevHighlightedRef.current = highlightedEventId;
     const marker = markersMapRef.current[highlightedEventId];
     if (marker) {
       const position = marker.getLatLng();
       map.setView(position, 10, { animate: true });
-      
-      // If marker is in a cluster, unpack it
       clusterGroup.zoomToShowLayer(marker, () => {
         marker.openPopup();
       });

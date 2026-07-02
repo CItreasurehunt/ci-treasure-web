@@ -171,7 +171,7 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
 
   return (
     <div className="flex flex-col rounded-2xl border border-[--color-sand-strong] bg-white p-5 transition hover:shadow-lg">
-      <div className="mb-3 flex-1">
+      <div className="mb-3">
         <h3 className="mb-1 font-serif text-xl text-slate-900">
           {community.name}
         </h3>
@@ -299,7 +299,7 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
       </div>
 
       {/* Join CTA */}
-      <div className="mt-auto flex flex-col gap-2">
+      <div className="mt-auto border-t border-[--color-sand-strong] pt-3 flex flex-col gap-2">
         {joinUrl && (
           <a
             href={joinUrl}

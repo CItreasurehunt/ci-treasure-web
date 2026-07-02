@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Search, Map, List, X, Filter } from "lucide-react";
+import { Search, Map, List, X, Filter, Globe } from "lucide-react";
 
 import { EventCard } from "./event-card";
 import { Button } from "./ui/button";
@@ -423,7 +423,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
         {/* Map Panel (Right side on desktop - Col 7) */}
         <div
-          className={`lg:col-span-8 h-full ${
+          className={`relative lg:col-span-8 h-full ${
             mobileView === "map" ? "block" : "hidden lg:block"
           }`}
         >
@@ -433,6 +433,15 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
             onMarkerClick={handleMarkerClick}
             visible={mobileView === "map"}
           />
+          {highlightedEventId && (
+            <button
+              onClick={() => setHighlightedEventId(null)}
+              className="absolute top-3 right-3 z-1001 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-md backdrop-blur-sm transition hover:bg-white hover:text-violet-700"
+            >
+              <Globe className="size-3.5" />
+              Show all
+            </button>
+          )}
         </div>
       </div>
 
