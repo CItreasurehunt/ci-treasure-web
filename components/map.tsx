@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
+import { Globe } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -25,19 +26,22 @@ type EventMapProps = {
   events: EventListItem[];
   highlightedEventId: string | null;
   onMarkerClick?: (eventId: string) => void;
+  onReset?: () => void;
   visible?: boolean;
 };
 
-export default function EventMap({ events, highlightedEventId, onMarkerClick, visible }: EventMapProps) {
+export default function EventMap({ events, highlightedEventId, onMarkerClick, onReset, visible }: EventMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const markersMapRef = useRef<Record<string, L.Marker>>({});
   const [mapReady, setMapReady] = useState(false);
+  const [showReset, setShowReset] = useState(false);
   // Skip fitBounds on first mobile render (keep Europe default); fit on subsequent filter changes
   const hasFitOnceMobile = useRef(false);
-  // Track previous highlight so we can re-fit when it clears
-  const prevHighlightedRef = useRef<string | null>(null);
+  // Suppress moveend-based showReset during programmatic fits
+  const isProgFitRef = useRef(false);
+  const progFitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Helper to determine if event is within the next 14 days
   const isEventSoon = (startDateStr: string) => {
@@ -122,6 +126,24 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, vi
     }
   }, [onMarkerClick]);
 
+  // Mark a programmatic fit in progress so moveend doesn't trigger showReset
+  const startProgFit = useCallback(() => {
+    isProgFitRef.current = true;
+    if (progFitTimerRef.current) clearTimeout(progFitTimerRef.current);
+    progFitTimerRef.current = setTimeout(() => { isProgFitRef.current = false; }, 800);
+  }, []);
+
+  // Show "Reset view" button whenever the user pans or zooms manually
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    const onMoveEnd = () => {
+      if (!isProgFitRef.current) setShowReset(true);
+    };
+    map.on("moveend", onMoveEnd);
+    return () => { map.off("moveend", onMoveEnd); };
+  }, [mapReady]);
+
   // Update Markers when events list changes
   useEffect(() => {
     const map = mapRef.current;
@@ -188,6 +210,8 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, vi
     if (bounds.length > 0) {
       const isMobile = window.innerWidth < 640;
       if (!isMobile || hasFitOnceMobile.current) {
+        startProgFit();
+        setShowReset(false);
         if (bounds.length === 1) {
           map.setView(bounds[0], 8, { animate: true });
         } else {
@@ -196,7 +220,7 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, vi
       }
       hasFitOnceMobile.current = true;
     }
-  }, [events, handleMarkerClickInternal, mapReady]);
+  }, [events, handleMarkerClickInternal, mapReady, startProgFit]);
 
   // When the map container becomes visible (mobile switching to map view), Leaflet needs to
   // recalculate its dimensions and re-fit to the current markers
@@ -211,54 +235,71 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, vi
         const ll = m.getLatLng();
         return [ll.lat, ll.lng] as L.LatLngTuple;
       });
-      if (currentBounds.length === 1) {
-        map.setView(currentBounds[0], 8, { animate: false });
-      } else if (currentBounds.length > 1) {
-        map.fitBounds(currentBounds, { padding: [40, 40], maxZoom: 9 });
+      if (currentBounds.length > 0) {
+        startProgFit();
+        setShowReset(false);
+        if (currentBounds.length === 1) {
+          map.setView(currentBounds[0], 8, { animate: false });
+        } else {
+          map.fitBounds(currentBounds, { padding: [40, 40], maxZoom: 9 });
+        }
       }
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [visible]);
+  }, [visible, startProgFit]);
 
-  // Handle active event highlight/focus; re-fit all when highlight is cleared
+  // Zoom to highlighted event; clearing highlight closes the popup (map position reset via button)
   useEffect(() => {
     const map = mapRef.current;
     const clusterGroup = clusterGroupRef.current;
     if (!map || !clusterGroup) return;
 
     if (!highlightedEventId) {
-      // Only reset if we were previously zoomed into a specific event
-      if (prevHighlightedRef.current) {
-        map.closePopup();
-        const allBounds = Object.values(markersMapRef.current).map((m) => {
-          const ll = m.getLatLng();
-          return [ll.lat, ll.lng] as L.LatLngTuple;
-        });
-        if (allBounds.length === 1) {
-          map.setView(allBounds[0], 8, { animate: true });
-        } else if (allBounds.length > 1) {
-          map.fitBounds(allBounds, { padding: [40, 40], maxZoom: 9 });
-        }
-      }
-      prevHighlightedRef.current = null;
+      map.closePopup();
       return;
     }
 
-    prevHighlightedRef.current = highlightedEventId;
     const marker = markersMapRef.current[highlightedEventId];
     if (marker) {
-      const position = marker.getLatLng();
-      map.setView(position, 10, { animate: true });
+      startProgFit();
       clusterGroup.zoomToShowLayer(marker, () => {
+        map.setView(marker.getLatLng(), 10, { animate: true });
         marker.openPopup();
       });
     }
-  }, [highlightedEventId]);
+  }, [highlightedEventId, startProgFit]);
+
+  const handleResetView = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.closePopup();
+    const allBounds = Object.values(markersMapRef.current).map((m) => {
+      const ll = m.getLatLng();
+      return [ll.lat, ll.lng] as L.LatLngTuple;
+    });
+    startProgFit();
+    setShowReset(false);
+    if (allBounds.length === 1) {
+      map.setView(allBounds[0], 8, { animate: true });
+    } else if (allBounds.length > 1) {
+      map.fitBounds(allBounds, { padding: [40, 40], maxZoom: 9 });
+    }
+    onReset?.();
+  };
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-inner">
       <div ref={mapContainerRef} className="h-full w-full z-10" />
+      {showReset && (
+        <button
+          onClick={handleResetView}
+          className="absolute top-3 right-3 z-1001 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-md backdrop-blur-sm transition hover:bg-white hover:text-violet-700"
+        >
+          <Globe className="size-3.5" />
+          Reset view
+        </button>
+      )}
     </div>
   );
 }

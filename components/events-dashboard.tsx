@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Search, Map, List, X, Filter, Globe } from "lucide-react";
+import { Search, Map, List, X, Filter } from "lucide-react";
 
 import { EventCard } from "./event-card";
 import { Button } from "./ui/button";
@@ -423,7 +423,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
         {/* Map Panel (Right side on desktop - Col 7) */}
         <div
-          className={`relative lg:col-span-8 h-full ${
+          className={`lg:col-span-8 h-full ${
             mobileView === "map" ? "block" : "hidden lg:block"
           }`}
         >
@@ -431,44 +431,31 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
             events={filteredEvents}
             highlightedEventId={highlightedEventId}
             onMarkerClick={handleMarkerClick}
+            onReset={() => setHighlightedEventId(null)}
             visible={mobileView === "map"}
           />
-          {highlightedEventId && (
-            <button
-              onClick={() => setHighlightedEventId(null)}
-              className="absolute top-3 right-3 z-1001 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-md backdrop-blur-sm transition hover:bg-white hover:text-violet-700"
-            >
-              <Globe className="size-3.5" />
-              Show all
-            </button>
-          )}
         </div>
       </div>
 
       {/* Is your event missing? */}
-      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-5 text-center text-sm text-slate-600 sm:flex-row sm:text-left">
-        <span>Is your event missing?</span>
-        <div className="flex flex-wrap justify-center gap-3 sm:justify-start">
-          <a
-            href={TELEGRAM_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-[--color-pine] underline decoration-[--color-pine]/35 underline-offset-4 transition hover:decoration-[--color-pine]"
-          >
-            Post it in our Telegram group
-          </a>
-          <span className="text-slate-300 hidden sm:inline">·</span>
-          <span className="text-slate-600">
-            or email us at{" "}
-            <a
-              href="mailto:hello@citreasurehunt.com"
-              className="font-medium text-[--color-pine] underline decoration-[--color-pine]/35 underline-offset-4 transition hover:decoration-[--color-pine]"
-            >
-              hello@citreasurehunt.com
-            </a>
-          </span>
-        </div>
-      </div>
+      <p className="rounded-xl border border-slate-200 bg-white px-6 py-5 text-center text-sm text-slate-600">
+        Is your event missing?{" "}
+        <a
+          href={TELEGRAM_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-[--color-pine] underline decoration-[--color-pine]/35 underline-offset-4 transition hover:decoration-[--color-pine]"
+        >
+          Post it in our Telegram group
+        </a>
+        {" "}or email us at{" "}
+        <a
+          href="mailto:hello@citreasurehunt.com"
+          className="font-medium text-[--color-pine] underline decoration-[--color-pine]/35 underline-offset-4 transition hover:decoration-[--color-pine]"
+        >
+          hello@citreasurehunt.com
+        </a>
+      </p>
     </div>
   );
 }
