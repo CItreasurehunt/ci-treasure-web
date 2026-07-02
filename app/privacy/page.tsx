@@ -3,7 +3,7 @@ export default function PrivacyPage() {
     <main className="mx-auto min-h-screen max-w-3xl px-5 py-14 sm:px-8">
       <h1 className="font-serif text-4xl text-slate-950">Privacy Policy</h1>
       <div className="mt-8 space-y-6 text-base leading-8 text-slate-700">
-        <p className="text-sm text-slate-500">Last updated: June 2026</p>
+        <p className="text-sm text-slate-500">Last updated: July 2026</p>
         <section>
           <h2 className="font-semibold text-slate-950">1. Controller</h2>
           <p>
@@ -74,14 +74,66 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-semibold text-slate-950">6. Newsletter</h2>
           <p>
-            Newsletter signup is handled via an external EmailOctopus page. When you sign up, your name and email
-            address are stored by EmailOctopus. Their privacy policy applies to that data. We do not receive or store
-            your email address on our own systems. Legal basis for any data we may later process directly: Art.
-            6(1)(a) GDPR - consent. You can unsubscribe at any time via the link in any newsletter email.
+            The newsletter signup form is embedded directly on this site and is provided by EmailOctopus
+            (EmailOctopus Limited, UK). When you subscribe, your name and email address are transmitted to and stored
+            by EmailOctopus. Their{" "}
+            <a
+              href="https://emailoctopus.com/legal/privacy"
+              className="underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              privacy policy
+            </a>{" "}
+            governs that data. We do not store your email address on our own systems. Legal basis: Art. 6(1)(a) GDPR
+            — your consent at the time of signup. You can unsubscribe at any time via the link in any newsletter
+            email.
+          </p>
+          <p className="mt-2">
+            The signup form uses Google reCAPTCHA to prevent automated spam submissions. When the form loads, Google
+            reCAPTCHA collects hardware and software information (including device and application data) and sends it
+            to Google Inc. (US). This processing serves our legitimate interest in keeping the mailing list free from
+            bots. Legal basis: Art. 6(1)(f) GDPR. See{" "}
+            <a
+              href="https://policies.google.com/privacy"
+              className="underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Google&apos;s privacy policy
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://policies.google.com/terms"
+              className="underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              terms of service
+            </a>
+            .
           </p>
         </section>
         <section>
-          <h2 className="font-semibold text-slate-950">7. Your rights</h2>
+          <h2 className="font-semibold text-slate-950">7. Feedback form</h2>
+          <p>
+            The feedback form at /feedback is provided by Tally (Tally Solutions BV, Belgium) and is embedded via
+            iframe. If you submit a response, the data you enter is received by Tally and forwarded to us. We use
+            this data solely to improve the site and do not share it. Tally&apos;s{" "}
+            <a
+              href="https://tally.so/help/privacy-policy"
+              className="underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              privacy policy
+            </a>{" "}
+            governs Tally&apos;s own processing. Legal basis: Art. 6(1)(f) GDPR — legitimate interest in improving
+            the service.
+          </p>
+        </section>
+        <section>
+          <h2 className="font-semibold text-slate-950">9. Your rights</h2>
           <p>
             Under the GDPR you have the right to access, correct, or delete personal data we hold about you, to
             restrict or object to processing, and to data portability where applicable. To exercise these rights,
@@ -101,7 +153,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-semibold text-slate-950">8. Reports</h2>
+          <h2 className="font-semibold text-slate-950">8. Event reports</h2>
           <p>
             When you submit a report via the report form on event, venue, or teacher pages, a daily-rotating hash
             of your IP address is stored to prevent abuse. This hash cannot be used to identify you and is not
@@ -110,7 +162,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-semibold text-slate-950">9. Changes to this policy</h2>
+          <h2 className="font-semibold text-slate-950">10. Changes to this policy</h2>
           <p>
             This policy will be updated when new features affecting data processing are added. The date at the top of
             this page reflects the most recent revision.

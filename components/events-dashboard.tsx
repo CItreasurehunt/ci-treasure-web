@@ -10,6 +10,49 @@ import { Button } from "./ui/button";
 import { getCountryLabel, getTypeLabel, type EventListItem } from "@/lib/events";
 import { TELEGRAM_URL } from "@/lib/site";
 
+const CONTINENT_COUNTRIES: Record<string, string[]> = {
+  americas: [
+    "AG","AR","BB","BO","BR","BS","BZ","CA","CL","CO","CR","CU","DM","DO","EC","GD",
+    "GT","GY","HN","HT","JM","KN","LC","MX","NI","PA","PE","PR","PY","SR","SV","TT",
+    "US","UY","VC","VE",
+  ],
+  emea: [
+    // Europe
+    "AD","AL","AT","BA","BE","BG","BY","CH","CY","CZ","DE","DK","EE","ES","FI","FR",
+    "GB","GR","HR","HU","IE","IS","IT","LI","LT","LU","LV","MC","MD","ME","MK","MT",
+    "NL","NO","PL","PT","RO","RS","SE","SI","SK","SM","UA","XK",
+    // Russia + Caucasus
+    "AM","AZ","GE","RU",
+    // Turkey
+    "TR",
+    // Middle East
+    "AE","BH","IQ","IR","IL","JO","KW","LB","OM","PS","QA","SA","SY","YE",
+    // Africa
+    "AO","BF","BI","BJ","BW","CD","CF","CG","CI","CM","CV","DJ","DZ","EG","ER","ET",
+    "GA","GH","GM","GN","GQ","GW","KE","KM","LR","LS","LY","MA","MG","ML","MR","MU",
+    "MW","MZ","NA","NE","NG","RW","SC","SD","SL","SN","SO","SS","ST","SZ","TD","TG",
+    "TN","TZ","UG","ZA","ZM","ZW",
+  ],
+  apac: [
+    // South Asia
+    "AF","BD","BT","IN","LK","MV","NP","PK",
+    // Southeast Asia
+    "BN","ID","KH","LA","MM","MY","PH","SG","TH","TL","VN",
+    // East Asia
+    "CN","HK","JP","KP","KR","MN","MO","TW",
+    // Central Asia
+    "KG","KZ","TJ","TM","UZ",
+    // Oceania
+    "AU","FJ","NZ","PG","SB","TO","VU","WS",
+  ],
+};
+
+const CONTINENT_LABELS: Record<string, string> = {
+  americas: "Americas",
+  emea: "EMEA",
+  apac: "Asia-Pacific",
+};
+
 // Dynamically load the Map component without SSR to avoid 'window is not defined' errors
 const EventMap = dynamic(() => import("./map"), {
   ssr: false,
@@ -91,6 +134,19 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [events]);
 
+  // Group country options by continent for the optgroup select
+  const groupedCountryOptions = useMemo(() => {
+    const groups = (["americas", "emea", "apac"] as const).map((key) => ({
+      key,
+      label: CONTINENT_LABELS[key],
+      value: `__continent_${key}`,
+      countries: countryOptions.filter((o) => CONTINENT_COUNTRIES[key].includes(o.value)),
+    }));
+    const placed = new Set(groups.flatMap((g) => g.countries.map((c) => c.value)));
+    const ungrouped = countryOptions.filter((o) => !placed.has(o.value));
+    return { groups: groups.filter((g) => g.countries.length > 0), ungrouped };
+  }, [countryOptions]);
+
   // Extract unique types from loaded events list
   const typeOptions = useMemo(() => {
     const types = Array.from(new Set(events.map((e) => e.type)));
@@ -124,9 +180,14 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
         }
       }
 
-      // 2. Country Match
-      if (selectedCountry && event.country !== selectedCountry) {
-        return false;
+      // 2. Country / Continent Match
+      if (selectedCountry) {
+        if (selectedCountry.startsWith("__continent_")) {
+          const key = selectedCountry.slice("__continent_".length);
+          if (!CONTINENT_COUNTRIES[key]?.includes(event.country)) return false;
+        } else if (event.country !== selectedCountry) {
+          return false;
+        }
       }
 
       // 3. Event Type Match
@@ -239,18 +300,28 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
         {/* Extended filters — always visible on desktop, collapsed on mobile behind Filters button */}
         <div className={`flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 md:pt-4 ${filtersOpen ? "flex" : "hidden"} lg:flex`}>
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            {/* Country Selector */}
+            {/* Country / Continent Selector */}
             <select
               value={selectedCountry}
               onChange={(e) => setSelectedCountry(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 sm:w-44"
             >
               <option value="">All Countries</option>
-              {countryOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+              {groupedCountryOptions.groups.map((group) => (
+                <optgroup key={group.key} label={group.label}>
+                  <option value={group.value}>All {group.label}</option>
+                  {group.countries.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </optgroup>
               ))}
+              {groupedCountryOptions.ungrouped.length > 0 && (
+                <optgroup label="Other">
+                  {groupedCountryOptions.ungrouped.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </optgroup>
+              )}
             </select>
 
             {/* Type Selector */}

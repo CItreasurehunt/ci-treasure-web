@@ -4,13 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
-import { NEWSLETTER_URL } from "@/lib/site";
 
 const NAV_LINKS = [
   { label: "Events", href: "/", external: false },
   { label: "Communities", href: "/communities", external: false },
   { label: "Feedback", href: "/feedback", external: false },
-  { label: "Newsletter", href: NEWSLETTER_URL, external: true },
+  { label: "Newsletter", href: "/newsletter", external: false },
 ];
 
 export function SiteHeader() {

@@ -10,7 +10,6 @@ import { SiteHeader } from "@/components/site-header";
 import {
   FACEBOOK_URL,
   INSTAGRAM_URL,
-  NEWSLETTER_URL,
   SITE_URL,
   TELEGRAM_URL,
 } from "@/lib/site";
@@ -81,16 +80,14 @@ export default function RootLayout({
                 >
                   <TelegramIcon className="size-5" />
                 </a>
-                <a
-                  href={NEWSLETTER_URL}
-                  target="_blank"
-                  rel="noreferrer"
+                <Link
+                  href="/newsletter"
                   className="inline-flex size-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200"
                   aria-label="Newsletter"
                   title="Newsletter"
                 >
                   <Mail className="size-5" />
-                </a>
+                </Link>
                 <a
                   href={INSTAGRAM_URL}
                   target="_blank"
