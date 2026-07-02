@@ -9,7 +9,7 @@ import { NEWSLETTER_URL } from "@/lib/site";
 const NAV_LINKS = [
   { label: "Events", href: "/", external: false },
   { label: "Communities", href: "/communities", external: false },
-  { label: "Feedback", href: "https://tally.so/r/yPzK4B", external: true },
+  { label: "Feedback", href: "/feedback", external: false },
   { label: "Newsletter", href: NEWSLETTER_URL, external: true },
 ];
 

@@ -31,9 +31,10 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // All filters live in the URL so the back button restores them
-  const searchQuery = searchParams.get("q") ?? "";
-  const setSearchQuery = (v: string) => setParam("q", v);
+  // Search query: local state only (client-side filtering, no URL round-trip per keystroke)
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Other filters live in the URL so the back button restores them
   const selectedCountry = searchParams.get("country") ?? "";
   const selectedType = searchParams.get("type") ?? "";
   const selectedMonth = searchParams.get("month") ?? "";
@@ -64,6 +65,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
   // Reset all filters
   const resetFilters = () => {
     router.replace("/", { scroll: false });
+    setSearchQuery("");
     setHighlightedEventId(null);
   };
 
@@ -376,12 +378,15 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
             Post it in our Telegram group
           </a>
           <span className="text-slate-300 hidden sm:inline">·</span>
-          <a
-            href="mailto:hello@citreasurehunt.com"
-            className="font-medium text-[--color-pine] underline decoration-[--color-pine]/35 underline-offset-4 transition hover:decoration-[--color-pine]"
-          >
-            hello@citreasurehunt.com
-          </a>
+          <span className="text-slate-600">
+            or email us at{" "}
+            <a
+              href="mailto:hello@citreasurehunt.com"
+              className="font-medium text-[--color-pine] underline decoration-[--color-pine]/35 underline-offset-4 transition hover:decoration-[--color-pine]"
+            >
+              hello@citreasurehunt.com
+            </a>
+          </span>
         </div>
       </div>
     </div>
