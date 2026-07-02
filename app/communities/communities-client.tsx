@@ -235,7 +235,7 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
 
       {/* Description */}
       {community.description && (
-        <p className="mb-3 line-clamp-2 text-sm text-slate-600">{community.description}</p>
+        <p className="mb-3 line-clamp-2 wrap-break-word text-sm text-slate-600">{community.description}</p>
       )}
 
       {/* Join CTA */}
