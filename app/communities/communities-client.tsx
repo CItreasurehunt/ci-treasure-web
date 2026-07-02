@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { CalendarDays, ExternalLink, Globe, MapPin, MessageCircle, Send } from "lucide-react";
 
-import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, hasPrivateGroupLink, isPrivateGroupInvite, type Community } from "@/lib/airtable";
+import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, hasPrivateGroupLink, isPrivateGroupInvite, type Community } from "@/lib/communities";
 import { TELEGRAM_URL } from "@/lib/site";
 
 type CommunitiesClientProps = {
