@@ -174,7 +174,11 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
   return (
     <div className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[--color-sand-strong] bg-white p-4 transition hover:shadow-lg">
       {/* Name + location */}
-      <h3 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">{community.name}</h3>
+      <h3 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">
+        <Link href={`/communities/${community.slug}`} className="hover:text-[--color-pine] transition">
+          {community.name}
+        </Link>
+      </h3>
       <p className="mb-3 flex min-w-0 items-center gap-1 text-sm text-slate-500">
         <MapPin className="size-3 shrink-0 text-[--color-ember]" />
         <span className="min-w-0 wrap-break-word">

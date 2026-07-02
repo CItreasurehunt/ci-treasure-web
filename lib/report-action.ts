@@ -4,7 +4,7 @@ import { createHash } from "crypto";
 import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const VALID_ENTITY_TYPES = ["event", "venue", "profile"] as const;
+const VALID_ENTITY_TYPES = ["event", "venue", "profile", "community"] as const;
 const VALID_REASONS = ["incorrect_info", "spam_fake", "copyright", "illegal_other"] as const;
 const RATE_LIMIT = 5;
 
@@ -16,7 +16,7 @@ const REASON_LABELS: Record<string, string> = {
 };
 
 export type ReportInput = {
-  entity_type: "event" | "venue" | "profile";
+  entity_type: "event" | "venue" | "profile" | "community";
   entity_id: string;
   entity_title: string;
   entity_slug: string;

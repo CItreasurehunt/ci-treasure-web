@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { mapEventRow, type SupabaseEventRow } from "./events";
 
 // Public submit/issue forms still live on Airtable until I-039 Step 2
 export const COMMUNITY_SUBMIT_URL =
@@ -9,7 +10,7 @@ export const COMMUNITY_ISSUE_URL =
 type CommunityRow = {
   id: string;
   name: string;
-  slug: string | null;
+  slug: string;
   type: string | null;
   city: string | null;
   country: string | null; // ISO 3166-1 alpha-2
@@ -35,7 +36,7 @@ type CommunityRow = {
 export type Community = {
   id: string;
   name: string;
-  slug: string | null;
+  slug: string;
   city: string;
   country: string; // display label, e.g. "Germany"
   description: string | null;
@@ -61,6 +62,41 @@ export type CommunitiesResponse = {
   communityCount: number;
   countryCount: number;
   error: string | null;
+};
+
+export type CommunityDetail = {
+  id: string;
+  name: string;
+  slug: string;
+  type: string | null;
+  verified: boolean;
+  city: string | null;
+  country: string | null;
+  region: string | null;
+  continent: string | null;
+  lat: number | null;
+  lng: number | null;
+  description: string | null;
+  focus: string[] | null;
+  activity_level: string | null;
+  languages: string[] | null;
+  audience_size: string | null;
+  friendliness: string | null;
+  contact_person: string | null;
+  website: string | null;
+  instagram: string | null;
+  facebook_group: string | null;
+  facebook_page: string | null;
+  telegram_group: string | null;
+  telegram_channel: string | null;
+  whatsapp_channel: string | null;
+  youtube: string | null;
+  calendar: string | null;
+  newsletter: string | null;
+  other_resource: string | null;
+  has_invites: boolean;
+  venue: { slug: string; name: string } | null;
+  profile: { slug: string; name: string } | null;
 };
 
 const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
@@ -178,7 +214,7 @@ export async function getCommunities(): Promise<CommunitiesResponse> {
 
     if (error) throw new Error(error.message);
 
-    const communities = sortCommunities((data as CommunityRow[]).map(toCommunity));
+    const communities = sortCommunities((data as unknown as CommunityRow[]).map(toCommunity));
     const uniqueCountries = Array.from(new Set(communities.map((c) => c.country).filter(Boolean)))
       .sort((a, b) => a.localeCompare(b))
       .map((country) => ({ value: country, label: country }));
@@ -200,4 +236,86 @@ export async function getCommunities(): Promise<CommunitiesResponse> {
         error instanceof Error ? error.message : "Failed to load communities. Please try again later.",
     };
   }
+}
+
+function hasSupabaseEnv() {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
+export async function getCommunityBySlug(slug: string): Promise<CommunityDetail | null> {
+  if (!hasSupabaseEnv()) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("communities")
+    .select(`
+      id, name, slug, type, verified, city, country, region, continent,
+      lat, lng, description, focus, activity_level, languages, audience_size,
+      friendliness, contact_person, website, instagram, facebook_group,
+      facebook_page, telegram_group, telegram_channel, whatsapp_channel,
+      youtube, calendar, newsletter, other_resource, has_invites,
+      venue_id, profile_id,
+      venue:venue_id ( slug, name ),
+      profile:profile_id ( slug, name )
+    `)
+    .eq("slug", slug)
+    .is("deleted_at", null)
+    .single();
+
+  if (error || !data) return null;
+
+  return {
+    ...data,
+    website: normalizeUrl(data.website),
+    instagram: normalizeUrl(data.instagram),
+    facebook_group: normalizeUrl(data.facebook_group),
+    facebook_page: normalizeUrl(data.facebook_page),
+    telegram_group: normalizeUrl(data.telegram_group),
+    telegram_channel: normalizeUrl(data.telegram_channel),
+    whatsapp_channel: normalizeUrl(data.whatsapp_channel),
+    youtube: normalizeUrl(data.youtube),
+    calendar: normalizeUrl(data.calendar),
+    newsletter: normalizeUrl(data.newsletter),
+    other_resource: normalizeUrl(data.other_resource),
+    venue: Array.isArray(data.venue) ? data.venue[0] : data.venue,
+    profile: Array.isArray(data.profile) ? data.profile[0] : data.profile,
+  } as unknown as CommunityDetail;
+}
+
+export async function getAllCommunitySlugs(): Promise<string[]> {
+  if (!hasSupabaseEnv()) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("communities")
+    .select("slug")
+    .is("deleted_at", null);
+
+  if (error || !data) return [];
+  return data.map((v) => v.slug);
+}
+
+export async function getCommunityEventsByCountry(countryIso: string | null) {
+  if (!hasSupabaseEnv() || !countryIso) return [];
+
+  const supabase = await createClient();
+  const today = new Date().toISOString().split("T")[0];
+
+  const EVENT_COLS = "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, lat, lng";
+
+  const { data, error } = await supabase
+    .from("events")
+    .select(EVENT_COLS)
+    .eq("country", countryIso)
+    .eq("status", "published")
+    .gte("end_date", today)
+    .order("start_date", { ascending: true })
+    .limit(5);
+
+  if (error) {
+    console.error("Error fetching community events by country:", error);
+    return [];
+  }
+
+  return (data as SupabaseEventRow[]).map(mapEventRow);
 }
