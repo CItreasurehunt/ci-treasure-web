@@ -172,7 +172,7 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
   const linkIconClass = "flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200";
 
   return (
-    <div className="flex flex-col rounded-2xl border border-[--color-sand-strong] bg-white p-4 transition hover:shadow-lg">
+    <div className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[--color-sand-strong] bg-white p-4 transition hover:shadow-lg">
       {/* Name + location */}
       <h3 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">{community.name}</h3>
       <p className="mb-3 flex min-w-0 items-center gap-1 text-sm text-slate-500">
