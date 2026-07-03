@@ -25,7 +25,7 @@ function slugify(value: string) {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [{ data: events }, { data: venues }, { data: profiles }] = await Promise.all([
+  const [{ data: events }, { data: venues }, { data: profiles }, { data: communities }] = await Promise.all([
     supabase
       .from("events")
       .select("short_id, title, updated_at")
@@ -40,6 +40,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select("slug, updated_at")
       .eq("visibility", "public")
       .eq("is_teacher", true),
+    supabase
+      .from("communities")
+      .select("slug, synced_at")
+      .is("deleted_at", null),
   ]);
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -72,5 +76,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     }));
 
-  return [...staticPages, ...eventUrls, ...venueUrls, ...teacherUrls];
+  const communityUrls: MetadataRoute.Sitemap = (communities ?? [])
+    .filter((c) => c.slug)
+    .map((c) => ({
+      url: `${SITE_URL}/communities/${c.slug}`,
+      lastModified: c.synced_at ? new Date(c.synced_at) : undefined,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    }));
+
+  return [...staticPages, ...eventUrls, ...venueUrls, ...teacherUrls, ...communityUrls];
 }
