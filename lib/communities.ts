@@ -40,6 +40,7 @@ export type Community = {
   id: string;
   name: string;
   slug: string;
+  type: string | null;
   city: string;
   country: string; // display label, e.g. "Germany"
   countryIso: string | null; // ISO 3166-1 alpha-2, e.g. "DE" — null for "Worldwide / several"
@@ -141,6 +142,7 @@ function toCommunity(row: CommunityRow): Community {
     id: row.id,
     name: row.name,
     slug: row.slug,
+    type: row.type,
     city: row.city ?? "",
     country: countryLabel(row),
     countryIso: row.country,

@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarDays, ExternalLink, Globe, MapPin, MessageCircle, Send } from "lucide-react";
+import { CalendarDays, ExternalLink, Globe, MapPin, MessageCircle, Send, Search, X, Filter, Map, List } from "lucide-react";
 
 import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, isPrivateGroupInvite, type Community } from "@/lib/communities";
 import { TELEGRAM_URL } from "@/lib/site";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { CONTINENT_COUNTRIES, CONTINENT_LABELS } from "@/lib/continents";
 
 const WORLDWIDE_VALUE = "__worldwide";
@@ -20,6 +22,19 @@ type CommunitiesClientProps = {
   initialError: string | null;
 };
 
+// Dynamically load the Map component without SSR
+const CommunityMap = dynamic(() => import("@/components/community-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400">
+      <div className="flex flex-col items-center gap-2">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent"></div>
+        <p className="text-sm font-medium">Loading Interactive Map...</p>
+      </div>
+    </div>
+  ),
+});
+
 export function CommunitiesClient({
   initialCommunities,
   initialCountries,
@@ -29,15 +44,40 @@ export function CommunitiesClient({
 }: CommunitiesClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const selectedCountry = searchParams.get("country") ?? "";
 
-  function setSelectedCountry(value: string) {
+  // Search query: local state only
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filters from URL
+  const selectedCountry = searchParams.get("country") ?? "";
+  const selectedType = searchParams.get("type") ?? "";
+
+  function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set("country", value);
-    else params.delete("country");
+    if (value) params.set(key, value);
+    else params.delete(key);
     const qs = params.toString();
     router.replace(qs ? `/communities?${qs}` : "/communities", { scroll: false });
   }
+
+  const setSelectedCountry = (v: string) => setParam("country", v);
+  const setSelectedType = (v: string) => setParam("type", v);
+
+  // Interaction state
+  const [highlightedCommunityId, setHighlightedCommunityId] = useState<string | null>(null);
+
+  // Mobile view state: 'list' | 'map'
+  const [mobileView, setMobileView] = useState<"list" | "map">("list");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const activeFilterCount = [selectedCountry, selectedType].filter(Boolean).length;
+
+  // Reset all filters
+  const resetFilters = () => {
+    router.replace("/communities", { scroll: false });
+    setSearchQuery("");
+    setHighlightedCommunityId(null);
+  };
 
   // Group country options into the project's three business regions (Americas / EMEA /
   // Asia-Pacific — same CONTINENT_COUNTRIES used on the events page), plus a "Worldwide" group
@@ -53,18 +93,66 @@ export function CommunitiesClient({
     return { groups: groups.filter((g) => g.countries.length > 0), hasWorldwide };
   }, [initialCountries, initialCommunities]);
 
-  // Filter communities by selected country / continent / worldwide
+  // Extract unique types from loaded communities list
+  const typeOptions = useMemo(() => {
+    const types = Array.from(new Set(initialCommunities.map((c) => c.type).filter((t): t is string => !!t)));
+    return types
+      .map((t) => ({ value: t, label: t }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [initialCommunities]);
+
+  // Filter communities locally
   const filteredCommunities = useMemo(() => {
-    if (!selectedCountry) return initialCommunities;
-    if (selectedCountry === WORLDWIDE_VALUE) {
-      return initialCommunities.filter((c) => c.countryIso === null);
+    return initialCommunities.filter((community) => {
+      // 1. Search Query
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        const nameMatch = community.name?.toLowerCase().includes(query);
+        const descMatch = community.description?.toLowerCase().includes(query);
+        const cityMatch = community.city?.toLowerCase().includes(query);
+        const countryMatch = community.country?.toLowerCase().includes(query);
+        if (!nameMatch && !descMatch && !cityMatch && !countryMatch) {
+          return false;
+        }
+      }
+
+      // 2. Country / Continent Match
+      if (selectedCountry) {
+        if (selectedCountry === WORLDWIDE_VALUE) {
+          if (community.countryIso !== null) return false;
+        } else if (selectedCountry.startsWith("__continent_")) {
+          const key = selectedCountry.slice("__continent_".length);
+          if (!community.countryIso || !CONTINENT_COUNTRIES[key]?.includes(community.countryIso)) return false;
+        } else if (community.countryIso !== selectedCountry) {
+          return false;
+        }
+      }
+
+      // 3. Community Type Match
+      if (selectedType && community.type !== selectedType) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [initialCommunities, searchQuery, selectedCountry, selectedType]);
+
+  const handleCardClick = useCallback((communityId: string) => {
+    setHighlightedCommunityId(communityId);
+    // Switch to map view on mobile
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setMobileView("map");
     }
-    if (selectedCountry.startsWith("__continent_")) {
-      const key = selectedCountry.slice("__continent_".length);
-      return initialCommunities.filter((c) => c.countryIso && CONTINENT_COUNTRIES[key]?.includes(c.countryIso));
+  }, []);
+
+  const handleMarkerClick = useCallback((communityId: string) => {
+    setHighlightedCommunityId(communityId);
+    // Scroll to card
+    const cardElement = document.getElementById(`community-card-${communityId}`);
+    if (cardElement) {
+      cardElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
-    return initialCommunities.filter((c) => c.countryIso === selectedCountry);
-  }, [initialCommunities, selectedCountry]);
+  }, []);
 
   // Error state
   if (initialError) {
@@ -87,9 +175,9 @@ export function CommunitiesClient({
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-(--color-cream) px-5 py-10 sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <header className="mb-10">
+        <header className="mb-8">
           <h1 className="mb-3 font-serif text-3xl text-slate-900 md:text-5xl">
             CI Communities Worldwide
           </h1>
@@ -120,46 +208,184 @@ export function CommunitiesClient({
           </p>
         </header>
 
-        {/* Controls */}
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          {/* Country Filter */}
-          <div className="w-full md:w-64">
-            <select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-              className="w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-(--color-pine) focus:ring-2 focus:ring-(--color-pine)/20"
-            >
-              <option value="">All countries</option>
-              {groupedCountryOptions.groups.map((group) => (
-                <optgroup key={group.key} label={group.label}>
-                  <option value={group.value}>All {group.label}</option>
-                  {group.countries.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </optgroup>
-              ))}
-              {groupedCountryOptions.hasWorldwide && (
-                <optgroup label="Worldwide">
-                  <option value={WORLDWIDE_VALUE}>Worldwide / International</option>
-                </optgroup>
+        {/* Search & Filter Toolbar */}
+        <div className="mb-8 flex flex-col gap-4 rounded-xl border border-(--color-sand-strong) bg-white p-4 shadow-sm md:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {/* Search bar */}
+            <div className="relative flex-1">
+              <Search className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by name, city, or country..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-slate-50/50 py-3 pr-4 pl-11 text-sm outline-none transition focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-100"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute top-1/2 right-4 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="size-4" />
+                </button>
               )}
-            </select>
+            </div>
+
+            {/* Mobile controls */}
+            <div className="flex gap-2 border-t border-slate-100 pt-3 sm:border-none sm:pt-0 lg:hidden">
+              <button
+                onClick={() => setFiltersOpen((o) => !o)}
+                className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+                  filtersOpen || activeFilterCount > 0
+                    ? "bg-violet-100 text-violet-700"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <Filter className="size-4" />
+                Filters
+                {activeFilterCount > 0 && !filtersOpen && (
+                  <span className="rounded-full bg-violet-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+              <div className="flex flex-1">
+                <button
+                  onClick={() => setMobileView("list")}
+                  className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition ${
+                    mobileView === "list"
+                      ? "bg-violet-100 text-violet-700"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <List className="size-4" />
+                  List
+                </button>
+                <button
+                  onClick={() => setMobileView("map")}
+                  className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition ${
+                    mobileView === "map"
+                      ? "bg-violet-100 text-violet-700"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <Map className="size-4" />
+                  Map
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Extended filters */}
+          <div className={`flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 md:pt-4 ${filtersOpen ? "flex" : "hidden"} lg:flex`}>
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              <select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 sm:w-44"
+              >
+                <option value="">All Countries</option>
+                {groupedCountryOptions.groups.map((group) => (
+                  <optgroup key={group.key} label={group.label}>
+                    <option value={group.value}>All {group.label}</option>
+                    {group.countries.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
+                {groupedCountryOptions.hasWorldwide && (
+                  <optgroup label="Worldwide">
+                    <option value={WORLDWIDE_VALUE}>Worldwide / International</option>
+                  </optgroup>
+                )}
+              </select>
+
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 sm:w-44"
+              >
+                <option value="">All Types</option>
+                {typeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 w-full justify-between sm:w-auto sm:justify-end border-t border-slate-50 pt-2 sm:border-none sm:pt-0">
+              <span>
+                {filteredCommunities.length} of {initialCommunities.length} communities
+              </span>
+              {(searchQuery || selectedCountry || selectedType) && (
+                <button
+                  onClick={resetFilters}
+                  className="text-violet-600 hover:text-violet-800 transition"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredCommunities.map((community) => (
-            <CommunityCard key={community.id} community={community} />
-          ))}
-        </div>
-
-        {/* Empty state for filtered results */}
-        {filteredCommunities.length === 0 && !initialError && (
-          <div className="py-12 text-center text-slate-500">
-            No communities found. Try selecting a different country.
+        {/* Main Viewport Container */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-320px)] min-h-[500px]">
+          {/* List Column */}
+          <div
+            className={`lg:col-span-4 h-full overflow-y-auto pr-1 space-y-3 ${
+              mobileView === "list" ? "block" : "hidden lg:block"
+            }`}
+          >
+            {filteredCommunities.length > 0 ? (
+              filteredCommunities.map((community) => (
+                <div
+                  key={community.id}
+                  id={`community-card-${community.id}`}
+                  className={`transition rounded-2xl ${
+                    highlightedCommunityId === community.id
+                      ? "ring-2 ring-violet-500 ring-offset-2 scale-[0.99] shadow-sm"
+                      : ""
+                  }`}
+                >
+                  <CommunityCard
+                    community={community}
+                    onShowOnMap={() => handleCardClick(community.id)}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/75 px-6 py-16 text-center">
+                <p className="font-serif text-xl text-slate-900 font-medium">No communities found.</p>
+                <p className="mt-2 text-sm text-slate-500">
+                  Try widening your parameters or clearing the search box.
+                </p>
+                <Button
+                  onClick={resetFilters}
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 border-violet-200 text-violet-600 hover:bg-violet-50"
+                >
+                  Reset Filters
+                </Button>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Map Column */}
+          <div
+            className={`lg:col-span-8 h-full ${
+              mobileView === "map" ? "block" : "hidden lg:block"
+            }`}
+          >
+            <CommunityMap
+              communities={filteredCommunities}
+              highlightedCommunityId={highlightedCommunityId}
+              onMarkerClick={handleMarkerClick}
+              onReset={() => setHighlightedCommunityId(null)}
+              visible={mobileView === "map"}
+            />
+          </div>
+        </div>
 
         <section className="mt-12 rounded-2xl bg-(--color-pine) p-8 text-center text-white">
           <h2 className="mb-2 font-serif text-2xl">Know a community we&apos;re missing?</h2>
@@ -203,11 +429,13 @@ export function CommunitiesClient({
 
 type CommunityCardProps = {
   community: Community;
+  onShowOnMap?: () => void;
 };
 
-function CommunityCard({ community }: CommunityCardProps) {
+function CommunityCard({ community, onShowOnMap }: CommunityCardProps) {
   const linkIconClass = "relative z-20 flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200";
   const hasInvitePlatform = community.hasTelegramInvite || community.hasWhatsappInvite || community.hasSignalInvite;
+  const hasCoords = community.latitude !== null && community.longitude !== null;
 
   return (
     <div className="relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white p-4 transition hover:shadow-lg">
@@ -227,6 +455,19 @@ function CommunityCard({ community }: CommunityCardProps) {
 
       {/* Platform links */}
       <div className="mb-3 flex flex-wrap gap-2">
+        {hasCoords && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onShowOnMap?.();
+            }}
+            className={`${linkIconClass} text-violet-600 hover:text-violet-800`}
+            aria-label="Show on map"
+          >
+            <Map className="size-4" />
+          </button>
+        )}
         {community.websiteUrl && (
           <a href={community.websiteUrl} target="_blank" rel="noopener noreferrer" className={linkIconClass} aria-label="Website">
             <ExternalLink className="size-4" />
