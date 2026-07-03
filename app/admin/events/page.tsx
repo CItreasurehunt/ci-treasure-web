@@ -106,8 +106,9 @@ export default async function AdminEventsPage() {
         </Link>
       </div>
 
-      <div className="mt-6 space-y-3">
-        <div className="hidden grid-cols-[minmax(280px,4fr)_100px_110px_80px_120px_70px_85px_210px] gap-3 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 lg:grid">
+      <div className="mt-6 overflow-x-auto pb-2">
+        <div className="space-y-3 lg:min-w-[1080px]">
+        <div className="hidden grid-cols-[minmax(240px,3fr)_90px_105px_70px_120px_70px_80px_200px] gap-3 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 lg:grid">
           <div>title</div>
           <div>type</div>
           <div>start_date</div>
@@ -123,7 +124,7 @@ export default async function AdminEventsPage() {
             key={event.id}
             className="rounded-2xl bg-(--color-cream) p-4 text-sm text-slate-900 shadow-[0_10px_30px_rgba(106,75,25,0.05)]"
           >
-            <div className="grid gap-4 lg:grid-cols-[minmax(280px,4fr)_100px_110px_80px_120px_70px_85px_210px] lg:items-center">
+            <div className="grid gap-4 lg:grid-cols-[minmax(240px,3fr)_90px_105px_70px_120px_70px_80px_200px] lg:items-center">
               <DetailItem label="title" value={event.title} strong truncate />
               <DetailItem label="type" value={event.type} />
               <DetailItem label="start_date" value={event.start_date} />
@@ -168,6 +169,7 @@ export default async function AdminEventsPage() {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </section>
   );

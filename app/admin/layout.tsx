@@ -1,6 +1,15 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAdminUser } from "@/lib/admin-auth";
+import { createClient } from "@/lib/supabase/server";
+
+async function signOut() {
+  "use server";
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/admin/login");
+}
 
 async function getOpenReportCount(): Promise<number> {
   try {
@@ -15,13 +24,50 @@ async function getOpenReportCount(): Promise<number> {
   }
 }
 
+async function getPendingClaimCount(): Promise<number> {
+  try {
+    const supabase = createAdminClient();
+    const { count } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .not("claim_pending_user_id", "is", null);
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function getPendingEventCount(): Promise<number> {
+  try {
+    const supabase = createAdminClient();
+    const { count } = await supabase
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending");
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+function NavBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
+
 export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const adminUser = await getAdminUser();
-  const openReports = adminUser ? await getOpenReportCount() : 0;
+  const [openReports, pendingClaims, pendingEvents] = adminUser
+    ? await Promise.all([getOpenReportCount(), getPendingClaimCount(), getPendingEventCount()])
+    : [0, 0, 0];
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f7f0e5_0%,#fffdf8_45%,#fffaf2_100%)] px-5 py-6 text-slate-900 sm:px-8 lg:px-10">
@@ -36,17 +82,28 @@ export default async function AdminLayout({
             <Link href="/admin/events" className="rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
               Events
             </Link>
+            <Link href="/admin/events/pending" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
+              Pending
+              <NavBadge count={pendingEvents} />
+            </Link>
+            <Link href="/admin/claims" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
+              Claims
+              <NavBadge count={pendingClaims} />
+            </Link>
             <Link href="/admin/reports" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
               Reports
-              {openReports > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
-                  {openReports > 9 ? "9+" : openReports}
-                </span>
-              )}
+              <NavBadge count={openReports} />
             </Link>
-            <Link href="/" className="rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
-              Public site
-            </Link>
+            {adminUser ? (
+              <form action={signOut}>
+                <button
+                  type="submit"
+                  className="rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)"
+                >
+                  Sign out
+                </button>
+              </form>
+            ) : null}
           </nav>
         </header>
         {children}

@@ -119,7 +119,7 @@ const SLUG_CHAR_MAP: Record<string, string> = {
   ł: "l", ø: "o", ß: "ss", đ: "d", ð: "d", þ: "th", æ: "ae", å: "a",
 };
 
-function slugify(value: string) {
+export function slugify(value: string) {
   return value
     .toLowerCase()
     .replace(/[łøßđðþæå]/g, (c) => SLUG_CHAR_MAP[c] ?? c)
@@ -436,6 +436,13 @@ export function parseEventSlug(value: string) {
 
 export function getEventHref(event: Pick<EventListItem, "slug">) {
   return `/events/${event.slug}`;
+}
+
+// Canonical event slug from its short_id + title. `getEventBySlug` resolves by the
+// short_id prefix, so the title portion is cosmetic — but keep this the single source
+// of truth so dashboard/edit links match public links.
+export function buildEventSlug(shortId: string, title: string) {
+  return `${shortId}-${slugify(title)}`;
 }
 
 export function getCountryLabel(country: string) {

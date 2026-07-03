@@ -1,0 +1,319 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+
+import { createEvent, updateEvent } from "@/app/events/actions";
+import {
+  EVENT_TYPE_OPTIONS,
+  LEVEL_OPTIONS,
+  LINK_TYPE_OPTIONS,
+  TIMEZONE_OPTIONS,
+  createEmptyOrganizerEventFormData,
+  type AdminLinkItem,
+  type AdminPriceItem,
+  type OrganizerEventFormData,
+} from "@/lib/organizer-events";
+
+const inputClassName =
+  "w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm text-slate-950 outline-none ring-0 transition focus:border-(--color-pine)";
+
+function emptyPriceItem(): AdminPriceItem {
+  return { amount: "", currency: "EUR", description: "" };
+}
+function emptyLinkItem(): AdminLinkItem {
+  return { type: "registration", url: "" };
+}
+
+// Current UTC offset for a zone, e.g. "GMT+2". Computed live so DST stays correct.
+function tzOffset(tz: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      timeZoneName: "shortOffset",
+    }).formatToParts(new Date());
+    return parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function tzLabel(tz: string): string {
+  const off = tzOffset(tz);
+  return off ? `${tz} (${off})` : tz;
+}
+
+export function OrganizerEventForm({
+  mode,
+  eventId,
+  initial,
+}: {
+  mode: "create" | "edit";
+  eventId?: string;
+  initial?: OrganizerEventFormData;
+}) {
+  const router = useRouter();
+  const [form, setForm] = useState<OrganizerEventFormData>(
+    initial ?? createEmptyOrganizerEventFormData(),
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [isSaving, startSaving] = useTransition();
+
+  function set<K extends keyof OrganizerEventFormData>(key: K, value: OrganizerEventFormData[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function save() {
+    setError(null);
+    setSuccess(null);
+    startSaving(async () => {
+      const result =
+        mode === "create" ? await createEvent(form) : await updateEvent(eventId!, form);
+      if (!result.success) {
+        setError(result.error ?? "Could not save.");
+        return;
+      }
+      if (mode === "create") {
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        setSuccess("Saved.");
+        router.refresh();
+      }
+    });
+  }
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">General</h3>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <Field label="Title *">
+            <input value={form.title} onChange={(e) => set("title", e.target.value)} className={inputClassName} />
+          </Field>
+          <Field label="Type">
+            <select value={form.type} onChange={(e) => set("type", e.target.value)} className={inputClassName}>
+              {EVENT_TYPE_OPTIONS.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Start date *">
+            <input type="date" value={form.startDate} onChange={(e) => set("startDate", e.target.value)} className={inputClassName} />
+          </Field>
+          <Field label="End date *">
+            <input type="date" value={form.endDate} onChange={(e) => set("endDate", e.target.value)} className={inputClassName} />
+          </Field>
+          <Field label="Timezone">
+            <select value={form.timezone} onChange={(e) => set("timezone", e.target.value)} className={inputClassName}>
+              {/* Keep the current value selectable even if it isn't in the curated list. */}
+              {(TIMEZONE_OPTIONS as readonly string[]).includes(form.timezone) || !form.timezone
+                ? null
+                : <option value={form.timezone}>{tzLabel(form.timezone)}</option>}
+              {TIMEZONE_OPTIONS.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tzLabel(tz)}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Level">
+            <select value={form.level} onChange={(e) => set("level", e.target.value)} className={inputClassName}>
+              {LEVEL_OPTIONS.map((o) => (
+                <option key={o} value={o}>
+                  {o === "" ? "— unspecified —" : o}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Languages">
+            <input value={form.languages} onChange={(e) => set("languages", e.target.value)} className={inputClassName} placeholder="en, de" />
+          </Field>
+          <Field label="Features">
+            <input value={form.features} onChange={(e) => set("features", e.target.value)} className={inputClassName} placeholder="live_music, nature, residential" />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Location</h3>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <Field label="City *">
+            <input value={form.city} onChange={(e) => set("city", e.target.value)} className={inputClassName} />
+          </Field>
+          <Field label="Country * (ISO code, e.g. DE)">
+            <input value={form.country} onChange={(e) => set("country", e.target.value)} className={inputClassName} placeholder="DE" />
+          </Field>
+        </div>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Details</h3>
+        <div className="mt-4 space-y-4">
+          <Field label="Description (Markdown supported)">
+            <textarea value={form.description} onChange={(e) => set("description", e.target.value)} className={`${inputClassName} min-h-40`} />
+          </Field>
+          <Field label="Image URL">
+            <input value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} className={inputClassName} placeholder="https://…" />
+          </Field>
+          {form.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={form.imageUrl} alt="Preview" className="max-h-48 rounded-2xl border border-(--color-sand-strong) object-cover" />
+          ) : null}
+        </div>
+      </section>
+
+      {mode === "edit" ? (
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Cancellation</h3>
+          <label className="mt-4 flex items-center gap-3 text-sm font-medium text-slate-700">
+            <input
+              type="checkbox"
+              checked={form.cancelled}
+              onChange={(e) => set("cancelled", e.target.checked)}
+              className="h-4 w-4"
+            />
+            This event is cancelled
+          </label>
+          <p className="mt-1 text-sm text-slate-500">
+            A cancelled event stays in the system but is hidden from the public calendar.
+          </p>
+          {form.cancelled ? (
+            <div className="mt-4">
+              <Field label="Cancellation note (shown if the event page is viewed)">
+                <textarea
+                  value={form.cancelledText}
+                  onChange={(e) => set("cancelledText", e.target.value)}
+                  className={`${inputClassName} min-h-24`}
+                  placeholder="e.g. Cancelled due to low enrolment. Refunds have been issued."
+                />
+              </Field>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      <ArraySection
+        title="Pricing"
+        description="Amounts in major units (e.g. 150 for €150). Left blank rows are ignored."
+        items={form.priceItems}
+        onAdd={() => set("priceItems", [...form.priceItems, emptyPriceItem()])}
+        onRemove={(i) => set("priceItems", form.priceItems.filter((_, idx) => idx !== i))}
+        render={(item, i) => (
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_2fr]">
+            <input value={item.amount} onChange={(e) => set("priceItems", patch(form.priceItems, i, { amount: e.target.value }))} className={inputClassName} placeholder="150" />
+            <input value={item.currency} onChange={(e) => set("priceItems", patch(form.priceItems, i, { currency: e.target.value }))} className={inputClassName} placeholder="EUR" />
+            <input value={item.description} onChange={(e) => set("priceItems", patch(form.priceItems, i, { description: e.target.value }))} className={inputClassName} placeholder="Standard" />
+          </div>
+        )}
+      />
+
+      <ArraySection
+        title="Links"
+        description="Registration, website, and social links shown on the event page."
+        items={form.linkItems}
+        onAdd={() => set("linkItems", [...form.linkItems, emptyLinkItem()])}
+        onRemove={(i) => set("linkItems", form.linkItems.filter((_, idx) => idx !== i))}
+        render={(item, i) => (
+          <div className="grid gap-3 md:grid-cols-[1fr_3fr]">
+            <select value={item.type} onChange={(e) => set("linkItems", patch(form.linkItems, i, { type: e.target.value }))} className={inputClassName}>
+              {LINK_TYPE_OPTIONS.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+            <input value={item.url} onChange={(e) => set("linkItems", patch(form.linkItems, i, { url: e.target.value }))} className={inputClassName} placeholder="https://…" />
+          </div>
+        )}
+      />
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+        {error ? <p className="text-sm text-rose-700">{error}</p> : null}
+        {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
+        <div className="mt-2 flex flex-wrap gap-3">
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={save}
+            className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream) disabled:opacity-60"
+          >
+            {isSaving ? "Saving…" : mode === "create" ? "Submit event" : "Save changes"}
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            className="rounded-full border border-(--color-sand-strong) px-5 py-3 text-sm font-semibold text-slate-800"
+          >
+            Back to dashboard
+          </button>
+        </div>
+        {mode === "create" ? (
+          <p className="mt-3 text-xs text-slate-500">
+            New events are reviewed by an admin before going live, unless your profile is already trusted.
+          </p>
+        ) : null}
+      </section>
+    </div>
+  );
+}
+
+function patch<T extends object>(items: T[], index: number, p: Partial<T>): T[] {
+  return items.map((item, i) => (i === index ? { ...item, ...p } : item));
+}
+
+function ArraySection<T>({
+  title,
+  description,
+  items,
+  onAdd,
+  onRemove,
+  render,
+}: {
+  title: string;
+  description: string;
+  items: T[];
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  render: (item: T, index: number) => React.ReactNode;
+}) {
+  return (
+    <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="font-serif text-2xl text-slate-950">{title}</h3>
+          <p className="mt-1 text-sm text-slate-600">{description}</p>
+        </div>
+        <button type="button" onClick={onAdd} className="shrink-0 rounded-full border border-(--color-sand-strong) px-4 py-2 text-sm font-semibold">
+          Add row
+        </button>
+      </div>
+      <div className="mt-4 space-y-3">
+        {items.length ? (
+          items.map((item, index) => (
+            <div key={index} className="rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) p-4">
+              {render(item, index)}
+              <button type="button" onClick={() => onRemove(index)} className="mt-3 text-sm font-semibold text-rose-700">
+                Delete row
+              </button>
+            </div>
+          ))
+        ) : (
+          <p className="text-sm text-slate-500">No rows yet.</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="space-y-2">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      {children}
+    </label>
+  );
+}

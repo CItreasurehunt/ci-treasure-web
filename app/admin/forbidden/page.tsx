@@ -1,4 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { createClient } from "@/lib/supabase/server";
+
+async function signOut() {
+  "use server";
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/admin/login");
+}
 
 export default function AdminForbiddenPage() {
   return (
@@ -7,14 +17,20 @@ export default function AdminForbiddenPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-rose-700">403</p>
         <h1 className="mt-3 font-serif text-4xl text-slate-950">Admin access required</h1>
         <p className="mt-4 text-base leading-7 text-slate-700">
-          This signed-in account is not allowed to access the admin area. Use the configured admin email or return to the public site.
+          This signed-in account is not allowed to access the admin area. Sign out and log in with the
+          configured admin email, or head to your dashboard.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/admin/login" className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)">
-            Back to login
-          </Link>
-          <Link href="/" className="rounded-full border border-(--color-sand-strong) px-5 py-3 text-sm font-semibold text-slate-800">
-            Open public site
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)"
+            >
+              Sign out
+            </button>
+          </form>
+          <Link href="/dashboard" className="rounded-full border border-(--color-sand-strong) px-5 py-3 text-sm font-semibold text-slate-800">
+            My dashboard
           </Link>
         </div>
       </div>

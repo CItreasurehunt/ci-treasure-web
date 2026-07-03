@@ -6,10 +6,6 @@ function getAdminEmail() {
 }
 
 export async function proxy(request: NextRequest) {
-  if (!request.nextUrl.pathname.startsWith("/admin")) {
-    return NextResponse.next();
-  }
-
   const response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -34,33 +30,50 @@ export async function proxy(request: NextRequest) {
     },
   );
 
+  // Always refresh the session for matched routes (writes refreshed cookies to `response`).
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLoginPage = request.nextUrl.pathname === "/admin/login";
-  const isForbiddenPage = request.nextUrl.pathname === "/admin/forbidden";
-  const adminEmail = getAdminEmail();
-  const userEmail = user?.email?.trim().toLowerCase() ?? null;
-  const isAdmin = Boolean(adminEmail && userEmail === adminEmail);
+  const pathname = request.nextUrl.pathname;
 
-  if (!user && !isLoginPage) {
-    const loginUrl = new URL("/admin/login", request.url);
-    loginUrl.searchParams.set("next", request.nextUrl.pathname);
+  // ── Admin area: gate on ADMIN_EMAIL ──────────────────────────────────────
+  if (pathname.startsWith("/admin")) {
+    const isLoginPage = pathname === "/admin/login";
+    const isForbiddenPage = pathname === "/admin/forbidden";
+    const adminEmail = getAdminEmail();
+    const userEmail = user?.email?.trim().toLowerCase() ?? null;
+    const isAdmin = Boolean(adminEmail && userEmail === adminEmail);
+
+    if (!user && !isLoginPage) {
+      const loginUrl = new URL("/admin/login", request.url);
+      loginUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    if (user && !isAdmin && !isForbiddenPage) {
+      return NextResponse.redirect(new URL("/admin/forbidden", request.url));
+    }
+
+    if (user && isAdmin && isLoginPage) {
+      return NextResponse.redirect(new URL("/admin/events", request.url));
+    }
+
+    return response;
+  }
+
+  // ── Organizer area: require any authenticated user ───────────────────────
+  // /dashboard, /events/new, /events/[slug]/edit. No admin/forbidden gate —
+  // any signed-in user may manage their own claimed events.
+  if (!user) {
+    const loginUrl = new URL("/auth", request.url);
+    loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
-  }
-
-  if (user && !isAdmin && !isForbiddenPage) {
-    return NextResponse.redirect(new URL("/admin/forbidden", request.url));
-  }
-
-  if (user && isAdmin && isLoginPage) {
-    return NextResponse.redirect(new URL("/admin/events", request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/events/new", "/events/:eventSlug/edit"],
 };
