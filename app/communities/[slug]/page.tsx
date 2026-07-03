@@ -158,7 +158,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
                 {community.audience_size && (
                   <div className="space-y-2">
                     <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-500">
-                      <Users className="h-4 w-4" /> Audience
+                      <Users className="h-4 w-4" /> Community size estimate
                     </h3>
                     <p className="text-slate-700">~{community.audience_size} members</p>
                   </div>
@@ -306,7 +306,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
                 <section className="rounded-[1.75rem] border border-(--color-pine)/20 bg-(--color-pine)/5 p-6">
                   <h2 className="font-serif text-xl text-slate-950">Join this community</h2>
                   <p className="mt-2 text-sm text-slate-600">
-                    Private chat links are shared here after a quick verification to reduce spam.
+                    Invite links to chat groups are shared here after a quick verification to reduce spam.
                   </p>
                   <div className="mt-4">
                     <InviteButtons

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 import { getCommunities } from "@/lib/communities";
 import { CommunitiesClient } from "./communities-client";
 
@@ -15,12 +16,14 @@ export default async function CommunitiesPage() {
     await getCommunities();
 
   return (
-    <CommunitiesClient
-      initialCommunities={communities}
-      initialCountries={countries}
-      initialCommunityCount={communityCount}
-      initialCountryCount={countryCount}
-      initialError={error}
-    />
+    <Suspense>
+      <CommunitiesClient
+        initialCommunities={communities}
+        initialCountries={countries}
+        initialCommunityCount={communityCount}
+        initialCountryCount={countryCount}
+        initialError={error}
+      />
+    </Suspense>
   );
 }

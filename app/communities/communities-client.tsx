@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays, ExternalLink, Globe, MapPin, MessageCircle, Send } from "lucide-react";
 
 import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, hasPrivateGroupLink, isPrivateGroupInvite, type Community } from "@/lib/communities";
@@ -23,7 +24,17 @@ export function CommunitiesClient({
   initialCountryCount,
   initialError,
 }: CommunitiesClientProps) {
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const selectedCountry = searchParams.get("country") ?? "";
+
+  function setSelectedCountry(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("country", value);
+    else params.delete("country");
+    const qs = params.toString();
+    router.replace(qs ? `/communities?${qs}` : "/communities", { scroll: false });
+  }
 
   // Filter communities by selected country
   const filteredCommunities = useMemo(() => {
