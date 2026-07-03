@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq("is_teacher", true),
     supabase
       .from("communities")
-      .select("slug, synced_at")
+      .select("slug, airtable_updated_at")
       .is("deleted_at", null),
   ]);
 
@@ -80,7 +80,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter((c) => c.slug)
     .map((c) => ({
       url: `${SITE_URL}/communities/${c.slug}`,
-      lastModified: c.synced_at ? new Date(c.synced_at) : undefined,
+      // airtable_updated_at, not synced_at — the daily sync touches every row's
+      // synced_at whether or not content changed, which would fake "modified today"
+      // for all 257 communities every run.
+      lastModified: c.airtable_updated_at ? new Date(c.airtable_updated_at) : undefined,
       changeFrequency: "weekly",
       priority: 0.6,
     }));
