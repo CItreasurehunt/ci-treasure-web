@@ -162,7 +162,41 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-semibold text-slate-950">10. Changes to this policy</h2>
+          <h2 className="font-semibold text-slate-950">10. Accounts and login</h2>
+          <p>
+            If you create an account to manage your events, we use Supabase Auth (Supabase Inc., US) to sign you
+            in by magic link. We store your email address and an internal user identifier, and set a session
+            cookie so you stay signed in. We do not use passwords — sign-in is by emailed link only. The session
+            cookie is strictly necessary for login and is not used for tracking or profiling. Legal basis:
+            Art.&nbsp;6(1)(b) GDPR — processing necessary to provide the account and organiser tools you request.
+            Data transfers to Supabase are governed by Standard Contractual Clauses (SCCs) under
+            Art.&nbsp;46(2)(c) GDPR. See{" "}
+            <a href="https://supabase.com/legal/privacy" className="underline" target="_blank" rel="noopener noreferrer">
+              Supabase&apos;s privacy policy
+            </a>
+            .
+          </p>
+        </section>
+        <section>
+          <h2 className="font-semibold text-slate-950">11. Transactional email (magic links &amp; notifications)</h2>
+          <p>
+            Emails such as your sign-in magic link, and notifications about your event submissions or profile
+            claims, are delivered through Resend (Resend, Inc., US). Resend receives your email address and the
+            message content in order to send these emails. We have configured Resend&apos;s EU sending region
+            (Ireland, <span className="font-mono text-sm">eu-west-1</span>), so message delivery is processed
+            within the EU; because Resend is a US-incorporated company, however, its staff may access data from
+            the US, so transfers are governed by Standard Contractual Clauses (SCCs) under Art.&nbsp;46(2)(c)
+            GDPR. Legal basis: Art.&nbsp;6(1)(b) GDPR for login emails (necessary to provide the account), and
+            Art.&nbsp;6(1)(f) GDPR — legitimate interest in operating the organiser tools — for related
+            notifications. See{" "}
+            <a href="https://resend.com/legal/privacy-policy" className="underline" target="_blank" rel="noopener noreferrer">
+              Resend&apos;s privacy policy
+            </a>
+            .
+          </p>
+        </section>
+        <section>
+          <h2 className="font-semibold text-slate-950">12. Changes to this policy</h2>
           <p>
             This policy will be updated when new features affecting data processing are added. The date at the top of
             this page reflects the most recent revision.

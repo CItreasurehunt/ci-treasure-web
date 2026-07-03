@@ -3,7 +3,7 @@ export default function TermsPage() {
     <main className="mx-auto min-h-screen max-w-3xl px-5 py-14 sm:px-8">
       <h1 className="font-serif text-4xl text-slate-950">Terms of Service</h1>
       <div className="mt-8 space-y-6 text-base leading-8 text-slate-700">
-        <p className="text-sm text-slate-500">Last updated: June 2026</p>
+        <p className="text-sm text-slate-500">Last updated: July 2026</p>
         <section>
           <h2 className="font-semibold text-slate-950">1. Scope</h2>
           <p>
@@ -43,14 +43,25 @@ export default function TermsPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-semibold text-slate-950">6. Changes</h2>
+          <h2 className="font-semibold text-slate-950">6. Accounts and submissions</h2>
+          <p>
+            Organisers may create an account (by email magic link) to claim a profile and submit or edit their own
+            event listings. You are responsible for activity under your account and for keeping your email access
+            secure. You may only submit content you have the right to publish, and it must be accurate and not
+            misleading. Submitted events are reviewed before publication unless your account is marked trusted; we
+            may edit, decline, unpublish, or remove any listing at our discretion — for example if it is
+            inaccurate, off-topic, or violates these terms. Claiming a profile that is not yours is not permitted.
+          </p>
+        </section>
+        <section>
+          <h2 className="font-semibold text-slate-950">7. Changes</h2>
           <p>
             We may update these terms when new features are added. Continued use of the site after changes constitutes
             acceptance of the updated terms.
           </p>
         </section>
         <section>
-          <h2 className="font-semibold text-slate-950">7. Governing law</h2>
+          <h2 className="font-semibold text-slate-950">8. Governing law</h2>
           <p>These terms are governed by the laws of the Federal Republic of Germany.</p>
         </section>
       </div>

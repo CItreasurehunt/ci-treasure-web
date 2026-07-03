@@ -152,7 +152,22 @@ export default async function EventPage({ params }: EventPageProps) {
           />
         </div>
 
-        <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
+        {event.isPast ? (
+          <div className="rounded-2xl border border-slate-300 bg-slate-100 px-5 py-4 text-sm text-slate-700">
+            <span className="font-semibold text-slate-900">This event has ended.</span> It&apos;s kept here
+            for reference.{" "}
+            <Link href="/" className="font-semibold text-(--color-pine) underline">
+              Browse upcoming events
+            </Link>
+            .
+          </div>
+        ) : null}
+
+        <section
+          className={`overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)] ${
+            event.isPast ? "opacity-75 grayscale-[0.35]" : ""
+          }`}
+        >
           <div className={`border-b border-(--color-sand-strong) ${getOgImageStyle(event.type)}`}>
             <div className="px-6 py-10 sm:px-8">
               <div className="max-w-3xl space-y-5">

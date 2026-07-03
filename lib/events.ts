@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type SupabaseEventRow = {
@@ -109,6 +110,8 @@ export type EventDetail = EventListItem & {
   contactEmail: string | null;
   seriesName: string | null;
   seriesSiblings: SeriesSibling[];
+  // True for archived (past) events — the page renders an "event has ended" state.
+  isPast: boolean;
 };
 
 function hasSupabaseEnv() {
@@ -347,16 +350,32 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     return null;
   }
 
-  const supabase = await createClient();
-  const { data: eventRow, error } = await supabase
-    .from("events")
-    .select(
-      "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, address, contact_email, series_id, series_order, event_series(title)",
-    )
-    .ilike("short_id", shortId)
-    .single();
+  const columns =
+    "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, event_series(title)";
 
-  if (error || !eventRow) {
+  const supabase = await createClient();
+  let { data: eventRow } = await supabase
+    .from("events")
+    .select(columns)
+    .ilike("short_id", shortId)
+    .maybeSingle();
+
+  // Fallback: archived (past) events aren't served by RLS (published-only), but we keep
+  // their pages live for SEO + history, rendered as "ended". Tightly scoped to archived +
+  // not-hidden via the service-role client so drafts/pending/rejected stay private.
+  if (!eventRow) {
+    const admin = createAdminClient();
+    const { data: archivedRow } = await admin
+      .from("events")
+      .select(columns)
+      .ilike("short_id", shortId)
+      .eq("status", "archived")
+      .eq("hide", false)
+      .maybeSingle();
+    eventRow = archivedRow;
+  }
+
+  if (!eventRow) {
     return null;
   }
 
@@ -425,6 +444,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
       ? (eventRow.event_series[0] as { title?: string } | null)?.title ?? null
       : (eventRow.event_series as { title?: string } | null)?.title ?? null,
     seriesSiblings,
+    isPast: eventRow.status === "archived",
   };
 }
 
