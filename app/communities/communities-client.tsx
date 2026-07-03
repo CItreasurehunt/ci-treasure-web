@@ -195,16 +195,17 @@ export function CommunitiesClient({
             </span>
           </div>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-500">
-            Invite links to WhatsApp, Telegram, and Signal groups are not shown here due to spam protection.
-            Join our Telegram group to access the chat groups:{" "}
+            Invite links to Telegram, WhatsApp, and Signal groups are protected by a quick
+            verification check to keep spam bots out. Questions, or a link not working?{" "}
             <a
               href={TELEGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-(--color-pine) underline decoration-(--color-pine)/35 underline-offset-4"
             >
-              t.me/citreasurehunt
+              Join our Telegram group
             </a>
+            .
           </p>
         </header>
 
@@ -390,7 +391,7 @@ export function CommunitiesClient({
         <section className="mt-12 rounded-2xl bg-(--color-pine) p-8 text-center text-white">
           <h2 className="mb-2 font-serif text-2xl">Know a community we&apos;re missing?</h2>
           <p className="mx-auto mb-6 max-w-2xl text-sm leading-6 text-white/75">
-            Private invite links are hidden to reduce spam — join the global Telegram group first to request access to chat groups.
+            Add it, flag something that&apos;s out of date, or just say hi in our global Telegram group.
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
