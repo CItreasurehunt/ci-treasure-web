@@ -89,8 +89,9 @@ test.describe('Public Smoke Tests', () => {
     const heading = page.getByRole('heading', { name: /CI Communities Worldwide/i });
     const errorHeading = page.getByRole('heading', { name: /Unable to load communities/i });
 
-    // Check that at least one of these is visible
-    expect(await heading.or(errorHeading).count()).toBeGreaterThan(0);
+    // toBeVisible() auto-retries until the client-side fetch resolves; a plain
+    // count() check here doesn't wait and was flaking on slower CI runs.
+    await expect(heading.or(errorHeading).first()).toBeVisible();
 
     if (await heading.isVisible()) {
       const communityCards = page.locator('h3');
