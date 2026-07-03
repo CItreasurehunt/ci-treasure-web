@@ -137,7 +137,7 @@ export function CommunitiesClient({
     });
   }, [initialCommunities, searchQuery, selectedCountry, selectedType]);
 
-  const handleCardClick = useCallback((communityId: string) => {
+  const handleShowOnMap = useCallback((communityId: string) => {
     setHighlightedCommunityId(communityId);
     // Switch to map view on mobile
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -349,7 +349,7 @@ export function CommunitiesClient({
                 >
                   <CommunityCard
                     community={community}
-                    onShowOnMap={() => handleCardClick(community.id)}
+                    onShowOnMap={() => handleShowOnMap(community.id)}
                   />
                 </div>
               ))
