@@ -309,7 +309,14 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
                     Private chat links are shared here after a quick verification to reduce spam.
                   </p>
                   <div className="mt-4">
-                    <InviteButtons communityId={community.id} />
+                    <InviteButtons
+                      communityId={community.id}
+                      platforms={{
+                        telegram: community.has_telegram_invite,
+                        whatsapp: community.has_whatsapp_invite,
+                        signal: community.has_signal_invite,
+                      }}
+                    />
                   </div>
                 </section>
               )}

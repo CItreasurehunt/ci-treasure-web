@@ -166,6 +166,14 @@ type CommunityCardProps = {
   getPrimaryJoinUrl: (c: Community) => string | null;
 };
 
+function invitePlatformLabel(community: Community): string {
+  const platforms: string[] = [];
+  if (community.hasTelegramInvite) platforms.push("Telegram");
+  if (community.hasWhatsappInvite) platforms.push("WhatsApp");
+  if (community.hasSignalInvite) platforms.push("Signal");
+  return platforms.join(" · ");
+}
+
 function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
   const joinUrl = getPrimaryJoinUrl(community);
 
@@ -254,18 +262,31 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
             Join
           </a>
         )}
-        {(hasPrivateGroupLink(community) || !joinUrl) && (
+        {hasPrivateGroupLink(community) && (
+          <div className="space-y-1">
+            <Link
+              href={`/communities/${community.slug}`}
+              className="inline-flex w-full justify-center rounded-full bg-[--color-pine] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90"
+            >
+              Request access
+            </Link>
+            <p className="text-center text-xs leading-5 text-slate-500">
+              Available via {invitePlatformLabel(community)} — quick verification required.
+            </p>
+          </div>
+        )}
+        {!hasPrivateGroupLink(community) && !joinUrl && (
           <div className="space-y-1">
             <a
               href={TELEGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full justify-center rounded-full border border-[--color-sand-strong] bg-white px-4 py-2.5 text-sm font-semibold text-[--color-pine] transition hover:border-[--color-pine] hover:bg-[--color-sand]"
+              className="inline-flex w-full justify-center rounded-full bg-[--color-pine] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90"
             >
-              Request access via Telegram
+              Ask in our Telegram group
             </a>
             <p className="text-center text-xs leading-5 text-slate-500">
-              Private chat links are shared there to reduce spam.
+              No public links available yet for this community.
             </p>
           </div>
         )}

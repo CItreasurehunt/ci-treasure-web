@@ -31,6 +31,9 @@ type CommunityRow = {
   newsletter: string | null;
   other_resource: string | null;
   has_invites: boolean;
+  has_telegram_invite: boolean;
+  has_whatsapp_invite: boolean;
+  has_signal_invite: boolean;
 };
 
 export type Community = {
@@ -54,6 +57,9 @@ export type Community = {
   latitude: number | null;
   longitude: number | null;
   hasInvites: boolean;
+  hasTelegramInvite: boolean;
+  hasWhatsappInvite: boolean;
+  hasSignalInvite: boolean;
 };
 
 export type CommunitiesResponse = {
@@ -80,7 +86,7 @@ export type CommunityDetail = {
   focus: string[] | null;
   activity_level: string | null;
   languages: string[] | null;
-  audience_size: string | null;
+  audience_size: number | null;
   friendliness: string | null;
   contact_person: string | null;
   website: string | null;
@@ -95,6 +101,9 @@ export type CommunityDetail = {
   newsletter: string | null;
   other_resource: string | null;
   has_invites: boolean;
+  has_telegram_invite: boolean;
+  has_whatsapp_invite: boolean;
+  has_signal_invite: boolean;
   venue: { slug: string; name: string } | null;
   profile: { slug: string; name: string } | null;
 };
@@ -148,6 +157,9 @@ function toCommunity(row: CommunityRow): Community {
     latitude: row.lat,
     longitude: row.lng,
     hasInvites: row.has_invites,
+    hasTelegramInvite: row.has_telegram_invite,
+    hasWhatsappInvite: row.has_whatsapp_invite,
+    hasSignalInvite: row.has_signal_invite,
   };
 }
 
@@ -207,7 +219,7 @@ export async function getCommunities(): Promise<CommunitiesResponse> {
     const { data, error } = await supabase
       .from("communities")
       .select(
-        "id,name,slug,type,city,country,continent,address_for_map,lat,lng,description,website,instagram,facebook_group,facebook_page,telegram_group,telegram_channel,whatsapp_channel,youtube,calendar,newsletter,other_resource,has_invites",
+        "id,name,slug,type,city,country,continent,address_for_map,lat,lng,description,website,instagram,facebook_group,facebook_page,telegram_group,telegram_channel,whatsapp_channel,youtube,calendar,newsletter,other_resource,has_invites,has_telegram_invite,has_whatsapp_invite,has_signal_invite",
       )
       .is("deleted_at", null)
       .order("name");
@@ -253,7 +265,8 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
       lat, lng, description, focus, activity_level, languages, audience_size,
       friendliness, contact_person, website, instagram, facebook_group,
       facebook_page, telegram_group, telegram_channel, whatsapp_channel,
-      youtube, calendar, newsletter, other_resource, has_invites,
+      youtube, calendar, newsletter, other_resource,
+      has_invites, has_telegram_invite, has_whatsapp_invite, has_signal_invite,
       venue_id, profile_id,
       venue:venue_id ( slug, name ),
       profile:profile_id ( slug, name )

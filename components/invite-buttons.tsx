@@ -51,7 +51,17 @@ const ERROR_MESSAGES: Record<string, string> = {
   not_found: "No invite links found for this community.",
 };
 
-export function InviteButtons({ communityId }: { communityId: string }) {
+type InviteButtonsProps = {
+  communityId: string;
+  platforms: Partial<Record<Platform, boolean>>;
+};
+
+export function InviteButtons({ communityId, platforms }: InviteButtonsProps) {
+  const availablePlatformLabel = (Object.keys(platforms) as Platform[])
+    .filter((platform) => platforms[platform])
+    .map((platform) => PLATFORM_LABELS[platform])
+    .join(" · ");
+
   const [links, setLinks] = useState<Partial<Record<Platform, string>> | null>(() =>
     readCache(communityId)
   );
@@ -125,14 +135,21 @@ export function InviteButtons({ communityId }: { communityId: string }) {
   return (
     <div className="flex flex-col gap-3">
       {!showWidget && (
-        <button
-          type="button"
-          onClick={handleStart}
-          disabled={verifying}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[--color-pine] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90 disabled:opacity-60"
-        >
-          {verifying ? "Verifying…" : "Request access"}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={handleStart}
+            disabled={verifying}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[--color-pine] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90 disabled:opacity-60"
+          >
+            {verifying ? "Verifying…" : "Request access"}
+          </button>
+          {availablePlatformLabel && (
+            <p className="text-center text-xs text-slate-500">
+              Available via {availablePlatformLabel}
+            </p>
+          )}
+        </>
       )}
       {showWidget && (
         <div className="flex justify-center">
