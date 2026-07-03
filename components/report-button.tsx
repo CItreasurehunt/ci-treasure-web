@@ -90,7 +90,7 @@ export function ReportButton(props: Props) {
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     required
-                    className="w-full rounded-xl border border-[--color-sand-strong] bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[--color-pine]"
+                    className="w-full rounded-xl border border-(--color-sand-strong) bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-(--color-pine)"
                   >
                     <option value="">Select a reason…</option>
                     {REASONS.map((r) => (
@@ -110,7 +110,7 @@ export function ReportButton(props: Props) {
                     value={details}
                     onChange={(e) => setDetails(e.target.value)}
                     rows={3}
-                    className="w-full rounded-xl border border-[--color-sand-strong] bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[--color-pine]"
+                    className="w-full rounded-xl border border-(--color-sand-strong) bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-(--color-pine)"
                     placeholder="Any additional context…"
                   />
                 </div>

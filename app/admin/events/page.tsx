@@ -97,11 +97,11 @@ export default async function AdminEventsPage() {
     <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[--color-pine]">Events</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">Events</p>
           <h2 className="mt-2 font-serif text-3xl text-slate-950">Manage events</h2>
           <p className="mt-1 text-sm text-slate-600">Review, publish, hide, and open each event for detailed editing.</p>
         </div>
-        <Link href="/admin/events/new" className="rounded-full bg-[--color-ink] px-5 py-3 text-sm font-semibold text-[--color-cream]">
+        <Link href="/admin/events/new" className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)">
           New event
         </Link>
       </div>
@@ -121,7 +121,7 @@ export default async function AdminEventsPage() {
         {(events as AdminEventRow[]).map((event) => (
           <div
             key={event.id}
-            className="rounded-2xl bg-[--color-cream] p-4 text-sm text-slate-900 shadow-[0_10px_30px_rgba(106,75,25,0.05)]"
+            className="rounded-2xl bg-(--color-cream) p-4 text-sm text-slate-900 shadow-[0_10px_30px_rgba(106,75,25,0.05)]"
           >
             <div className="grid gap-4 lg:grid-cols-[minmax(280px,4fr)_100px_110px_80px_120px_70px_85px_210px] lg:items-center">
               <DetailItem label="title" value={event.title} strong truncate />
@@ -131,7 +131,7 @@ export default async function AdminEventsPage() {
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:hidden">status</p>
                 <div className="mt-1 flex flex-wrap gap-2 lg:mt-0">
-                  <span className="rounded-full border border-[--color-sand-strong] px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
+                  <span className="rounded-full border border-(--color-sand-strong) px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
                     {event.status}
                   </span>
                   {event.hide ? (
@@ -146,20 +146,20 @@ export default async function AdminEventsPage() {
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 lg:hidden">actions</p>
                 <div className="mt-1 flex flex-wrap gap-2 lg:mt-0">
-                  <Link href={`/admin/events/${event.id}/edit`} className="rounded-full border border-[--color-sand-strong] px-3 py-2 text-xs font-semibold">
+                  <Link href={`/admin/events/${event.id}/edit`} className="rounded-full border border-(--color-sand-strong) px-3 py-2 text-xs font-semibold">
                     Edit
                   </Link>
                   <form action={toggleStatus}>
                     <input type="hidden" name="eventId" value={event.id} />
                     <input type="hidden" name="currentStatus" value={event.status} />
-                    <button type="submit" className="rounded-full border border-[--color-sand-strong] px-3 py-2 text-xs font-semibold">
+                    <button type="submit" className="rounded-full border border-(--color-sand-strong) px-3 py-2 text-xs font-semibold">
                       {event.status === "published" ? "Set draft" : "Publish"}
                     </button>
                   </form>
                   <form action={toggleHide}>
                     <input type="hidden" name="eventId" value={event.id} />
                     <input type="hidden" name="currentHide" value={String(event.hide)} />
-                    <button type="submit" className="rounded-full border border-[--color-sand-strong] px-3 py-2 text-xs font-semibold">
+                    <button type="submit" className="rounded-full border border-(--color-sand-strong) px-3 py-2 text-xs font-semibold">
                       {event.hide ? "Unhide" : "Hide"}
                     </button>
                   </form>

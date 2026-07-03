@@ -138,7 +138,7 @@ export default async function EventPage({ params }: EventPageProps) {
   };
 
   return (
-    <main className="min-h-screen bg-[--color-cream] px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -153,10 +153,10 @@ export default async function EventPage({ params }: EventPageProps) {
         </div>
 
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
-          <div className={`border-b border-[--color-sand-strong] ${getOgImageStyle(event.type)}`}>
+          <div className={`border-b border-(--color-sand-strong) ${getOgImageStyle(event.type)}`}>
             <div className="px-6 py-10 sm:px-8">
               <div className="max-w-3xl space-y-5">
-                <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-4 py-1 text-sm font-semibold uppercase tracking-[0.28em] text-[--color-pine]">
+                <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-4 py-1 text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">
                   {getTypeLabel(event.type)}
                 </p>
                 <h1 className="font-serif text-4xl leading-tight tracking-tight text-slate-950 sm:text-5xl">
@@ -265,7 +265,7 @@ export default async function EventPage({ params }: EventPageProps) {
             </div>
 
             <aside className="space-y-6">
-              <section className="rounded-[1.75rem] border border-[--color-sand-strong] bg-[--color-cream] p-5">
+              <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-5">
                 <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                 <div className="mt-4 flex flex-col gap-3">
                   {event.linkItems.length ? (
@@ -275,7 +275,7 @@ export default async function EventPage({ params }: EventPageProps) {
                         href={item.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center justify-between rounded-2xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-[--color-pine] hover:text-[--color-pine]"
+                        className="inline-flex items-center justify-between rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-(--color-pine) hover:text-(--color-pine)"
                       >
                         {getLinkLabel(item.type, item.label)}
                         <ExternalLink className="size-4" />
@@ -287,7 +287,7 @@ export default async function EventPage({ params }: EventPageProps) {
                   {event.contactEmail ? (
                     <a
                       href={`mailto:${event.contactEmail}`}
-                      className="inline-flex items-center justify-between rounded-2xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-[--color-pine] hover:text-[--color-pine]"
+                      className="inline-flex items-center justify-between rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-(--color-pine) hover:text-(--color-pine)"
                     >
                       Email
                       <Mail className="size-4" />
@@ -297,13 +297,13 @@ export default async function EventPage({ params }: EventPageProps) {
               </section>
 
               {event.priceItems.length ? (
-                <section className="rounded-[1.75rem] border border-[--color-sand-strong] bg-white p-5">
+                <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-white p-5">
                   <h2 className="font-serif text-2xl text-slate-950">Pricing</h2>
                   <div className="mt-4 space-y-3">
                     {event.priceItems.map((item, index) => (
                       <div
                         key={`${item.currency}-${item.amount}-${index}`}
-                        className="rounded-2xl border border-[--color-sand-strong] bg-[--color-cream] px-4 py-3"
+                        className="rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) px-4 py-3"
                       >
                         <p className="text-lg font-semibold text-slate-950">{formatPriceLabel(item)}</p>
                         {item.description ? (
@@ -340,9 +340,9 @@ function InfoCard({
   value: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-[--color-sand-strong] bg-[--color-cream] p-4">
+    <div className="rounded-[1.5rem] border border-(--color-sand-strong) bg-(--color-cream) p-4">
       <p className="flex items-center gap-2 text-sm font-medium text-slate-600">
-        <span className="text-[--color-pine]">{icon}</span>
+        <span className="text-(--color-pine)">{icon}</span>
         {label}
       </p>
       <div className="mt-3 text-lg leading-7 text-slate-950">{value}</div>
@@ -364,7 +364,7 @@ function PeopleSection({
         {items.map((item) => {
           const content = (
             <>
-              <span className="font-medium text-slate-950 group-hover:text-[--color-pine] transition-colors">{item.name}</span>
+              <span className="font-medium text-slate-950 group-hover:text-(--color-pine) transition-colors">{item.name}</span>
               {item.role && item.role !== 'teacher' ? <span className="text-slate-500"> · {item.role.charAt(0).toUpperCase() + item.role.slice(1)}</span> : null}
             </>
           );
@@ -374,7 +374,7 @@ function PeopleSection({
               <Link
                 key={`${item.name}-${item.role ?? "role"}`}
                 href={`/teachers/${item.slug}`}
-                className="group rounded-full border border-[--color-sand-strong] bg-white px-4 py-2 text-sm text-slate-700 transition hover:border-[--color-pine] hover:shadow-sm"
+                className="group rounded-full border border-(--color-sand-strong) bg-white px-4 py-2 text-sm text-slate-700 transition hover:border-(--color-pine) hover:shadow-sm"
               >
                 {content}
               </Link>
@@ -384,7 +384,7 @@ function PeopleSection({
           return (
             <div
               key={`${item.name}-${item.role ?? "role"}`}
-              className="rounded-full border border-[--color-sand-strong] bg-white px-4 py-2 text-sm text-slate-700"
+              className="rounded-full border border-(--color-sand-strong) bg-white px-4 py-2 text-sm text-slate-700"
             >
               {content}
             </div>
@@ -414,15 +414,15 @@ function SeriesSection({
             <div
               className={`rounded-[1.5rem] p-5 shadow-sm sm:p-6 ${
                 isCurrent
-                  ? "border-2 border-[--color-pine] bg-white"
-                  : "border border-[--color-sand-strong] bg-white transition hover:shadow-md"
+                  ? "border-2 border-(--color-pine) bg-white"
+                  : "border border-(--color-sand-strong) bg-white transition hover:shadow-md"
               }`}
             >
               <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                 <h3 className="font-serif text-xl leading-tight text-slate-900">
                   {sibling.title}
                 </h3>
-                <span className="shrink-0 text-sm font-semibold text-[--color-pine]">
+                <span className="shrink-0 text-sm font-semibold text-(--color-pine)">
                   {formatEventDateRange({
                     startDate: sibling.startDate,
                     endDate: sibling.endDate,
@@ -434,7 +434,7 @@ function SeriesSection({
                   {getTypeLabel(sibling.type)}
                 </span>
                 {isCurrent && (
-                  <span className="text-xs font-bold text-[--color-pine] uppercase tracking-wider">
+                  <span className="text-xs font-bold text-(--color-pine) uppercase tracking-wider">
                     Current event
                   </span>
                 )}

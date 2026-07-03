@@ -6,6 +6,7 @@ import { CalendarDays, ExternalLink, Globe, MapPin, MessageCircle, Send } from "
 
 import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, hasPrivateGroupLink, isPrivateGroupInvite, type Community } from "@/lib/communities";
 import { TELEGRAM_URL } from "@/lib/site";
+import { Badge } from "@/components/ui/badge";
 
 type CommunitiesClientProps = {
   initialCommunities: Community[];
@@ -33,7 +34,7 @@ export function CommunitiesClient({
   // Error state
   if (initialError) {
     return (
-      <div className="min-h-screen bg-[--color-cream] px-5 py-10 sm:px-8 lg:px-10">
+      <div className="min-h-screen bg-(--color-cream) px-5 py-10 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50 p-6">
             <h1 className="mb-2 font-serif text-2xl text-amber-900">
@@ -50,7 +51,7 @@ export function CommunitiesClient({
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[--color-cream] px-5 py-10 sm:px-8 lg:px-10">
+    <div className="min-h-screen overflow-x-hidden bg-(--color-cream) px-5 py-10 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <header className="mb-10">
@@ -62,11 +63,11 @@ export function CommunitiesClient({
           </p>
           <div className="flex justify-start gap-8 text-sm font-medium text-slate-700">
             <span className="flex items-center gap-2">
-              <Globe className="size-4 text-[--color-pine]" />
+              <Globe className="size-4 text-(--color-pine)" />
               {initialCommunityCount} communities
             </span>
             <span className="flex items-center gap-2">
-              <MapPin className="size-4 text-[--color-ember]" />
+              <MapPin className="size-4 text-(--color-ember)" />
               {initialCountryCount} countries
             </span>
           </div>
@@ -77,7 +78,7 @@ export function CommunitiesClient({
               href={TELEGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-[--color-pine] underline decoration-[--color-pine]/35 underline-offset-4"
+              className="font-medium text-(--color-pine) underline decoration-(--color-pine)/35 underline-offset-4"
             >
               t.me/citreasurehunt
             </a>
@@ -91,7 +92,7 @@ export function CommunitiesClient({
             <select
               value={selectedCountry}
               onChange={(e) => setSelectedCountry(e.target.value)}
-              className="w-full rounded-2xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[--color-pine] focus:ring-2 focus:ring-[--color-pine]/20"
+              className="w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-(--color-pine) focus:ring-2 focus:ring-(--color-pine)/20"
             >
               <option value="">All countries</option>
               {initialCountries.map((country) => (
@@ -166,13 +167,6 @@ type CommunityCardProps = {
   getPrimaryJoinUrl: (c: Community) => string | null;
 };
 
-function invitePlatformLabel(community: Community): string {
-  const platforms: string[] = [];
-  if (community.hasTelegramInvite) platforms.push("Telegram");
-  if (community.hasWhatsappInvite) platforms.push("WhatsApp");
-  if (community.hasSignalInvite) platforms.push("Signal");
-  return platforms.join(" · ");
-}
 
 function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
   const joinUrl = getPrimaryJoinUrl(community);
@@ -180,15 +174,15 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
   const linkIconClass = "flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200";
 
   return (
-    <div className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[--color-sand-strong] bg-white p-4 transition hover:shadow-lg">
+    <div className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white p-4 transition hover:shadow-lg">
       {/* Name + location */}
       <h3 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">
-        <Link href={`/communities/${community.slug}`} className="hover:text-[--color-pine] transition">
+        <Link href={`/communities/${community.slug}`} className="hover:text-(--color-pine) transition">
           {community.name}
         </Link>
       </h3>
       <p className="mb-3 flex min-w-0 items-center gap-1 text-sm text-slate-500">
-        <MapPin className="size-3 shrink-0 text-[--color-ember]" />
+        <MapPin className="size-3 shrink-0 text-(--color-ember)" />
         <span className="min-w-0 wrap-break-word">
           {community.city}
           {community.city && community.country && ", "}
@@ -257,22 +251,36 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
             href={joinUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-full justify-center rounded-full bg-[--color-ember] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-ember]/90"
+            className="inline-flex w-full justify-center rounded-full bg-(--color-ember) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-ember)/90"
           >
             Join
           </a>
         )}
         {hasPrivateGroupLink(community) && (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <Link
               href={`/communities/${community.slug}`}
-              className="inline-flex w-full justify-center rounded-full bg-[--color-pine] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90"
+              className="inline-flex w-full justify-center rounded-full bg-(--color-pine) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-pine)/90"
             >
               Request access
             </Link>
-            <p className="text-center text-xs leading-5 text-slate-500">
-              Available via {invitePlatformLabel(community)} — quick verification required.
-            </p>
+            <div className="flex justify-center gap-1">
+              {community.hasTelegramInvite && (
+                <Badge variant="secondary" className="px-2 py-0 text-[10px] font-medium">
+                  Telegram
+                </Badge>
+              )}
+              {community.hasWhatsappInvite && (
+                <Badge variant="secondary" className="px-2 py-0 text-[10px] font-medium">
+                  WhatsApp
+                </Badge>
+              )}
+              {community.hasSignalInvite && (
+                <Badge variant="secondary" className="px-2 py-0 text-[10px] font-medium">
+                  Signal
+                </Badge>
+              )}
+            </div>
           </div>
         )}
         {!hasPrivateGroupLink(community) && !joinUrl && (
@@ -281,7 +289,7 @@ function CommunityCard({ community, getPrimaryJoinUrl }: CommunityCardProps) {
               href={TELEGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full justify-center rounded-full bg-[--color-pine] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90"
+              className="inline-flex w-full justify-center rounded-full bg-(--color-pine) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-pine)/90"
             >
               Ask in our Telegram group
             </a>

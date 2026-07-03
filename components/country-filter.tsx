@@ -30,7 +30,7 @@ export function CountryFilter({
           router.push(query ? `/?${query}#events` : "/#events", { scroll: false });
         });
       }}
-      className="w-full rounded-2xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[--color-pine] focus:ring-2 focus:ring-[--color-pine]/20"
+      className="w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-(--color-pine) focus:ring-2 focus:ring-(--color-pine)/20"
     >
       <option value="">All countries</option>
       {countries.map((country) => (

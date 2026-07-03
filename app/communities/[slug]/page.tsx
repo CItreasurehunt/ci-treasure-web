@@ -78,20 +78,20 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   const relatedEvents = await getCommunityEventsByCountry(community.country);
 
   return (
-    <main className="min-h-screen bg-[--color-cream] px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="flex flex-wrap items-center gap-3">
           <BackButton />
         </div>
 
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
-          <div className="border-b border-[--color-sand-strong] px-6 py-10 sm:px-8">
+          <div className="border-b border-(--color-sand-strong) px-6 py-10 sm:px-8">
             <div className="max-w-3xl space-y-4">
               <div className="flex items-center gap-2">
                 <span className="text-2xl" aria-hidden="true">
                   {getCountryFlag(community.country ?? "")}
                 </span>
-                <p className="text-sm font-semibold uppercase tracking-widest text-[--color-pine]">
+                <p className="text-sm font-semibold uppercase tracking-widest text-(--color-pine)">
                   {community.city}{community.city && community.country && ", "}{getCountryLabel(community.country ?? "")}
                   {community.region ? ` · ${community.region}` : ""}
                 </p>
@@ -173,13 +173,13 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
               )}
 
               {(community.venue || community.profile) && (
-                <section className="space-y-4 rounded-2xl border border-[--color-sand-strong] bg-slate-50 p-6">
+                <section className="space-y-4 rounded-2xl border border-(--color-sand-strong) bg-slate-50 p-6">
                   <h2 className="font-serif text-xl text-slate-950">Related Pages</h2>
                   <div className="flex flex-col gap-3">
                     {community.venue && (
                       <Link
                         href={`/venues/${community.venue.slug}`}
-                        className="group flex items-center justify-between text-slate-700 hover:text-[--color-pine]"
+                        className="group flex items-center justify-between text-slate-700 hover:text-(--color-pine)"
                       >
                         <span className="flex items-center gap-2">
                           <MapPin className="h-4 w-4" />
@@ -191,7 +191,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
                     {community.profile && (
                       <Link
                         href={`/teachers/${community.profile.slug}`}
-                        className="group flex items-center justify-between text-slate-700 hover:text-[--color-pine]"
+                        className="group flex items-center justify-between text-slate-700 hover:text-(--color-pine)"
                       >
                         <span className="flex items-center gap-2">
                           <Users className="h-4 w-4" />
@@ -217,7 +217,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
             </div>
 
             <aside className="space-y-6">
-              <section className="rounded-[1.75rem] border border-[--color-sand-strong] bg-[--color-cream] p-6">
+              <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
                 <h2 className="font-serif text-2xl text-slate-950">Links & Resources</h2>
                 <div className="mt-5 flex flex-col gap-3">
                   {community.website && (
@@ -303,7 +303,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
               </section>
 
               {community.has_invites && (
-                <section className="rounded-[1.75rem] border border-[--color-pine]/20 bg-[--color-pine]/5 p-6">
+                <section className="rounded-[1.75rem] border border-(--color-pine)/20 bg-(--color-pine)/5 p-6">
                   <h2 className="font-serif text-xl text-slate-950">Join this community</h2>
                   <p className="mt-2 text-sm text-slate-600">
                     Private chat links are shared here after a quick verification to reduce spam.
@@ -340,7 +340,7 @@ function EventListItem({ event }: { event: EventListItemType }) {
   return (
     <Link
       href={getEventHref(event)}
-      className="group flex flex-col justify-between gap-4 rounded-2xl border border-[--color-sand-strong] bg-white p-5 transition hover:border-violet-300 hover:shadow-md sm:flex-row sm:items-center"
+      className="group flex flex-col justify-between gap-4 rounded-2xl border border-(--color-sand-strong) bg-white p-5 transition hover:border-violet-300 hover:shadow-md sm:flex-row sm:items-center"
     >
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -379,10 +379,10 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center justify-between rounded-xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-[--color-pine] hover:text-[--color-pine]"
+      className="inline-flex items-center justify-between rounded-xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-(--color-pine) hover:text-(--color-pine)"
     >
       <span className="flex items-center gap-3">
-        <span className="text-[--color-pine]">{icon}</span>
+        <span className="text-(--color-pine)">{icon}</span>
         <span className="capitalize">{label}</span>
       </span>
       <ExternalLink className="h-4 w-4 opacity-30" />

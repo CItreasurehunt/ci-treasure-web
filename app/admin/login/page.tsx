@@ -46,7 +46,7 @@ export default async function AdminLoginPage({
           <h1 className="font-serif text-4xl text-slate-950">Admin already signed in</h1>
           <p className="mt-4 text-base leading-7 text-slate-700">You are signed in as {adminUser.email}.</p>
           <div className="mt-6">
-            <Link href="/admin/events" className="rounded-full bg-[--color-ink] px-5 py-3 text-sm font-semibold text-[--color-cream]">
+            <Link href="/admin/events" className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)">
               Open admin events
             </Link>
           </div>
@@ -63,7 +63,7 @@ export default async function AdminLoginPage({
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,_#f7f0e5_0%,_#fffdf8_45%,_#fffaf2_100%)] px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-2xl rounded-[1.75rem] border border-white/80 bg-white/90 p-8 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
-        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[--color-pine]">Admin login</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">Admin login</p>
         <h1 className="mt-3 font-serif text-4xl text-slate-950">Magic link only</h1>
         <p className="mt-4 text-base leading-7 text-slate-700">
           Enter the configured admin email. Supabase will send a magic link, and after you open it you will land in the admin area.
@@ -82,13 +82,13 @@ export default async function AdminLoginPage({
               name="email"
               type="email"
               required
-              className="w-full rounded-2xl border border-[--color-sand-strong] bg-white px-4 py-3 text-base text-slate-950 outline-none ring-0 transition focus:border-[--color-pine]"
+              className="w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-base text-slate-950 outline-none ring-0 transition focus:border-(--color-pine)"
               placeholder="you@example.com"
             />
           </div>
           <button
             type="submit"
-            className="rounded-full bg-[--color-ink] px-5 py-3 text-sm font-semibold text-[--color-cream]"
+            className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)"
           >
             Send magic link
           </button>

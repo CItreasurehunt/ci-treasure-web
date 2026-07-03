@@ -71,20 +71,20 @@ export default async function VenuePage({ params }: VenuePageProps) {
   const { upcoming, past } = await getVenueEvents(venue.id);
 
   return (
-    <main className="min-h-screen bg-[--color-cream] px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="flex flex-wrap items-center gap-3">
           <BackButton />
         </div>
 
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
-          <div className="border-b border-[--color-sand-strong] px-6 py-10 sm:px-8">
+          <div className="border-b border-(--color-sand-strong) px-6 py-10 sm:px-8">
             <div className="max-w-3xl space-y-4">
               <div className="flex items-center gap-2">
                 <span className="text-2xl" aria-hidden="true">
                   {getCountryFlag(venue.country)}
                 </span>
-                <p className="text-sm font-semibold uppercase tracking-widest text-[--color-pine]">
+                <p className="text-sm font-semibold uppercase tracking-widest text-(--color-pine)">
                   {venue.city}, {getCountryLabel(venue.country)}
                   {venue.region ? ` · ${venue.region}` : ""}
                 </p>
@@ -94,7 +94,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
               </h1>
               {venue.address && (
                 <p className="flex items-start gap-2 text-slate-600">
-                  <MapPin className="mt-1 h-4 w-4 shrink-0 text-[--color-pine]" />
+                  <MapPin className="mt-1 h-4 w-4 shrink-0 text-(--color-pine)" />
                   <span>{venue.address}</span>
                 </p>
               )}
@@ -104,7 +104,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
           <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr]">
             <div className="space-y-10">
               {venue.imageUrl && (
-                <div className="overflow-hidden rounded-2xl border border-[--color-sand-strong]">
+                <div className="overflow-hidden rounded-2xl border border-(--color-sand-strong)">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={venue.imageUrl}
@@ -152,7 +152,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   {past.length > 0 && (
                     <details className="group">
                       <summary className="cursor-pointer list-none space-y-4">
-                        <div className="flex items-center justify-between border-t border-[--color-sand-strong] pt-6">
+                        <div className="flex items-center justify-between border-t border-(--color-sand-strong) pt-6">
                           <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">
                             Past Events ({past.length})
                           </h3>
@@ -176,7 +176,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
             </div>
 
             <aside className="space-y-6">
-              <section className="rounded-[1.75rem] border border-[--color-sand-strong] bg-[--color-cream] p-6">
+              <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
                 <h2 className="font-serif text-2xl text-slate-950">Links & Contact</h2>
                 <div className="mt-5 flex flex-col gap-3">
                   {venue.website && (
@@ -258,7 +258,7 @@ function EventCard({ event }: { event: EventListItem }) {
   return (
     <Link
       href={getEventHref(event)}
-      className="group flex flex-col justify-between gap-4 rounded-2xl border border-[--color-sand-strong] bg-white p-5 transition hover:border-violet-300 hover:shadow-md sm:flex-row sm:items-center"
+      className="group flex flex-col justify-between gap-4 rounded-2xl border border-(--color-sand-strong) bg-white p-5 transition hover:border-violet-300 hover:shadow-md sm:flex-row sm:items-center"
     >
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -297,10 +297,10 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center justify-between rounded-xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-[--color-pine] hover:text-[--color-pine]"
+      className="inline-flex items-center justify-between rounded-xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-(--color-pine) hover:text-(--color-pine)"
     >
       <span className="flex items-center gap-3">
-        <span className="text-[--color-pine]">{icon}</span>
+        <span className="text-(--color-pine)">{icon}</span>
         <span className="capitalize">{label}</span>
       </span>
       <ExternalLink className="h-4 w-4 opacity-30" />

@@ -25,7 +25,7 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
         className="group block overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
       >
         <article className="flex items-start gap-3 p-3">
-          <div className={`h-12 w-12 shrink-0 rounded-md border border-[--color-sand-strong] overflow-hidden ${!renderImage ? event.accentClass : ""}`}>
+          <div className={`h-12 w-12 shrink-0 rounded-md border border-(--color-sand-strong) overflow-hidden ${!renderImage ? event.accentClass : ""}`}>
             {renderImage && (
               useNextImage ? (
                 <Image src={imageUrl} alt={event.title} width={48} height={48} className="h-full w-full object-cover" />
@@ -35,7 +35,7 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
             )}
           </div>
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[--color-pine]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-(--color-pine)">
               {getTypeLabel(event.type)}
             </p>
             <h3 className="truncate font-serif text-sm font-semibold leading-snug text-slate-950">{event.title}</h3>
@@ -54,7 +54,7 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
     >
       <article>
         {renderImage ? (
-          <div className="relative h-44 border-b border-[--color-sand-strong]">
+          <div className="relative h-44 border-b border-(--color-sand-strong)">
             {useNextImage ? (
               <Image
                 src={imageUrl}
@@ -68,11 +68,11 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
             )}
           </div>
         ) : (
-          <div className={`h-44 border-b border-[--color-sand-strong] ${event.accentClass}`} />
+          <div className={`h-44 border-b border-(--color-sand-strong) ${event.accentClass}`} />
         )}
         <div className="space-y-5 p-5">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[--color-pine]">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-(--color-pine)">
               {getTypeLabel(event.type)}
             </p>
             <h3 className="font-serif text-2xl leading-tight text-slate-950">{event.title}</h3>
@@ -83,11 +83,11 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
 
           <dl className="space-y-2 text-sm text-slate-600">
             <div className="flex items-start gap-2">
-              <CalendarDays className="mt-0.5 size-4 text-[--color-ember]" />
+              <CalendarDays className="mt-0.5 size-4 text-(--color-ember)" />
               <dd>{formatEventDateRange(event)}</dd>
             </div>
             <div className="flex items-start gap-2">
-              <MapPin className="mt-0.5 size-4 text-[--color-ember]" />
+              <MapPin className="mt-0.5 size-4 text-(--color-ember)" />
               <dd>
                 {event.city}, {getCountryLabel(event.country)}
               </dd>

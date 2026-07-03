@@ -39,7 +39,7 @@ export function ShareButton({
     <Button
       type="button"
       variant="outline"
-      className="border-[--color-sand-strong] bg-white/80"
+      className="border-(--color-sand-strong) bg-white/80"
       onClick={handleShare}
     >
       <Share2 />

@@ -54,13 +54,13 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
   const events = await getTeacherEvents(teacher.id);
 
   return (
-    <main className="min-h-screen bg-[--color-cream] px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div>
           <BackButton />
         </div>
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
-          <div className="border-b border-[--color-sand-strong] bg-[linear-gradient(135deg,#1f3b46_0%,#3a6a73_50%,#ead9b1_100%)] px-6 py-10 sm:px-8">
+          <div className="border-b border-(--color-sand-strong) bg-[linear-gradient(135deg,#1f3b46_0%,#3a6a73_50%,#ead9b1_100%)] px-6 py-10 sm:px-8">
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {teacher.is_teacher && <RoleBadge>Teacher</RoleBadge>}
@@ -101,12 +101,12 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                   <div className="grid gap-4">
                     {events.map((event) => (
                       <Link key={event.id} href={getEventHref(event)} className="group">
-                        <div className="rounded-[1.5rem] border border-[--color-sand-strong] bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-[--color-pine] sm:p-6">
+                        <div className="rounded-[1.5rem] border border-(--color-sand-strong) bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-(--color-pine) sm:p-6">
                           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-                            <h3 className="font-serif text-xl leading-tight text-slate-900 group-hover:text-[--color-pine] transition-colors">
+                            <h3 className="font-serif text-xl leading-tight text-slate-900 group-hover:text-(--color-pine) transition-colors">
                               {event.title}
                             </h3>
-                            <span className="shrink-0 text-sm font-semibold text-[--color-pine] flex items-center gap-1.5">
+                            <span className="shrink-0 text-sm font-semibold text-(--color-pine) flex items-center gap-1.5">
                               <CalendarDays className="h-4 w-4" />
                               {formatEventDateRange(event)}
                             </span>
@@ -120,7 +120,7 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                                 {getCountryFlag(event.country)} {event.city}
                               </span>
                             </div>
-                            <span className="text-sm font-medium text-[--color-pine] opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-sm font-medium text-(--color-pine) opacity-0 group-hover:opacity-100 transition-opacity">
                               View event →
                             </span>
                           </div>
@@ -136,7 +136,7 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
 
             <aside className="space-y-6">
               {(teacher.website || teacher.public_email || teacher.instagram || teacher.facebook || teacher.youtube || teacher.telegram || teacher.newsletter) && (
-                <section className="rounded-[1.75rem] border border-[--color-sand-strong] bg-[--color-cream] p-6">
+                <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
                   <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                   <div className="mt-4 flex flex-col gap-3">
                     {teacher.website && (
@@ -201,10 +201,10 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center justify-between rounded-xl border border-[--color-sand-strong] bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-[--color-pine] hover:text-[--color-pine]"
+      className="inline-flex items-center justify-between rounded-xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-(--color-pine) hover:text-(--color-pine)"
     >
       <span className="flex items-center gap-3">
-        <span className="text-[--color-pine]">{icon}</span>
+        <span className="text-(--color-pine)">{icon}</span>
         <span>{label}</span>
       </span>
       <ExternalLink className="h-4 w-4 opacity-30" />

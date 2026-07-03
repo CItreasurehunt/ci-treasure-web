@@ -9,7 +9,7 @@ export default function BackButton({ label = "Back" }: { label?: string }) {
   return (
     <Button
       variant="outline"
-      className="border-[--color-sand-strong] bg-white/80"
+      className="border-(--color-sand-strong) bg-white/80"
       onClick={() => router.back()}
     >
       <ArrowLeft className="mr-2 h-4 w-4" />

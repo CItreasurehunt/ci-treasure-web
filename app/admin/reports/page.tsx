@@ -81,7 +81,7 @@ export default async function AdminReportsPage({
             return (
               <div
                 key={r.id}
-                className="rounded-[1.5rem] border border-[--color-sand-strong] bg-white p-5 space-y-3"
+                className="rounded-[1.5rem] border border-(--color-sand-strong) bg-white p-5 space-y-3"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="space-y-1">
@@ -143,18 +143,18 @@ export default async function AdminReportsPage({
                       name="admin_note"
                       defaultValue={r.admin_note ?? ""}
                       placeholder="Admin note (optional)"
-                      className="w-full rounded-xl border border-[--color-sand-strong] px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[--color-pine]"
+                      className="w-full rounded-xl border border-(--color-sand-strong) px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-(--color-pine)"
                     />
                     <div className="flex gap-3">
                       <button
                         formAction={resolveReport}
-                        className="rounded-full bg-[--color-pine] px-4 py-1.5 text-sm font-medium text-white hover:opacity-90"
+                        className="rounded-full bg-(--color-pine) px-4 py-1.5 text-sm font-medium text-white hover:opacity-90"
                       >
                         Resolve
                       </button>
                       <button
                         formAction={dismissReport}
-                        className="rounded-full border border-[--color-sand-strong] px-4 py-1.5 text-sm font-medium text-slate-600 hover:border-slate-400"
+                        className="rounded-full border border-(--color-sand-strong) px-4 py-1.5 text-sm font-medium text-slate-600 hover:border-slate-400"
                       >
                         Dismiss
                       </button>

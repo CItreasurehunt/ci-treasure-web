@@ -56,11 +56,18 @@ type InviteButtonsProps = {
   platforms: Partial<Record<Platform, boolean>>;
 };
 
+function formatPlatformList(platforms: Platform[]): string {
+  const names = platforms.map((platform) => PLATFORM_LABELS[platform]);
+  if (names.length <= 1) return names.join("");
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
 export function InviteButtons({ communityId, platforms }: InviteButtonsProps) {
-  const availablePlatformLabel = (Object.keys(platforms) as Platform[])
-    .filter((platform) => platforms[platform])
-    .map((platform) => PLATFORM_LABELS[platform])
-    .join(" · ");
+  const availablePlatforms = (Object.keys(platforms) as Platform[]).filter(
+    (platform) => platforms[platform]
+  );
+  const platformList = formatPlatformList(availablePlatforms);
 
   const [links, setLinks] = useState<Partial<Record<Platform, string>> | null>(() =>
     readCache(communityId)
@@ -109,9 +116,9 @@ export function InviteButtons({ communityId, platforms }: InviteButtonsProps) {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[--color-pine] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-pine) px-4 py-3 text-sm font-semibold text-white transition hover:bg-(--color-pine)/90"
           >
-            Join on {PLATFORM_LABELS[platform]}
+            Join {PLATFORM_LABELS[platform]} group
           </a>
         ))}
       </div>
@@ -125,7 +132,7 @@ export function InviteButtons({ communityId, platforms }: InviteButtonsProps) {
         href={TELEGRAM_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[--color-pine] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-pine) px-4 py-3 text-sm font-semibold text-white transition hover:bg-(--color-pine)/90"
       >
         Request access via Telegram
       </a>
@@ -135,21 +142,18 @@ export function InviteButtons({ communityId, platforms }: InviteButtonsProps) {
   return (
     <div className="flex flex-col gap-3">
       {!showWidget && (
-        <>
-          <button
-            type="button"
-            onClick={handleStart}
-            disabled={verifying}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[--color-pine] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[--color-pine]/90 disabled:opacity-60"
-          >
-            {verifying ? "Verifying…" : "Request access"}
-          </button>
-          {availablePlatformLabel && (
-            <p className="text-center text-xs text-slate-500">
-              Available via {availablePlatformLabel}
-            </p>
-          )}
-        </>
+        <button
+          type="button"
+          onClick={handleStart}
+          disabled={verifying}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-pine) px-4 py-3 text-sm font-semibold text-white transition hover:bg-(--color-pine)/90 disabled:opacity-60"
+        >
+          {verifying
+            ? "Verifying…"
+            : platformList
+              ? `Request access to ${platformList} ${availablePlatforms.length > 1 ? "groups" : "group"}`
+              : "Request access"}
+        </button>
       )}
       {showWidget && (
         <div className="flex justify-center">

@@ -24,7 +24,7 @@ export function SegmentsSection({ segments, teacherProfiles = [] }: SegmentsSect
         {showCollapseToggle && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 text-sm font-medium text-[--color-pine] hover:underline"
+            className="flex items-center gap-1 text-sm font-medium text-(--color-pine) hover:underline"
           >
             {isExpanded ? (
               <>
@@ -43,12 +43,12 @@ export function SegmentsSection({ segments, teacherProfiles = [] }: SegmentsSect
         {displayedItems.map((segment, index) => (
           <div
             key={`${segment.title}-${index}`}
-            className="rounded-[1.5rem] border border-[--color-sand-strong] bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
+            className="rounded-[1.5rem] border border-(--color-sand-strong) bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6"
           >
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
               <h3 className="font-serif text-xl leading-tight text-slate-900">{segment.title}</h3>
               {segment.startDate && segment.endDate && (
-                <span className="shrink-0 text-sm font-semibold text-[--color-pine]">
+                <span className="shrink-0 text-sm font-semibold text-(--color-pine)">
                   {formatEventDateRange({
                     startDate: segment.startDate,
                     endDate: segment.endDate,
@@ -67,7 +67,7 @@ export function SegmentsSection({ segments, teacherProfiles = [] }: SegmentsSect
 
                   const content = (
                     <>
-                      <User className="size-3 text-slate-400 group-hover:text-[--color-pine] transition-colors" />
+                      <User className="size-3 text-slate-400 group-hover:text-(--color-pine) transition-colors" />
                       {teacherName}
                     </>
                   );
@@ -77,7 +77,7 @@ export function SegmentsSection({ segments, teacherProfiles = [] }: SegmentsSect
                       <Link
                         key={teacherName}
                         href={`/teachers/${profile.slug}`}
-                        className="group inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-[--color-pine] hover:text-[--color-pine] hover:shadow-sm"
+                        className="group inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-(--color-pine) hover:text-(--color-pine) hover:shadow-sm"
                       >
                         {content}
                       </Link>
@@ -108,7 +108,7 @@ export function SegmentsSection({ segments, teacherProfiles = [] }: SegmentsSect
       {showCollapseToggle && !isExpanded && (
         <button
           onClick={() => setIsExpanded(true)}
-          className="w-full rounded-[1.5rem] border border-dashed border-[--color-sand-strong] bg-white/50 py-4 text-sm font-medium text-slate-500 transition hover:bg-white hover:text-[--color-pine]"
+          className="w-full rounded-[1.5rem] border border-dashed border-(--color-sand-strong) bg-white/50 py-4 text-sm font-medium text-slate-500 transition hover:bg-white hover:text-(--color-pine)"
         >
           + {segments.items.length - 2} more segments
         </button>

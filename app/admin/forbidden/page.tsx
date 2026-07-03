@@ -10,10 +10,10 @@ export default function AdminForbiddenPage() {
           This signed-in account is not allowed to access the admin area. Use the configured admin email or return to the public site.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/admin/login" className="rounded-full bg-[--color-ink] px-5 py-3 text-sm font-semibold text-[--color-cream]">
+          <Link href="/admin/login" className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)">
             Back to login
           </Link>
-          <Link href="/" className="rounded-full border border-[--color-sand-strong] px-5 py-3 text-sm font-semibold text-slate-800">
+          <Link href="/" className="rounded-full border border-(--color-sand-strong) px-5 py-3 text-sm font-semibold text-slate-800">
             Open public site
           </Link>
         </div>

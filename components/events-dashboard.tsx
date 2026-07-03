@@ -444,14 +444,14 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
           href={TELEGRAM_URL}
           target="_blank"
           rel="noreferrer"
-          className="font-medium text-[--color-pine] underline decoration-[--color-pine]/35 underline-offset-4 transition hover:decoration-[--color-pine]"
+          className="font-medium text-(--color-pine) underline decoration-(--color-pine)/35 underline-offset-4 transition hover:decoration-(--color-pine)"
         >
           Post it in our Telegram group
         </a>
         {" "}or email us at{" "}
         <a
           href="mailto:hello@citreasurehunt.com"
-          className="font-medium text-[--color-pine] underline decoration-[--color-pine]/35 underline-offset-4 transition hover:decoration-[--color-pine]"
+          className="font-medium text-(--color-pine) underline decoration-(--color-pine)/35 underline-offset-4 transition hover:decoration-(--color-pine)"
         >
           hello@citreasurehunt.com
         </a>

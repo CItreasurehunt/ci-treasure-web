@@ -27,12 +27,12 @@ export default async function Home() {
   );
 
   return (
-    <main className="min-h-screen bg-[--color-cream] text-slate-900">
+    <main className="min-h-screen bg-(--color-cream) text-slate-900">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
 
         {/* Hero */}
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div className="border-l-4 border-[--color-pine] pl-5 py-1">
+          <div className="border-l-4 border-(--color-pine) pl-5 py-1">
             <h1 className="font-serif text-4xl tracking-tight text-slate-950 sm:text-5xl">
               Contact Improvisation events &amp;{" "}
               <Link href="/communities" className="text-violet-600 underline underline-offset-4 hover:text-violet-800">

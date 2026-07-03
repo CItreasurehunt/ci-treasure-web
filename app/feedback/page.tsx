@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 
 export default function FeedbackPage() {
   return (
-    <main className="min-h-screen bg-[--color-cream]">
+    <main className="min-h-screen bg-(--color-cream)">
       <section className="mx-auto w-full max-w-2xl px-5 py-10 sm:px-8">
-        <div className="mb-8 border-l-4 border-[--color-pine] pl-5 py-1">
+        <div className="mb-8 border-l-4 border-(--color-pine) pl-5 py-1">
           <h1 className="font-serif text-3xl tracking-tight text-slate-950 sm:text-4xl">Feedback</h1>
           <p className="mt-2 text-base text-slate-500">
             Found a bug, missing an event, or have an idea? We read everything.
