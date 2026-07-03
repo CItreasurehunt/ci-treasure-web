@@ -42,6 +42,7 @@ export type Community = {
   slug: string;
   city: string;
   country: string; // display label, e.g. "Germany"
+  countryIso: string | null; // ISO 3166-1 alpha-2, e.g. "DE" — null for "Worldwide / several"
   description: string | null;
   websiteUrl: string | null;
   facebookGroupUrl: string | null;
@@ -142,6 +143,7 @@ function toCommunity(row: CommunityRow): Community {
     slug: row.slug,
     city: row.city ?? "",
     country: countryLabel(row),
+    countryIso: row.country,
     description: row.description,
     websiteUrl: normalizeUrl(row.website),
     facebookGroupUrl: normalizeUrl(row.facebook_group),
@@ -227,9 +229,17 @@ export async function getCommunities(): Promise<CommunitiesResponse> {
     if (error) throw new Error(error.message);
 
     const communities = sortCommunities((data as unknown as CommunityRow[]).map(toCommunity));
-    const uniqueCountries = Array.from(new Set(communities.map((c) => c.country).filter(Boolean)))
-      .sort((a, b) => a.localeCompare(b))
-      .map((country) => ({ value: country, label: country }));
+
+    // ISO code as value (matches the events page convention), display label from Intl.DisplayNames.
+    // Communities with no country ("Worldwide / several") are excluded here — they get their own
+    // "Worldwide" optgroup client-side rather than a fake country entry.
+    const isoToLabel = new Map<string, string>();
+    for (const c of communities) {
+      if (c.countryIso) isoToLabel.set(c.countryIso, c.country);
+    }
+    const uniqueCountries = Array.from(isoToLabel.entries())
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .map(([value, label]) => ({ value, label }));
 
     return {
       communities,

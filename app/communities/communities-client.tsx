@@ -8,6 +8,9 @@ import { CalendarDays, ExternalLink, Globe, MapPin, MessageCircle, Send } from "
 import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, isPrivateGroupInvite, type Community } from "@/lib/communities";
 import { TELEGRAM_URL } from "@/lib/site";
 import { Badge } from "@/components/ui/badge";
+import { CONTINENT_COUNTRIES, CONTINENT_LABELS } from "@/lib/continents";
+
+const WORLDWIDE_VALUE = "__worldwide";
 
 type CommunitiesClientProps = {
   initialCommunities: Community[];
@@ -36,10 +39,31 @@ export function CommunitiesClient({
     router.replace(qs ? `/communities?${qs}` : "/communities", { scroll: false });
   }
 
-  // Filter communities by selected country
+  // Group country options into the project's three business regions (Americas / EMEA /
+  // Asia-Pacific — same CONTINENT_COUNTRIES used on the events page), plus a "Worldwide" group
+  // for communities with no single country.
+  const groupedCountryOptions = useMemo(() => {
+    const groups = (["americas", "emea", "apac"] as const).map((key) => ({
+      key,
+      label: CONTINENT_LABELS[key],
+      value: `__continent_${key}`,
+      countries: initialCountries.filter((o) => CONTINENT_COUNTRIES[key].includes(o.value)),
+    }));
+    const hasWorldwide = initialCommunities.some((c) => c.countryIso === null);
+    return { groups: groups.filter((g) => g.countries.length > 0), hasWorldwide };
+  }, [initialCountries, initialCommunities]);
+
+  // Filter communities by selected country / continent / worldwide
   const filteredCommunities = useMemo(() => {
     if (!selectedCountry) return initialCommunities;
-    return initialCommunities.filter((c) => c.country === selectedCountry);
+    if (selectedCountry === WORLDWIDE_VALUE) {
+      return initialCommunities.filter((c) => c.countryIso === null);
+    }
+    if (selectedCountry.startsWith("__continent_")) {
+      const key = selectedCountry.slice("__continent_".length);
+      return initialCommunities.filter((c) => c.countryIso && CONTINENT_COUNTRIES[key]?.includes(c.countryIso));
+    }
+    return initialCommunities.filter((c) => c.countryIso === selectedCountry);
   }, [initialCommunities, selectedCountry]);
 
   // Error state
@@ -106,11 +130,19 @@ export function CommunitiesClient({
               className="w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-(--color-pine) focus:ring-2 focus:ring-(--color-pine)/20"
             >
               <option value="">All countries</option>
-              {initialCountries.map((country) => (
-                <option key={country.value} value={country.value}>
-                  {country.label}
-                </option>
+              {groupedCountryOptions.groups.map((group) => (
+                <optgroup key={group.key} label={group.label}>
+                  <option value={group.value}>All {group.label}</option>
+                  {group.countries.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </optgroup>
               ))}
+              {groupedCountryOptions.hasWorldwide && (
+                <optgroup label="Worldwide">
+                  <option value={WORLDWIDE_VALUE}>Worldwide / International</option>
+                </optgroup>
+              )}
             </select>
           </div>
         </div>
