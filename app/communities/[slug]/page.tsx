@@ -31,6 +31,7 @@ import {
   getAllCommunitySlugs,
   getCommunityBySlug,
   getCommunityEventsByCountry,
+  getPublishedInvitePlatforms,
   isPrivateGroupInvite,
 } from "@/lib/communities";
 import { getCountryFlag } from "@/lib/utils";
@@ -74,6 +75,9 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   if (!community) {
     notFound();
   }
+
+  const publishedInvitePlatforms = await getPublishedInvitePlatforms(community.id);
+  const hasPublishedInvites = Object.keys(publishedInvitePlatforms).length > 0;
 
   const relatedEvents = await getCommunityEventsByCountry(community.country);
 
@@ -306,17 +310,12 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
                 <section className="rounded-[1.75rem] border border-(--color-pine)/20 bg-(--color-pine)/5 p-6">
                   <h2 className="font-serif text-xl text-slate-950">Join this community</h2>
                   <p className="mt-2 text-sm text-slate-600">
-                    Invite links to chat groups are shared here after a quick verification to reduce spam.
+                    {hasPublishedInvites
+                      ? "Invite links to chat groups are shared here after a quick verification to reduce spam."
+                      : "This community coordinates in a private group. Join our Telegram group and we'll help you connect."}
                   </p>
                   <div className="mt-4">
-                    <InviteButtons
-                      communityId={community.id}
-                      platforms={{
-                        telegram: community.has_telegram_invite,
-                        whatsapp: community.has_whatsapp_invite,
-                        signal: community.has_signal_invite,
-                      }}
-                    />
+                    <InviteButtons communityId={community.id} platforms={publishedInvitePlatforms} />
                   </div>
                 </section>
               )}

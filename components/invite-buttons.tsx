@@ -126,6 +126,21 @@ export function InviteButtons({ communityId, platforms }: InviteButtonsProps) {
     );
   }
 
+  // No allow-listed (published) invite link for this community — direct people to the
+  // main Telegram group to request access, rather than exposing an un-consented link.
+  if (availablePlatforms.length === 0) {
+    return (
+      <a
+        href={TELEGRAM_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-pine) px-4 py-3 text-sm font-semibold text-white transition hover:bg-(--color-pine)/90"
+      >
+        Join our Telegram group for access
+      </a>
+    );
+  }
+
   // Turnstile not configured (missing env var) — fall back to the pre-I-099 stub
   if (!siteKey) {
     return (

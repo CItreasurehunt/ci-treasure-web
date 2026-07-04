@@ -1,5 +1,34 @@
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { mapEventRow, type SupabaseEventRow } from "./events";
+
+export type InvitePlatform = "telegram" | "whatsapp" | "signal";
+
+// Which invite platforms are ALLOW-LISTED (published) for a community. community_invites
+// is service-role-only, so this uses the admin client. Only published rows are returned,
+// so the pre-captcha UI never advertises a link that won't be revealed.
+export async function getPublishedInvitePlatforms(
+  communityId: string,
+): Promise<Partial<Record<InvitePlatform, boolean>>> {
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from("community_invites")
+      .select("platform")
+      .eq("community_id", communityId)
+      .eq("published", true);
+    const result: Partial<Record<InvitePlatform, boolean>> = {};
+    for (const row of data ?? []) {
+      const platform = row.platform as string;
+      if (platform === "telegram" || platform === "whatsapp" || platform === "signal") {
+        result[platform] = true;
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
 
 // Public submit/issue forms still live on Airtable until I-039 Step 2
 export const COMMUNITY_SUBMIT_URL =

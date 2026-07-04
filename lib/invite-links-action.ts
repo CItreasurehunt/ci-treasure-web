@@ -56,7 +56,8 @@ export async function getInviteLinks(
   const { data, error } = await supabase
     .from("community_invites")
     .select("platform, url")
-    .eq("community_id", communityId);
+    .eq("community_id", communityId)
+    .eq("published", true);
 
   if (error) {
     return { error: "lookup_failed" };
