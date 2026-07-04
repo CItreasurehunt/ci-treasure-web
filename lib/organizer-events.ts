@@ -81,6 +81,9 @@ export type OrganizerEventFormData = {
   // Comma-separated in the form; parsed to text[] on save.
   languages: string;
   features: string;
+  // Multi-select checkboxes against known values only — no free text, so the
+  // taxonomy only grows through admin/addevent-vetted additions (2026-07-05 decision).
+  discipline: string[];
   cancelled: boolean;
   cancelledText: string;
   priceItems: AdminPriceItem[];
@@ -101,6 +104,7 @@ export function createEmptyOrganizerEventFormData(): OrganizerEventFormData {
     level: "",
     languages: "",
     features: "",
+    discipline: ["contact_improvisation"],
     cancelled: false,
     cancelledText: "",
     priceItems: [],
@@ -158,6 +162,7 @@ type EventRowForForm = {
   level: string | null;
   language: string[] | null;
   features: string[] | null;
+  discipline: string[] | null;
   cancelled: boolean | null;
   cancelled_text: string | null;
   price: { items?: Array<{ amount?: number | null; currency?: string; description?: string }> } | null;
@@ -178,6 +183,9 @@ export function eventRowToFormData(row: EventRowForForm): OrganizerEventFormData
     level: row.level ?? "",
     languages: (row.language ?? []).join(", "),
     features: (row.features ?? []).join(", "),
+    // Defensive fallback only — every real event has discipline set since the 2026-07-04
+    // cleanup; a NULL here would mean a new insert path forgot to set it.
+    discipline: row.discipline?.length ? row.discipline : ["contact_improvisation"],
     cancelled: row.cancelled ?? false,
     cancelledText: row.cancelled_text ?? "",
     priceItems: (row.price?.items ?? []).map((p) => ({
@@ -216,6 +224,9 @@ export function validateOrganizerEvent(
     return "Country must be a 2-letter ISO code (e.g. DE, GB, US).";
   }
   if (!data.timezone.trim()) return "Timezone is required.";
+  if (!data.discipline || data.discipline.length === 0) {
+    return "Select at least one practice.";
+  }
   return null;
 }
 

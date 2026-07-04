@@ -7,7 +7,7 @@ import { Search, Map, List, X, Filter } from "lucide-react";
 
 import { EventCard } from "./event-card";
 import { Button } from "./ui/button";
-import { getCountryLabel, getTypeLabel, type EventListItem } from "@/lib/events";
+import { disciplineLabel, getCountryLabel, getTypeLabel, type EventListItem } from "@/lib/events";
 import { TELEGRAM_URL } from "@/lib/site";
 import { CONTINENT_COUNTRIES, CONTINENT_LABELS } from "@/lib/continents";
 
@@ -28,21 +28,6 @@ type EventsDashboardProps = {
   events: EventListItem[];
 };
 
-// Acronyms that shouldn't be title-cased word-by-word. Add here as new short-form
-// disciplines appear — everything else humanizes automatically (snake_case -> Title Case).
-const DISCIPLINE_LABEL_OVERRIDES: Record<string, string> = {
-  bmc: "BMC",
-};
-
-function disciplineLabel(value: string): string {
-  return (
-    DISCIPLINE_LABEL_OVERRIDES[value] ??
-    value
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-  );
-}
 
 export function EventsDashboard({ events }: EventsDashboardProps) {
   const searchParams = useSearchParams();

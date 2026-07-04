@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { OrganizerEventForm } from "@/components/organizer/event-form";
+import { getKnownDisciplines } from "@/lib/events";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function NewEventPage() {
@@ -23,6 +24,8 @@ export default async function NewEventPage() {
     redirect("/dashboard/claim");
   }
 
+  const availablePractices = await getKnownDisciplines();
+
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f7f0e5_0%,#fffdf8_45%,#fffaf2_100%)] px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-3xl">
@@ -37,7 +40,7 @@ export default async function NewEventPage() {
           </p>
         </div>
         <div className="mt-8">
-          <OrganizerEventForm mode="create" />
+          <OrganizerEventForm mode="create" availablePractices={availablePractices} />
         </div>
       </div>
     </main>

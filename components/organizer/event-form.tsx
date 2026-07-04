@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createEvent, updateEvent } from "@/app/events/actions";
+import { disciplineLabel } from "@/lib/events";
 import {
   EVENT_TYPE_OPTIONS,
   LEVEL_OPTIONS,
@@ -47,10 +48,12 @@ export function OrganizerEventForm({
   mode,
   eventId,
   initial,
+  availablePractices,
 }: {
   mode: "create" | "edit";
   eventId?: string;
   initial?: OrganizerEventFormData;
+  availablePractices: string[];
 }) {
   const router = useRouter();
   const [form, setForm] = useState<OrganizerEventFormData>(
@@ -62,6 +65,15 @@ export function OrganizerEventForm({
 
   function set<K extends keyof OrganizerEventFormData>(key: K, value: OrganizerEventFormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function togglePractice(value: string) {
+    setForm((prev) => ({
+      ...prev,
+      discipline: prev.discipline.includes(value)
+        ? prev.discipline.filter((d) => d !== value)
+        : [...prev.discipline, value],
+    }));
   }
 
   function save() {
@@ -135,6 +147,35 @@ export function OrganizerEventForm({
           <Field label="Features">
             <input value={form.features} onChange={(e) => set("features", e.target.value)} className={inputClassName} placeholder="live_music, nature, residential" />
           </Field>
+        </div>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Practice *</h3>
+        <p className="mt-1 text-sm text-slate-600">
+          Select every practice taught at this event. Contact Improvisation is checked by
+          default — untick it only if this event doesn&apos;t include CI at all. Missing a
+          practice? Message us and we&apos;ll add it as an option.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {availablePractices.map((p) => (
+            <label
+              key={p}
+              className={`flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
+                form.discipline.includes(p)
+                  ? "border-(--color-pine) bg-(--color-pine)/10 text-(--color-pine)"
+                  : "border-(--color-sand-strong) text-slate-700 hover:border-(--color-pine)"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={form.discipline.includes(p)}
+                onChange={() => togglePractice(p)}
+                className="sr-only"
+              />
+              {disciplineLabel(p)}
+            </label>
+          ))}
         </div>
       </section>
 

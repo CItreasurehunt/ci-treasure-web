@@ -493,6 +493,44 @@ export function getTypeLabel(type: string) {
   return labels[type] ?? type;
 }
 
+// Acronyms that shouldn't be title-cased word-by-word. Add here as new short-form
+// practices appear — everything else humanizes automatically (snake_case -> Title Case).
+// Shared between the homepage practice filter and the organizer submission form.
+const DISCIPLINE_LABEL_OVERRIDES: Record<string, string> = {
+  bmc: "BMC",
+};
+
+export function disciplineLabel(value: string): string {
+  return (
+    DISCIPLINE_LABEL_OVERRIDES[value] ??
+    value
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+  );
+}
+
+// All discipline values currently in use, for the organizer submission form's practice
+// picker — deliberately checkbox-only (no free text) so the taxonomy only grows through
+// admin/addevent-vetted additions, not organizer-invented categories. contact_improvisation
+// is always included even if (hypothetically) no event had it, since it's the default.
+export async function getKnownDisciplines(): Promise<string[]> {
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin.from("events").select("discipline").not("discipline", "is", null);
+    const all = new Set<string>(["contact_improvisation"]);
+    for (const row of data ?? []) {
+      for (const d of (row.discipline as string[] | null) ?? []) all.add(d);
+    }
+    const rest = Array.from(all)
+      .filter((d) => d !== "contact_improvisation")
+      .sort((a, b) => disciplineLabel(a).localeCompare(disciplineLabel(b)));
+    return ["contact_improvisation", ...rest];
+  } catch {
+    return ["contact_improvisation"];
+  }
+}
+
 export function getLinkLabel(type: string, label?: string) {
   if (label) return label;
   const labels: Record<string, string> = {

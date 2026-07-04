@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { OrganizerEventForm } from "@/components/organizer/event-form";
-import { parseEventSlug } from "@/lib/events";
+import { getKnownDisciplines, parseEventSlug } from "@/lib/events";
 import { eventRowToFormData } from "@/lib/organizer-events";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,7 +30,7 @@ export default async function EditEventPage({
   const { data: event } = await supabase
     .from("events")
     .select(
-      "id, short_id, title, type, start_date, end_date, timezone, city, country, description, image_url, level, language, features, cancelled, cancelled_text, price, links, segments, status, user_id",
+      "id, short_id, title, type, start_date, end_date, timezone, city, country, description, image_url, level, language, features, discipline, cancelled, cancelled_text, price, links, segments, status, user_id",
     )
     .ilike("short_id", parsed.shortId)
     .maybeSingle();
@@ -62,6 +62,7 @@ export default async function EditEventPage({
   }
 
   const initial = eventRowToFormData(event);
+  const availablePractices = await getKnownDisciplines();
   const segments = (event.segments?.items ?? event.segments ?? []) as SegmentDisplay[];
   const hasSegments = Array.isArray(segments) && segments.length > 0;
 
@@ -81,7 +82,7 @@ export default async function EditEventPage({
         </div>
 
         <div className="mt-8">
-          <OrganizerEventForm mode="edit" eventId={event.id} initial={initial} />
+          <OrganizerEventForm mode="edit" eventId={event.id} initial={initial} availablePractices={availablePractices} />
         </div>
 
         {hasSegments ? (

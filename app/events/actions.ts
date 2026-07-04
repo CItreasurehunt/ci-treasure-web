@@ -33,6 +33,9 @@ function eventColumns(data: OrganizerEventFormData) {
     level: data.level || null,
     language: parseCsvArray(data.languages),
     features: parseCsvArray(data.features),
+    // Real, user-controlled field (checkbox picker, validated non-empty) — safe to share
+    // between create and edit, unlike a silent auto-default would be.
+    discipline: data.discipline,
     cancelled: data.cancelled,
     cancelled_text: data.cancelled ? data.cancelledText.trim() || "" : null,
     price: normalizeJsonItems(parsePriceItems(data.priceItems ?? [])),
