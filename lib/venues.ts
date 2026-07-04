@@ -3,7 +3,12 @@ import { mapEventRow, SupabaseEventRow, LinkItem } from "./events";
 
 function normalizeAddress(raw: unknown): string | null {
   if (!raw) return null;
-  if (typeof raw === "string") return raw;
+  if (typeof raw === "string") {
+    if (raw.trimStart().startsWith("{")) {
+      try { return normalizeAddress(JSON.parse(raw)); } catch { /* fall through */ }
+    }
+    return raw;
+  }
   if (typeof raw === "object" && raw !== null) {
     const obj = raw as Record<string, unknown>;
     const text = obj.full ?? obj.text ?? obj.venue_name ?? null;
