@@ -331,7 +331,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
               </section>
 
               {community.has_invites && (
-                <section className="rounded-[1.75rem] border border-(--color-pine)/20 bg-(--color-pine)/5 p-6">
+                <section id="invite" className="scroll-mt-6 rounded-[1.75rem] border border-(--color-pine)/20 bg-(--color-pine)/5 p-6">
                   <h2 className="font-serif text-xl text-slate-950">Join this community</h2>
                   <p className="mt-2 text-sm text-slate-600">
                     {hasPublishedInvites
