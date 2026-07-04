@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Clock3, ExternalLink, Mail, MapPin } from "lucide-react";
+import { CalendarDays, Clock3, ExternalLink, GraduationCap, Languages, Mail, MapPin } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { ShareButton } from "@/components/share-button";
@@ -14,6 +14,8 @@ import {
   getEventBySlug,
   getEventHref,
   getEventLocation,
+  getLevelLabel,
+  getLanguageLabel,
   getLinkLabel,
   getOgImageStyle,
   getTypeLabel,
@@ -185,7 +187,7 @@ export default async function EventPage({ params }: EventPageProps) {
                 <img
                   src={event.imageUrl}
                   alt={event.title}
-                  className="max-h-120 w-full max-w-2xl rounded-2xl object-contain drop-shadow-lg"
+                  className="max-h-120 w-full max-w-2xl rounded-2xl object-contain object-left drop-shadow-lg"
                 />
               </div>
             ) : null}
@@ -237,6 +239,20 @@ export default async function EventPage({ params }: EventPageProps) {
                     )
                   }
                 />
+                {event.level ? (
+                  <InfoCard
+                    icon={<GraduationCap className="size-4" />}
+                    label="Level"
+                    value={getLevelLabel(event.level)}
+                  />
+                ) : null}
+                {event.language.length > 0 ? (
+                  <InfoCard
+                    icon={<Languages className="size-4" />}
+                    label="Language"
+                    value={event.language.map(getLanguageLabel).join(" · ")}
+                  />
+                ) : null}
               </div>
 
               {event.description ? (

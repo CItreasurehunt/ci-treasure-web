@@ -29,6 +29,8 @@ export type SupabaseEventRow = {
   series_order?: number | null;
   event_series?: { title: string } | null;
   discipline?: string[] | null;
+  level?: string | null;
+  language?: string[] | null;
 };
 
 export type SeriesSibling = {
@@ -110,6 +112,8 @@ export type EventDetail = EventListItem & {
   startDateIso: string;
   endDateIso: string;
   contactEmail: string | null;
+  level: string | null;
+  language: string[];
   seriesName: string | null;
   seriesSiblings: SeriesSibling[];
   // True for archived (past) events — the page renders an "event has ended" state.
@@ -354,7 +358,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
   }
 
   const columns =
-    "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, event_series(title)";
+    "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, level, language, event_series(title)";
 
   const supabase = await createClient();
   let { data: eventRow } = await supabase
@@ -433,6 +437,8 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     venueAddress: venueData?.address ?? null,
     venueSlug: venueData?.visibility === "public" ? (venueData.slug ?? null) : null,
     contactEmail: eventRow.contact_email ?? null,
+    level: eventRow.level ?? null,
+    language: eventRow.language ?? [],
     primaryRegistrationUrl:
       linkItems.find((item) => item.type === "registration")?.url ?? linkItems[0]?.url ?? null,
     startDateIso: `${eventRow.start_date}T${eventRow.start_time ?? "00:00:00"}${getTimezoneOffset(
@@ -529,6 +535,28 @@ export async function getKnownDisciplines(): Promise<string[]> {
   } catch {
     return ["contact_improvisation"];
   }
+}
+
+export function getLevelLabel(level: string): string {
+  const labels: Record<string, string> = {
+    all_levels: "All levels",
+    beginner: "Beginner",
+    intermediate: "Intermediate",
+    advanced: "Advanced",
+    mixed: "Mixed levels",
+  };
+  return labels[level] ?? level;
+}
+
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English", de: "German", fr: "French", es: "Spanish", it: "Italian",
+  pt: "Portuguese", pl: "Polish", cs: "Czech", nl: "Dutch", he: "Hebrew",
+  no: "Norwegian", sv: "Swedish", da: "Danish", fi: "Finnish", ru: "Russian",
+  ja: "Japanese", zh: "Chinese", ko: "Korean", ar: "Arabic",
+};
+
+export function getLanguageLabel(code: string): string {
+  return LANGUAGE_NAMES[code] ?? code.toUpperCase();
 }
 
 export function getLinkLabel(type: string, label?: string) {
