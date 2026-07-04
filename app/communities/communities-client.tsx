@@ -435,7 +435,8 @@ type CommunityCardProps = {
 
 function CommunityCard({ community, onShowOnMap }: CommunityCardProps) {
   const linkIconClass = "relative z-20 flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200";
-  const hasInvitePlatform = community.hasTelegramInvite || community.hasWhatsappInvite || community.hasSignalInvite;
+  const hasInvitePlatform =
+    community.hasTelegramInvite || community.hasWhatsappInvite || community.hasSignalInvite || community.hasLineInvite;
   const hasCoords = community.latitude !== null && community.longitude !== null;
 
   return (
@@ -555,6 +556,11 @@ function CommunityCard({ community, onShowOnMap }: CommunityCardProps) {
           {community.hasSignalInvite && (
             <Badge variant="secondary" className="px-2 py-0 text-[10px] font-medium">
               Signal
+            </Badge>
+          )}
+          {community.hasLineInvite && (
+            <Badge variant="secondary" className="px-2 py-0 text-[10px] font-medium">
+              LINE
             </Badge>
           )}
         </div>

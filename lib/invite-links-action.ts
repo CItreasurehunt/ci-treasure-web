@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 const RATE_LIMIT_PER_DAY = 20;
 
-type InviteLinks = Partial<Record<"telegram" | "whatsapp" | "signal", string>>;
+type InviteLinks = Partial<Record<"telegram" | "whatsapp" | "signal" | "line", string>>;
 
 export async function getInviteLinks(
   communityId: string,
@@ -74,7 +74,7 @@ export async function getInviteLinks(
   const rows = data as { platform: string; url: string }[];
   const links: InviteLinks = {};
   for (const row of rows) {
-    if (row.platform === "telegram" || row.platform === "whatsapp" || row.platform === "signal") {
+    if (row.platform === "telegram" || row.platform === "whatsapp" || row.platform === "signal" || row.platform === "line") {
       links[row.platform] = row.url;
     }
   }

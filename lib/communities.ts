@@ -2,7 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { mapEventRow, type SupabaseEventRow } from "./events";
 
-export type InvitePlatform = "telegram" | "whatsapp" | "signal";
+export type InvitePlatform = "telegram" | "whatsapp" | "signal" | "line";
 
 // Which invite platforms are ALLOW-LISTED (published) for a community. community_invites
 // is service-role-only, so this uses the admin client. Only published rows are returned,
@@ -20,7 +20,7 @@ export async function getPublishedInvitePlatforms(
     const result: Partial<Record<InvitePlatform, boolean>> = {};
     for (const row of data ?? []) {
       const platform = row.platform as string;
-      if (platform === "telegram" || platform === "whatsapp" || platform === "signal") {
+      if (platform === "telegram" || platform === "whatsapp" || platform === "signal" || platform === "line") {
         result[platform] = true;
       }
     }
@@ -63,6 +63,7 @@ type CommunityRow = {
   has_telegram_invite: boolean;
   has_whatsapp_invite: boolean;
   has_signal_invite: boolean;
+  has_line_invite: boolean;
 };
 
 export type Community = {
@@ -91,6 +92,7 @@ export type Community = {
   hasTelegramInvite: boolean;
   hasWhatsappInvite: boolean;
   hasSignalInvite: boolean;
+  hasLineInvite: boolean;
 };
 
 export type CommunitiesResponse = {
@@ -135,6 +137,7 @@ export type CommunityDetail = {
   has_telegram_invite: boolean;
   has_whatsapp_invite: boolean;
   has_signal_invite: boolean;
+  has_line_invite: boolean;
   venue: { slug: string; name: string } | null;
   profile: { slug: string; name: string } | null;
 };
@@ -193,6 +196,7 @@ function toCommunity(row: CommunityRow): Community {
     hasTelegramInvite: row.has_telegram_invite,
     hasWhatsappInvite: row.has_whatsapp_invite,
     hasSignalInvite: row.has_signal_invite,
+    hasLineInvite: row.has_line_invite,
   };
 }
 
@@ -264,7 +268,7 @@ export async function getCommunities(): Promise<CommunitiesResponse> {
     const { data, error } = await supabase
       .from("communities")
       .select(
-        "id,name,slug,type,city,country,continent,address_for_map,lat,lng,description,website,instagram,facebook_group,facebook_page,telegram_group,telegram_channel,whatsapp_channel,youtube,calendar,newsletter,other_resource,has_invites,has_telegram_invite,has_whatsapp_invite,has_signal_invite",
+        "id,name,slug,type,city,country,continent,address_for_map,lat,lng,description,website,instagram,facebook_group,facebook_page,telegram_group,telegram_channel,whatsapp_channel,youtube,calendar,newsletter,other_resource,has_invites,has_telegram_invite,has_whatsapp_invite,has_signal_invite,has_line_invite",
       )
       .is("deleted_at", null)
       .order("name");
@@ -319,7 +323,7 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
       friendliness, contact_person, website, instagram, facebook_group,
       facebook_page, telegram_group, telegram_channel, whatsapp_channel,
       youtube, calendar, newsletter, other_resource,
-      has_invites, has_telegram_invite, has_whatsapp_invite, has_signal_invite,
+      has_invites, has_telegram_invite, has_whatsapp_invite, has_signal_invite, has_line_invite,
       venue_id, profile_id,
       venue:venue_id ( slug, name ),
       profile:profile_id ( slug, name )
