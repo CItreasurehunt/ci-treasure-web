@@ -46,7 +46,16 @@ Deno.serve(async (req) => {
   // Build message — same format as announce.py
   const title = event.title.replace(/\[/g, '(').replace(/\]/g, ')')
   const url   = `https://citreasurehunt.com/events/${event.short_id}`
-  const text  = `New: ${toFlag(event.country)} ${formatDates(event.start_date, event.end_date)} — [${title}](${url}), ${location}`
+
+  // Non-CI events still announce (decided 2026-07-04: mark, don't skip) — a lowercase
+  // bracketed tag naming the adjacent discipline(s), so a CI-only reader can decide to
+  // skip at a glance. Pure-CI events (the overwhelming majority) get no tag at all.
+  const nonCiDisciplines: string[] = (event.discipline ?? []).filter(
+    (d: string) => d !== 'contact_improvisation'
+  )
+  const disciplineTag = nonCiDisciplines.length ? `[${nonCiDisciplines.join(', ')}] ` : ''
+
+  const text  = `New: ${disciplineTag}${toFlag(event.country)} ${formatDates(event.start_date, event.end_date)} — [${title}](${url}), ${location}`
 
   const tgRes  = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: 'POST',

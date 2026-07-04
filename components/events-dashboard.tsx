@@ -28,6 +28,22 @@ type EventsDashboardProps = {
   events: EventListItem[];
 };
 
+// Acronyms that shouldn't be title-cased word-by-word. Add here as new short-form
+// disciplines appear — everything else humanizes automatically (snake_case -> Title Case).
+const DISCIPLINE_LABEL_OVERRIDES: Record<string, string> = {
+  bmc: "BMC",
+};
+
+function disciplineLabel(value: string): string {
+  return (
+    DISCIPLINE_LABEL_OVERRIDES[value] ??
+    value
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+  );
+}
+
 export function EventsDashboard({ events }: EventsDashboardProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -53,6 +69,28 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
   const setSelectedType = (v: string) => setParam("type", v);
   const setSelectedMonth = (v: string) => setParam("month", v);
   const setSoonOnly = (v: boolean) => setParam("soon", v ? "1" : "");
+
+  // Discipline: scope-defining, not a narrowing filter — CI pre-selected by default,
+  // multi-select otherwise, "all" is a sentinel meaning no discipline filter at all.
+  const disciplineParam = searchParams.get("discipline");
+  const showAllDisciplines = disciplineParam === "all";
+  const selectedDisciplines = useMemo(
+    () =>
+      showAllDisciplines
+        ? []
+        : disciplineParam
+          ? disciplineParam.split(",").filter(Boolean)
+          : ["contact_improvisation"],
+    [showAllDisciplines, disciplineParam]
+  );
+
+  function toggleDiscipline(value: string) {
+    const current = showAllDisciplines ? [] : selectedDisciplines;
+    const next = current.includes(value) ? current.filter((d) => d !== value) : [...current, value];
+    // Deselecting the last active chip falls back to "all" (show everything) rather
+    // than silently reverting to the CI default — less surprising mid-exploration.
+    setParam("discipline", next.length === 0 ? "all" : next.join(","));
+  }
 
   // Interaction state
   const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null);
@@ -113,6 +151,19 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [events]);
 
+  // Discipline chip options — derived from whatever disciplines exist in the loaded
+  // events (same pattern as country/type/month above), so a brand-new discipline tag
+  // shows up as a new chip automatically with zero code changes. contact_improvisation
+  // is always pinned first since it's the default.
+  const disciplineOptions = useMemo(() => {
+    const all = new Set<string>();
+    events.forEach((e) => e.discipline.forEach((d) => all.add(d)));
+    const rest = Array.from(all)
+      .filter((d) => d !== "contact_improvisation")
+      .sort((a, b) => disciplineLabel(a).localeCompare(disciplineLabel(b)));
+    return all.has("contact_improvisation") ? ["contact_improvisation", ...rest] : rest;
+  }, [events]);
+
   // Extract unique months from events for the month filter
   const monthOptions = useMemo(() => {
     const months = Array.from(new Set(events.map((e) => e.startDate.substring(0, 7))));
@@ -126,6 +177,13 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
   // Filter events locally on the client (blasing fast, updates map and list instantly)
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
+      // 0. Discipline — skip entirely when "All disciplines" is active
+      if (!showAllDisciplines && selectedDisciplines.length > 0) {
+        if (!event.discipline.some((d) => selectedDisciplines.includes(d))) {
+          return false;
+        }
+      }
+
       // 1. Search Query (matches title, description, city, country)
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
@@ -165,7 +223,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
       return true;
     });
-  }, [events, searchQuery, selectedCountry, selectedType, selectedMonth, soonOnly]);
+  }, [events, searchQuery, selectedCountry, selectedType, selectedMonth, soonOnly, selectedDisciplines, showAllDisciplines]);
 
   const handleCardClick = (eventId: string) => {
     setHighlightedEventId(eventId);
@@ -187,6 +245,35 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Discipline toggle — scope-defining (which universe of events you're browsing),
+          not a narrowing filter like the ones below, so it's a separate strip rather than
+          nested in "Extended filters". Contact Improvisation pre-selected; multi-select
+          otherwise; options are derived live from event data, not a fixed list. */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+        <span className="mr-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">Discipline</span>
+        <button
+          onClick={() => setParam("discipline", "all")}
+          className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+            showAllDisciplines ? "bg-violet-100 text-violet-700" : "text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          All disciplines
+        </button>
+        {disciplineOptions.map((d) => (
+          <button
+            key={d}
+            onClick={() => toggleDiscipline(d)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+              !showAllDisciplines && selectedDisciplines.includes(d)
+                ? "bg-violet-100 text-violet-700"
+                : "text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            {disciplineLabel(d)}
+          </button>
+        ))}
+      </div>
+
       {/* Search & Filter Toolbar */}
       <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
         <div className="flex flex-col gap-3 sm:flex-row">

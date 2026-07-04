@@ -28,6 +28,7 @@ export type SupabaseEventRow = {
   series_id?: string | null;
   series_order?: number | null;
   event_series?: { title: string } | null;
+  discipline?: string[] | null;
 };
 
 export type SeriesSibling = {
@@ -76,6 +77,7 @@ export type EventListItem = {
   accentClass: string;
   lat: number | null;
   lng: number | null;
+  discipline: string[];
 };
 
 export type SegmentItem = {
@@ -164,6 +166,7 @@ export function mapEventRow(row: SupabaseEventRow): EventListItem {
     accentClass: mapAccent(row.type),
     lat: row.lat,
     lng: row.lng,
+    discipline: row.discipline ?? [],
   };
 }
 
@@ -307,7 +310,7 @@ export async function getUpcomingEvents(today: string): Promise<{ events: EventL
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("events")
-      .select("id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng")
+      .select("id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, discipline")
       .gte("end_date", today)
       .order("start_date", { ascending: true });
 
