@@ -248,11 +248,18 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
                       label="Facebook Page"
                     />
                   )}
+                  {community.telegram_group && !isPrivateGroupInvite(community.telegram_group) && (
+                    <SocialLink
+                      href={community.telegram_group}
+                      icon={<MessageCircle className="h-4 w-4" />}
+                      label="Telegram Group"
+                    />
+                  )}
                   {community.telegram_channel && !isPrivateGroupInvite(community.telegram_channel) && (
                     <SocialLink
                       href={community.telegram_channel}
                       icon={<MessageCircle className="h-4 w-4" />}
-                      label="Telegram"
+                      label="Telegram Channel"
                     />
                   )}
                   {community.whatsapp_channel && !isPrivateGroupInvite(community.whatsapp_channel) && (
@@ -295,6 +302,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
                     !community.instagram &&
                     !community.facebook_group &&
                     !community.facebook_page &&
+                    !community.telegram_group &&
                     !community.telegram_channel &&
                     !community.whatsapp_channel &&
                     !community.youtube &&
