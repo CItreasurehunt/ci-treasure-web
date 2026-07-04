@@ -196,11 +196,16 @@ function toCommunity(row: CommunityRow): Community {
   };
 }
 
-// "Other Resource" is a catch-all field; detect Messenger links so they get the
-// right icon/label instead of a generic "Other Resource" everywhere they're used.
+// "Other Resource" is a catch-all field; detect Messenger/LINE links so they get
+// the right icon/label instead of a generic "Other Resource" everywhere they're used.
 export function isMessengerUrl(url: string | null): boolean {
   if (!url) return false;
   return /^https?:\/\/(www\.)?(messenger\.com|m\.me)\//i.test(url);
+}
+
+export function isLineUrl(url: string | null): boolean {
+  if (!url) return false;
+  return /^https?:\/\/(www\.)?line\.me\//i.test(url);
 }
 
 export function isPrivateGroupInvite(url: string | null): boolean {
