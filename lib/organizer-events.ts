@@ -193,12 +193,23 @@ export function eventRowToFormData(row: EventRowForForm): OrganizerEventFormData
   };
 }
 
-// Validation shared by create + edit. Returns an error string or null.
-export function validateOrganizerEvent(data: OrganizerEventFormData): string | null {
+// Validation shared by create + edit. `enforceMinDuration` is only passed true from
+// createEvent — single-day jams/classes are blocked at submission time (2026-07-05
+// decision) because neither the organizer nor admin web forms capture start/end time
+// of day yet, and a single-day listing without a time is barely usable. Editing an
+// existing event never re-checks this, so already-linked single-day events (added via
+// /addevent or admin, which do capture time) stay editable.
+export function validateOrganizerEvent(
+  data: OrganizerEventFormData,
+  options?: { enforceMinDuration?: boolean }
+): string | null {
   if (!data.title.trim()) return "Title is required.";
   if (!data.startDate) return "Start date is required.";
   if (!data.endDate) return "End date is required.";
   if (data.endDate < data.startDate) return "End date can't be before the start date.";
+  if (options?.enforceMinDuration && data.endDate === data.startDate) {
+    return "Self-service submission currently requires events spanning 2+ days. For single-day jams, classes, or workshops, please share it in our Telegram group and we'll add it manually.";
+  }
   if (!data.city.trim()) return "City is required.";
   if (!data.country.trim()) return "Country is required.";
   if (!/^[A-Za-z]{2}$/.test(data.country.trim())) {

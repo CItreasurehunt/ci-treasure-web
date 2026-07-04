@@ -41,7 +41,7 @@ function eventColumns(data: OrganizerEventFormData) {
 }
 
 export async function createEvent(data: OrganizerEventFormData): Promise<ActionResult> {
-  const validationError = validateOrganizerEvent(data);
+  const validationError = validateOrganizerEvent(data, { enforceMinDuration: true });
   if (validationError) {
     return { success: false, error: validationError };
   }
