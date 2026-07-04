@@ -245,19 +245,21 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
   return (
     <div className="space-y-6">
-      {/* Discipline toggle — scope-defining (which universe of events you're browsing),
-          not a narrowing filter like the ones below, so it's a separate strip rather than
-          nested in "Extended filters". Contact Improvisation pre-selected; multi-select
-          otherwise; options are derived live from event data, not a fixed list. */}
+      {/* Practice toggle (backed by the `discipline` column/state — user-facing word is
+          "practice", chosen over "discipline"/"dance form" since it fits non-dance
+          modalities like BMC too) — scope-defining (which universe of events you're
+          browsing), not a narrowing filter like the ones below, so it's a separate strip
+          rather than nested in "Extended filters", and deliberately has no caption label
+          ("All practices" carries the meaning on its own). Contact Improvisation
+          pre-selected; multi-select otherwise; options derived live from event data. */}
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-        <span className="mr-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">Discipline</span>
         <button
           onClick={() => setParam("discipline", "all")}
           className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
             showAllDisciplines ? "bg-violet-100 text-violet-700" : "text-slate-600 hover:bg-slate-50"
           }`}
         >
-          All disciplines
+          All practices
         </button>
         {disciplineOptions.map((d) => (
           <button
