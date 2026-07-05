@@ -59,13 +59,13 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
   type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
   const teacherLinks: LinkRow[] = [];
   if (teacher.website) teacherLinks.push({ type: "website", href: ensureHttps(teacher.website), label: getLinkLabel("website"), icon: <Globe className="h-4 w-4" /> });
-  if (teacher.public_email) teacherLinks.push({ type: "email", href: `mailto:${teacher.public_email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
   if (teacher.facebook) teacherLinks.push({ type: "facebook", href: ensureHttps(teacher.facebook), label: getLinkLabel("facebook"), icon: <Facebook className="h-4 w-4" /> });
   if (teacher.instagram) teacherLinks.push({ type: "instagram", href: ensureHttps(teacher.instagram.replace(/^@/, "https://instagram.com/")), label: getLinkLabel("instagram"), icon: <Instagram className="h-4 w-4" /> });
   if (teacher.youtube) teacherLinks.push({ type: "youtube", href: ensureHttps(teacher.youtube), label: getLinkLabel("youtube"), icon: <Youtube className="h-4 w-4" /> });
   if (teacher.telegram) teacherLinks.push({ type: "telegram", href: teacher.telegram.startsWith("http") ? teacher.telegram : `https://t.me/${teacher.telegram.replace(/^@/, "")}`, label: getLinkLabel("telegram"), icon: <Send className="h-4 w-4" /> });
   if (teacher.newsletter) teacherLinks.push({ type: "newsletter", href: ensureHttps(teacher.newsletter), label: getLinkLabel("newsletter"), icon: <MessageSquare className="h-4 w-4" /> });
   teacherLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
+  if (teacher.public_email) teacherLinks.push({ type: "email", href: `mailto:${teacher.public_email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
 
   return (
     <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">

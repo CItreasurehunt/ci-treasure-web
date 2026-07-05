@@ -75,7 +75,6 @@ export default async function VenuePage({ params }: VenuePageProps) {
   type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
   const venueLinks: LinkRow[] = [];
   if (venue.website) venueLinks.push({ type: "website", href: venue.website, label: getLinkLabel("website"), icon: <Globe className="h-4 w-4" /> });
-  if (venue.email) venueLinks.push({ type: "email", href: `mailto:${venue.email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
   if (venue.facebook) venueLinks.push({ type: "facebook", href: venue.facebook, label: getLinkLabel("facebook"), icon: <Facebook className="h-4 w-4" /> });
   if (venue.instagram) venueLinks.push({ type: "instagram", href: venue.instagram, label: getLinkLabel("instagram"), icon: <Instagram className="h-4 w-4" /> });
   if (venue.youtube) venueLinks.push({ type: "youtube", href: venue.youtube, label: getLinkLabel("youtube"), icon: <Youtube className="h-4 w-4" /> });
@@ -84,6 +83,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
     venueLinks.push({ type: link.type, href: link.url, label: getLinkLabel(link.type, link.label), icon: <ExternalLink className="h-4 w-4" /> });
   }
   venueLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
+  if (venue.email) venueLinks.push({ type: "email", href: `mailto:${venue.email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
 
   return (
     <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">

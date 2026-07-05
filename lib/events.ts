@@ -175,17 +175,17 @@ export function mapEventRow(row: SupabaseEventRow): EventListItem {
 }
 
 export const LINK_CANONICAL_ORDER: Record<string, number> = {
-  website: 0, email: 1,
-  registration: 2, info_pack: 3, schedule: 4,
-  facebook: 5, facebook_event: 5, facebook_page: 5, facebook_group: 5,
-  video: 6,
-  telegram: 7, telegram_group: 7, telegram_channel: 7,
-  whatsapp: 8, whatsapp_channel: 8,
-  instagram: 9, youtube: 10,
+  // Event link order (unchanged from original)
+  website: 0, registration: 1, info_pack: 2, schedule: 3,
+  facebook_event: 4, video: 5, telegram: 6, whatsapp: 7,
+  instagram: 8, youtube: 9, other: 10,
+  // Social page variants — facebook profile/group sorts near instagram, not with facebook_event
+  facebook: 8, facebook_page: 8, facebook_group: 8,
+  telegram_group: 6, telegram_channel: 6,
+  whatsapp_channel: 7,
   newsletter: 11, calendar: 12,
-  other: 13,
   // legacy aliases
-  info: 3, program: 4,
+  info: 2, program: 3,
 };
 
 export function linkSortKey(type: string): number {
