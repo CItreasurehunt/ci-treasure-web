@@ -161,13 +161,17 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, on
 
       const isSoon = isEventSoon(event.startDate);
       const icon = createCustomMarker(event, isSoon);
-      
+
       const marker = L.marker([event.lat, event.lng], { icon });
 
       // Build rich aesthetic popup content
       const eventHref = getEventHref(event);
-      const badgeText = isSoon ? "Soon" : getTypeLabel(event.type);
-      const badgeColor = isSoon ? "bg-pink-500 text-white" : "bg-violet-100 text-violet-700";
+      const badgeText = event.cancelled ? "Cancelled" : isSoon ? "Soon" : getTypeLabel(event.type);
+      const badgeColor = event.cancelled
+        ? "bg-rose-100 text-rose-700"
+        : isSoon
+          ? "bg-pink-500 text-white"
+          : "bg-violet-100 text-violet-700";
 
       const popupContent = `
         <div class="p-2 space-y-2 font-sans text-slate-900 max-w-64 min-w-56">

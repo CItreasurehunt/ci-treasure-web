@@ -35,9 +35,16 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
             )}
           </div>
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-(--color-pine)">
-              {getTypeLabel(event.type)}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-(--color-pine)">
+                {getTypeLabel(event.type)}
+              </p>
+              {event.cancelled && (
+                <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-rose-700">
+                  Cancelled
+                </span>
+              )}
+            </div>
             <h3 className="truncate font-serif text-sm font-semibold leading-snug text-slate-950">{event.title}</h3>
             <p className="text-xs text-slate-500">{formatEventDateRange(event)}</p>
             <p className="text-xs text-slate-400">{event.city}, {getCountryLabel(event.country)}</p>
@@ -72,9 +79,16 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
         )}
         <div className="space-y-5 p-5">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-(--color-pine)">
-              {getTypeLabel(event.type)}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-(--color-pine)">
+                {getTypeLabel(event.type)}
+              </p>
+              {event.cancelled && (
+                <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-rose-700">
+                  Cancelled
+                </span>
+              )}
+            </div>
             <h3 className="font-serif text-2xl leading-tight text-slate-950">{event.title}</h3>
             {event.description ? (
               <p className="line-clamp-3 text-sm leading-7 text-slate-600">{event.description}</p>

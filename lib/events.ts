@@ -80,6 +80,7 @@ export type EventListItem = {
   lat: number | null;
   lng: number | null;
   discipline: string[];
+  cancelled: boolean;
 };
 
 export type SegmentItem = {
@@ -98,7 +99,6 @@ export type EventDetail = EventListItem & {
   startTime: string | null;
   endTime: string | null;
   timezone: string;
-  cancelled: boolean;
   cancelledText: string | null;
   linkItems: LinkItem[];
   priceItems: PriceItem[];
@@ -171,6 +171,7 @@ export function mapEventRow(row: SupabaseEventRow): EventListItem {
     lat: row.lat,
     lng: row.lng,
     discipline: row.discipline ?? [],
+    cancelled: row.cancelled,
   };
 }
 
@@ -320,7 +321,7 @@ export async function getUpcomingEvents(today: string): Promise<{ events: EventL
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("events")
-      .select("id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, discipline")
+      .select("id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, discipline, cancelled")
       .eq("status", "published")
       .gte("end_date", today)
       .order("start_date", { ascending: true });
@@ -422,7 +423,6 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     startTime: eventRow.start_time,
     endTime: eventRow.end_time,
     timezone: eventRow.timezone,
-    cancelled: eventRow.cancelled,
     cancelledText: eventRow.cancelled_text,
     linkItems,
     priceItems: normalizePriceItems(eventRow.price),

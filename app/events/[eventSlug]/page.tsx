@@ -197,8 +197,7 @@ export default async function EventPage({ params }: EventPageProps) {
             <div className="space-y-8">
               {event.cancelled ? (
                 <div className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-950">
-                  <p className="font-semibold">This event is marked as cancelled.</p>
-                  <p>{event.cancelledText}</p>
+                  <p className="font-semibold">This event has been cancelled.</p>
                 </div>
               ) : null}
 
