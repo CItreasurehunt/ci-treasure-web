@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Search, Map, List, X, Filter } from "lucide-react";
@@ -54,6 +54,13 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
   const setSelectedType = (v: string) => setParam("type", v);
   const setSelectedMonth = (v: string) => setParam("month", v);
   const setSoonOnly = (v: boolean) => setParam("soon", v ? "1" : "");
+
+  // Keep sessionStorage in sync so the smart back button can return here with filters intact
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("lastEventsUrl", window.location.href);
+    }
+  }, [searchParams]);
 
   // Discipline: scope-defining, not a narrowing filter — CI pre-selected by default,
   // multi-select otherwise, "all" is a sentinel meaning no discipline filter at all.
@@ -212,9 +219,12 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
   const handleCardClick = (eventId: string) => {
     setHighlightedEventId(eventId);
-    // Switch to map view on mobile if user clicks on cards, so they see where it is
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      setMobileView("map");
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("cameFromEvents", "true");
+      // Switch to map view on mobile if user clicks on cards, so they see where it is
+      if (window.innerWidth < 1024) {
+        setMobileView("map");
+      }
     }
   };
 
