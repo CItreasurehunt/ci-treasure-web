@@ -187,7 +187,7 @@ export default async function EventPage({ params }: EventPageProps) {
                 <img
                   src={event.imageUrl}
                   alt={event.title}
-                  className="max-h-120 w-full max-w-2xl rounded-2xl object-contain object-left drop-shadow-lg"
+                  className="max-h-120 w-auto max-w-2xl rounded-2xl drop-shadow-lg"
                 />
               </div>
             ) : null}
