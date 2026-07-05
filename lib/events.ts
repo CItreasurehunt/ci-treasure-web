@@ -321,6 +321,7 @@ export async function getUpcomingEvents(today: string): Promise<{ events: EventL
     const { data, error } = await supabase
       .from("events")
       .select("id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, discipline")
+      .eq("status", "published")
       .gte("end_date", today)
       .order("start_date", { ascending: true });
 
@@ -366,27 +367,15 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
   const columns =
     "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, level, language, event_series(title)";
 
+  // events_select_public RLS covers both 'published' and 'archived' (I-112) -- archived
+  // (past) events stay publicly readable so their pages keep working for SEO + history,
+  // rendered as "ended"; drafts/pending/rejected stay excluded by RLS regardless of query.
   const supabase = await createClient();
-  let { data: eventRow } = await supabase
+  const { data: eventRow } = await supabase
     .from("events")
     .select(columns)
     .ilike("short_id", shortId)
     .maybeSingle();
-
-  // Fallback: archived (past) events aren't served by RLS (published-only), but we keep
-  // their pages live for SEO + history, rendered as "ended". Tightly scoped to archived +
-  // not-hidden via the service-role client so drafts/pending/rejected stay private.
-  if (!eventRow) {
-    const admin = createAdminClient();
-    const { data: archivedRow } = await admin
-      .from("events")
-      .select(columns)
-      .ilike("short_id", shortId)
-      .eq("status", "archived")
-      .eq("hide", false)
-      .maybeSingle();
-    eventRow = archivedRow;
-  }
 
   if (!eventRow) {
     return null;
@@ -400,6 +389,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
       .from("events")
       .select("id, short_id, title, type, start_date, end_date, series_order")
       .eq("series_id", eventRow.series_id)
+      .eq("status", "published")
       .order("series_order", { ascending: true });
 
     if (siblingsData) {
@@ -676,6 +666,7 @@ export async function getAllPublishedEventSlugs(): Promise<string[]> {
     const { data, error } = await supabase
       .from("events")
       .select("short_id, title")
+      .eq("status", "published")
       .gte("end_date", today);
 
     if (error || !data) {
