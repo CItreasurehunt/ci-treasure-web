@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { mapEventRow, SupabaseEventRow, LinkItem } from "./events";
 
@@ -93,11 +94,19 @@ export async function getVenueEvents(venueId: string) {
     .gte("end_date", today)
     .order("start_date", { ascending: true });
 
-  const { data: past, error: pastError } = await supabase
+  // Past events transition to status='archived' once their end_date passes (confirmed:
+  // zero 'published' rows have a past end_date) -- this was silently returning nothing
+  // before, filtering on 'published' only. Also: events_select_public RLS only allows
+  // status='published', so archived rows are invisible to the anon/user client
+  // regardless of the status filter here -- must use the admin client, same pattern as
+  // the single-event archived-page fallback in lib/events.ts. Fixed 2026-07-05.
+  const admin = createAdminClient();
+  const { data: past, error: pastError } = await admin
     .from("events")
     .select(EVENT_COLS)
     .eq("venue_id", venueId)
-    .eq("status", "published")
+    .eq("status", "archived")
+    .eq("hide", false)
     .lt("end_date", today)
     .order("start_date", { ascending: false });
 
