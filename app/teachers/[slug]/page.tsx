@@ -23,8 +23,10 @@ import BackButton from "@/components/back-button";
 import {
   getCountryLabel,
   formatEventDateRange,
+  getLinkLabel,
   getTypeLabel,
-  getEventHref
+  getEventHref,
+  linkSortKey,
 } from "@/lib/events";
 import { getCountryFlag } from "@/lib/utils";
 
@@ -52,6 +54,18 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
   }
 
   const events = await getTeacherEvents(teacher.id);
+
+  const ensureHttps = (url: string) => url.startsWith("http") ? url : `https://${url}`;
+  type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
+  const teacherLinks: LinkRow[] = [];
+  if (teacher.website) teacherLinks.push({ type: "website", href: ensureHttps(teacher.website), label: getLinkLabel("website"), icon: <Globe className="h-4 w-4" /> });
+  if (teacher.public_email) teacherLinks.push({ type: "email", href: `mailto:${teacher.public_email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
+  if (teacher.facebook) teacherLinks.push({ type: "facebook", href: ensureHttps(teacher.facebook), label: getLinkLabel("facebook"), icon: <Facebook className="h-4 w-4" /> });
+  if (teacher.instagram) teacherLinks.push({ type: "instagram", href: ensureHttps(teacher.instagram.replace(/^@/, "https://instagram.com/")), label: getLinkLabel("instagram"), icon: <Instagram className="h-4 w-4" /> });
+  if (teacher.youtube) teacherLinks.push({ type: "youtube", href: ensureHttps(teacher.youtube), label: getLinkLabel("youtube"), icon: <Youtube className="h-4 w-4" /> });
+  if (teacher.telegram) teacherLinks.push({ type: "telegram", href: teacher.telegram.startsWith("http") ? teacher.telegram : `https://t.me/${teacher.telegram.replace(/^@/, "")}`, label: getLinkLabel("telegram"), icon: <Send className="h-4 w-4" /> });
+  if (teacher.newsletter) teacherLinks.push({ type: "newsletter", href: ensureHttps(teacher.newsletter), label: getLinkLabel("newsletter"), icon: <MessageSquare className="h-4 w-4" /> });
+  teacherLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
 
   return (
     <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
@@ -135,31 +149,13 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
             </div>
 
             <aside className="space-y-6">
-              {(teacher.website || teacher.public_email || teacher.instagram || teacher.facebook || teacher.youtube || teacher.telegram || teacher.newsletter) && (
+              {teacherLinks.length > 0 && (
                 <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
                   <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                   <div className="mt-4 flex flex-col gap-3">
-                    {teacher.website && (
-                      <SocialLink href={teacher.website.startsWith('http') ? teacher.website : `https://${teacher.website}`} icon={<Globe className="h-4 w-4" />} label="Website" />
-                    )}
-                    {teacher.public_email && (
-                      <SocialLink href={`mailto:${teacher.public_email}`} icon={<Mail className="h-4 w-4" />} label="Email" />
-                    )}
-                    {teacher.facebook && (
-                      <SocialLink href={teacher.facebook.startsWith('http') ? teacher.facebook : `https://facebook.com/${teacher.facebook}`} icon={<Facebook className="h-4 w-4" />} label="Facebook" />
-                    )}
-                    {teacher.instagram && (
-                      <SocialLink href={teacher.instagram.startsWith('http') ? teacher.instagram : `https://instagram.com/${teacher.instagram.replace('@', '')}`} icon={<Instagram className="h-4 w-4" />} label="Instagram" />
-                    )}
-                    {teacher.youtube && (
-                      <SocialLink href={teacher.youtube.startsWith('http') ? teacher.youtube : `https://youtube.com/${teacher.youtube}`} icon={<Youtube className="h-4 w-4" />} label="YouTube" />
-                    )}
-                    {teacher.telegram && (
-                      <SocialLink href={teacher.telegram.startsWith('http') ? teacher.telegram : `https://t.me/${teacher.telegram.replace('@', '')}`} icon={<Send className="h-4 w-4" />} label="Telegram" />
-                    )}
-                    {teacher.newsletter && (
-                      <SocialLink href={teacher.newsletter.startsWith('http') ? teacher.newsletter : `https://${teacher.newsletter}`} icon={<MessageSquare className="h-4 w-4" />} label="Newsletter" />
-                    )}
+                    {teacherLinks.map((row, i) => (
+                      <SocialLink key={i} href={row.href} icon={row.icon} label={row.label} />
+                    ))}
                   </div>
                 </section>
               )}

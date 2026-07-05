@@ -24,7 +24,9 @@ import {
   getCountryLabel,
   getEventHref,
   getEventLocation,
+  getLinkLabel,
   getTypeLabel,
+  linkSortKey,
   EventListItem as EventListItemType,
 } from "@/lib/events";
 import {
@@ -82,6 +84,26 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   const hasPublishedInvites = Object.keys(publishedInvitePlatforms).length > 0;
 
   const relatedEvents = await getCommunityEventsByCountry(community.country);
+
+  type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
+  const communityLinks: LinkRow[] = [];
+  if (community.website) communityLinks.push({ type: "website", href: community.website, label: getLinkLabel("website"), icon: <Globe className="h-4 w-4" /> });
+  if (community.facebook_page) communityLinks.push({ type: "facebook_page", href: community.facebook_page, label: getLinkLabel("facebook_page"), icon: <FacebookIcon /> });
+  if (community.facebook_group) communityLinks.push({ type: "facebook_group", href: community.facebook_group, label: getLinkLabel("facebook_group"), icon: <FacebookIcon /> });
+  if (community.telegram_group && !isPrivateGroupInvite(community.telegram_group)) communityLinks.push({ type: "telegram_group", href: community.telegram_group, label: getLinkLabel("telegram_group"), icon: <MessageCircle className="h-4 w-4" /> });
+  if (community.telegram_channel && !isPrivateGroupInvite(community.telegram_channel)) communityLinks.push({ type: "telegram_channel", href: community.telegram_channel, label: getLinkLabel("telegram_channel"), icon: <MessageCircle className="h-4 w-4" /> });
+  if (community.whatsapp_channel && !isPrivateGroupInvite(community.whatsapp_channel)) communityLinks.push({ type: "whatsapp_channel", href: community.whatsapp_channel, label: getLinkLabel("whatsapp_channel"), icon: <MessageCircle className="h-4 w-4" /> });
+  if (community.instagram) communityLinks.push({ type: "instagram", href: community.instagram, label: getLinkLabel("instagram"), icon: <Instagram className="h-4 w-4" /> });
+  if (community.youtube) communityLinks.push({ type: "youtube", href: community.youtube, label: getLinkLabel("youtube"), icon: <Youtube className="h-4 w-4" /> });
+  if (community.calendar) communityLinks.push({ type: "calendar", href: community.calendar, label: getLinkLabel("calendar"), icon: <CalendarDays className="h-4 w-4" /> });
+  if (community.newsletter) communityLinks.push({ type: "newsletter", href: community.newsletter, label: getLinkLabel("newsletter"), icon: <Send className="h-4 w-4" /> });
+  if (community.other_resource) communityLinks.push({
+    type: "other",
+    href: community.other_resource,
+    label: isMessengerUrl(community.other_resource) ? "Messenger Group" : isLineUrl(community.other_resource) ? "LINE Group" : "Other Resource",
+    icon: isMessengerUrl(community.other_resource) ? <MessengerIcon /> : isLineUrl(community.other_resource) ? <LineIcon /> : <ExternalLink className="h-4 w-4" />,
+  });
+  communityLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
 
   return (
     <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
@@ -226,107 +248,12 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
               <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
                 <h2 className="font-serif text-2xl text-slate-950">Links & Resources</h2>
                 <div className="mt-5 flex flex-col gap-3">
-                  {community.website && (
-                    <SocialLink href={community.website} icon={<Globe className="h-4 w-4" />} label="Website" />
-                  )}
-                  {community.instagram && (
-                    <SocialLink
-                      href={community.instagram}
-                      icon={<Instagram className="h-4 w-4" />}
-                      label="Instagram"
-                    />
-                  )}
-                  {community.facebook_group && (
-                    <SocialLink
-                      href={community.facebook_group}
-                      icon={<FacebookIcon />}
-                      label="Facebook Group"
-                    />
-                  )}
-                  {community.facebook_page && (
-                    <SocialLink
-                      href={community.facebook_page}
-                      icon={<FacebookIcon />}
-                      label="Facebook Page"
-                    />
-                  )}
-                  {community.telegram_group && !isPrivateGroupInvite(community.telegram_group) && (
-                    <SocialLink
-                      href={community.telegram_group}
-                      icon={<MessageCircle className="h-4 w-4" />}
-                      label="Telegram Group"
-                    />
-                  )}
-                  {community.telegram_channel && !isPrivateGroupInvite(community.telegram_channel) && (
-                    <SocialLink
-                      href={community.telegram_channel}
-                      icon={<MessageCircle className="h-4 w-4" />}
-                      label="Telegram Channel"
-                    />
-                  )}
-                  {community.whatsapp_channel && !isPrivateGroupInvite(community.whatsapp_channel) && (
-                    <SocialLink
-                      href={community.whatsapp_channel}
-                      icon={<MessageCircle className="h-4 w-4" />}
-                      label="WhatsApp"
-                    />
-                  )}
-                  {community.youtube && (
-                    <SocialLink
-                      href={community.youtube}
-                      icon={<Youtube className="h-4 w-4" />}
-                      label="YouTube"
-                    />
-                  )}
-                  {community.calendar && (
-                    <SocialLink
-                      href={community.calendar}
-                      icon={<CalendarDays className="h-4 w-4" />}
-                      label="Calendar"
-                    />
-                  )}
-                  {community.newsletter && (
-                    <SocialLink
-                      href={community.newsletter}
-                      icon={<Send className="h-4 w-4" />}
-                      label="Newsletter"
-                    />
-                  )}
-                  {community.other_resource && (
-                    <SocialLink
-                      href={community.other_resource}
-                      icon={
-                        isMessengerUrl(community.other_resource) ? (
-                          <MessengerIcon />
-                        ) : isLineUrl(community.other_resource) ? (
-                          <LineIcon />
-                        ) : (
-                          <ExternalLink className="h-4 w-4" />
-                        )
-                      }
-                      label={
-                        isMessengerUrl(community.other_resource)
-                          ? "Messenger Group"
-                          : isLineUrl(community.other_resource)
-                            ? "LINE Group"
-                            : "Other Resource"
-                      }
-                    />
-                  )}
-
-                  {!community.website &&
-                    !community.instagram &&
-                    !community.facebook_group &&
-                    !community.facebook_page &&
-                    !community.telegram_group &&
-                    !community.telegram_channel &&
-                    !community.whatsapp_channel &&
-                    !community.youtube &&
-                    !community.calendar &&
-                    !community.newsletter &&
-                    !community.other_resource && (
-                      <p className="text-sm text-slate-500 italic">No links available.</p>
-                    )}
+                  {communityLinks.length > 0
+                    ? communityLinks.map((row, i) => (
+                        <SocialLink key={i} href={row.href} icon={row.icon} label={row.label} />
+                      ))
+                    : <p className="text-sm text-slate-500 italic">No links available.</p>
+                  }
                 </div>
               </section>
 

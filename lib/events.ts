@@ -174,16 +174,22 @@ export function mapEventRow(row: SupabaseEventRow): EventListItem {
   };
 }
 
-const LINK_CANONICAL_ORDER: Record<string, number> = {
-  website: 0, registration: 1, info_pack: 2, schedule: 3,
-  facebook_event: 4, video: 5, telegram: 6, whatsapp: 7,
-  instagram: 8, youtube: 9, other: 10,
+export const LINK_CANONICAL_ORDER: Record<string, number> = {
+  website: 0, email: 1,
+  registration: 2, info_pack: 3, schedule: 4,
+  facebook: 5, facebook_event: 5, facebook_page: 5, facebook_group: 5,
+  video: 6,
+  telegram: 7, telegram_group: 7, telegram_channel: 7,
+  whatsapp: 8, whatsapp_channel: 8,
+  instagram: 9, youtube: 10,
+  newsletter: 11, calendar: 12,
+  other: 13,
   // legacy aliases
-  facebook: 4, info: 2, program: 3,
+  info: 3, program: 4,
 };
 
-function linkSortKey(type: string): number {
-  return LINK_CANONICAL_ORDER[type] ?? 11;
+export function linkSortKey(type: string): number {
+  return LINK_CANONICAL_ORDER[type] ?? 14;
 }
 
 function normalizeLinkItems(payload: unknown): LinkItem[] {
@@ -563,18 +569,26 @@ export function getLinkLabel(type: string, label?: string) {
   if (label) return label;
   const labels: Record<string, string> = {
     website: "Website",
+    email: "Email",
     registration: "Registration",
     info_pack: "Info pack",
     schedule: "Schedule",
+    facebook: "Facebook",
     facebook_event: "Facebook event",
+    facebook_page: "Facebook Page",
+    facebook_group: "Facebook Group",
     video: "Video",
     telegram: "Telegram",
+    telegram_group: "Telegram Group",
+    telegram_channel: "Telegram Channel",
     whatsapp: "WhatsApp",
+    whatsapp_channel: "WhatsApp",
     instagram: "Instagram",
     youtube: "YouTube",
+    newsletter: "Newsletter",
+    calendar: "Calendar",
     other: "Open link",
     // legacy — kept for any missed renames
-    facebook: "Facebook event",
     info: "Info pack",
     program: "Schedule",
   };

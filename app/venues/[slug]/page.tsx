@@ -22,7 +22,9 @@ import {
   getCountryLabel,
   getEventHref,
   getEventLocation,
+  getLinkLabel,
   getTypeLabel,
+  linkSortKey,
 } from "@/lib/events";
 import { getAllVenueSlugs, getVenueBySlug, getVenueEvents } from "@/lib/venues";
 import { getCountryFlag } from "@/lib/utils";
@@ -69,6 +71,19 @@ export default async function VenuePage({ params }: VenuePageProps) {
   }
 
   const { upcoming, past } = await getVenueEvents(venue.id);
+
+  type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
+  const venueLinks: LinkRow[] = [];
+  if (venue.website) venueLinks.push({ type: "website", href: venue.website, label: getLinkLabel("website"), icon: <Globe className="h-4 w-4" /> });
+  if (venue.email) venueLinks.push({ type: "email", href: `mailto:${venue.email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
+  if (venue.facebook) venueLinks.push({ type: "facebook", href: venue.facebook, label: getLinkLabel("facebook"), icon: <Facebook className="h-4 w-4" /> });
+  if (venue.instagram) venueLinks.push({ type: "instagram", href: venue.instagram, label: getLinkLabel("instagram"), icon: <Instagram className="h-4 w-4" /> });
+  if (venue.youtube) venueLinks.push({ type: "youtube", href: venue.youtube, label: getLinkLabel("youtube"), icon: <Youtube className="h-4 w-4" /> });
+  if (venue.newsletter) venueLinks.push({ type: "newsletter", href: venue.newsletter, label: getLinkLabel("newsletter"), icon: <MessageSquare className="h-4 w-4" /> });
+  for (const link of venue.links?.items ?? []) {
+    venueLinks.push({ type: link.type, href: link.url, label: getLinkLabel(link.type, link.label), icon: <ExternalLink className="h-4 w-4" /> });
+  }
+  venueLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
 
   return (
     <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
@@ -179,63 +194,12 @@ export default async function VenuePage({ params }: VenuePageProps) {
               <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
                 <h2 className="font-serif text-2xl text-slate-950">Links & Contact</h2>
                 <div className="mt-5 flex flex-col gap-3">
-                  {venue.website && (
-                    <SocialLink href={venue.website} icon={<Globe className="h-4 w-4" />} label="Website" />
-                  )}
-                  {venue.email && (
-                    <SocialLink
-                      href={`mailto:${venue.email}`}
-                      icon={<Mail className="h-4 w-4" />}
-                      label="Email"
-                    />
-                  )}
-                  {venue.newsletter && (
-                    <SocialLink
-                      href={venue.newsletter}
-                      icon={<MessageSquare className="h-4 w-4" />}
-                      label="Newsletter"
-                    />
-                  )}
-                  {venue.instagram && (
-                    <SocialLink
-                      href={venue.instagram}
-                      icon={<Instagram className="h-4 w-4" />}
-                      label="Instagram"
-                    />
-                  )}
-                  {venue.facebook && (
-                    <SocialLink
-                      href={venue.facebook}
-                      icon={<Facebook className="h-4 w-4" />}
-                      label="Facebook"
-                    />
-                  )}
-                  {venue.youtube && (
-                    <SocialLink
-                      href={venue.youtube}
-                      icon={<Youtube className="h-4 w-4" />}
-                      label="YouTube"
-                    />
-                  )}
-
-                  {venue.links?.items?.map((link, idx) => (
-                    <SocialLink
-                      key={idx}
-                      href={link.url}
-                      icon={<ExternalLink className="h-4 w-4" />}
-                      label={link.type.replace(/_/g, " ")}
-                    />
-                  ))}
-
-                  {!venue.website &&
-                    !venue.email &&
-                    !venue.newsletter &&
-                    !venue.instagram &&
-                    !venue.facebook &&
-                    !venue.youtube &&
-                    (!venue.links?.items || venue.links.items.length === 0) && (
-                      <p className="text-sm text-slate-500 italic">No links available.</p>
-                    )}
+                  {venueLinks.length > 0
+                    ? venueLinks.map((row, i) => (
+                        <SocialLink key={i} href={row.href} icon={row.icon} label={row.label} />
+                      ))
+                    : <p className="text-sm text-slate-500 italic">No links available.</p>
+                  }
                 </div>
               </section>
             </aside>
