@@ -4,10 +4,12 @@ import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = (supabaseUrl && supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 const SLUG_CHAR_MAP: Record<string, string> = {
   ł: "l", ø: "o", ß: "ss", đ: "d", ð: "d", þ: "th", æ: "ae", å: "a",
@@ -25,6 +27,13 @@ function slugify(value: string) {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (!supabase) {
+    return [
+      { url: SITE_URL, changeFrequency: "daily", priority: 1.0 },
+      { url: `${SITE_URL}/communities`, changeFrequency: "weekly", priority: 0.7 },
+    ];
+  }
+
   const [{ data: events }, { data: venues }, { data: profiles }, { data: communities }] = await Promise.all([
     supabase
       .from("events")

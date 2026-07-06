@@ -64,25 +64,59 @@ export default async function DashboardPage() {
     .eq("claim_pending_user_id", user.id)
     .maybeSingle();
 
-  // Scope explicitly to events this user submitted or is linked to as an organizer.
-  // RLS also grants read on ALL published events (events_select_public), so relying
-  // on RLS alone would surface every published event — filter here instead.
-  let events: DashboardEvent[] = [];
+  // Scope explicitly to events this user submitted or is linked to.
+  let organizeEvents: DashboardEvent[] = [];
+  let teachEvents: DashboardEvent[] = [];
+  let musicEvents: DashboardEvent[] = [];
+
   if (profile) {
+    // 1. Organise
     const { data: orgLinks } = await supabase
       .from("event_organizers")
       .select("event_id")
       .eq("organizer_id", profile.id);
-    const linkedIds = (orgLinks ?? []).map((r) => r.event_id as string);
-    const orFilter = linkedIds.length
-      ? `user_id.eq.${user.id},id.in.(${linkedIds.join(",")})`
+    const orgIds = (orgLinks ?? []).map((r) => r.event_id as string);
+    const orgOrFilter = orgIds.length
+      ? `user_id.eq.${user.id},id.in.(${orgIds.join(",")})`
       : `user_id.eq.${user.id}`;
-    const { data: eventRows } = await supabase
+    const { data: orgRows } = await supabase
       .from("events")
       .select("id, short_id, title, start_date, end_date, status, admin_notes")
-      .or(orFilter)
+      .or(orgOrFilter)
       .order("start_date", { ascending: true });
-    events = (eventRows ?? []) as DashboardEvent[];
+    organizeEvents = (orgRows ?? []) as DashboardEvent[];
+
+    // 2. Teach
+    const { data: teachLinks } = await supabase
+      .from("event_teachers")
+      .select("event_id")
+      .eq("teacher_id", profile.id)
+      .not("role", "eq", "musician");
+    const teachIds = (teachLinks ?? []).map((r) => r.event_id as string);
+    if (teachIds.length > 0) {
+      const { data: teachRows } = await supabase
+        .from("events")
+        .select("id, short_id, title, start_date, end_date, status, admin_notes")
+        .in("id", teachIds)
+        .order("start_date", { ascending: true });
+      teachEvents = (teachRows ?? []) as DashboardEvent[];
+    }
+
+    // 3. Music
+    const { data: musicLinks } = await supabase
+      .from("event_teachers")
+      .select("event_id")
+      .eq("teacher_id", profile.id)
+      .eq("role", "musician");
+    const musicIds = (musicLinks ?? []).map((r) => r.event_id as string);
+    if (musicIds.length > 0) {
+      const { data: musicRows } = await supabase
+        .from("events")
+        .select("id, short_id, title, start_date, end_date, status, admin_notes")
+        .in("id", musicIds)
+        .order("start_date", { ascending: true });
+      musicEvents = (musicRows ?? []) as DashboardEvent[];
+    }
   }
 
   return (
@@ -90,13 +124,21 @@ export default async function DashboardPage() {
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <header className="flex flex-col gap-4 rounded-[1.75rem] border border-white/80 bg-white/85 p-5 shadow-[0_18px_55px_rgba(106,75,25,0.08)] sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">Organizer dashboard</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">Your dashboard</p>
             <h1 className="mt-2 font-serif text-3xl text-slate-950">
               {profile ? profile.name : "Welcome"}
             </h1>
             <p className="mt-1 text-sm text-slate-600">{user.email}</p>
           </div>
           <div className="flex flex-wrap gap-3 text-sm font-medium">
+            {profile && (
+              <Link
+                href="/dashboard/profile/edit"
+                className="rounded-full border border-(--color-sand-strong) px-4 py-2 text-slate-700 hover:border-(--color-pine) hover:text-(--color-pine)"
+              >
+                Edit profile
+              </Link>
+            )}
             {isAdmin ? (
               <Link
                 href="/admin/events"
@@ -141,51 +183,103 @@ export default async function DashboardPage() {
             </div>
           </section>
         ) : (
-          <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="font-serif text-2xl text-slate-950">Your events</h2>
-              <Link
-                href="/events/new"
-                className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)"
-              >
-                Submit a new event
-              </Link>
-            </div>
+          <div className="flex flex-col gap-6">
+            <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="font-serif text-2xl text-slate-950">Events you organise</h2>
+                <div className="flex items-center gap-4">
+                  {profile && (
+                    <Link
+                      href={`/teachers/${profile.slug}`}
+                      className="text-sm font-medium text-(--color-pine) hover:underline"
+                    >
+                      View public profile →
+                    </Link>
+                  )}
+                  <Link
+                    href="/events/new"
+                    className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)"
+                  >
+                    Submit a new event
+                  </Link>
+                </div>
+              </div>
 
-            {events.length === 0 ? (
-              <p className="mt-6 text-base leading-7 text-slate-600">
-                No events linked to your profile yet. Submit one with the button above.
-              </p>
-            ) : (
-              <ul className="mt-6 divide-y divide-(--color-sand-strong)">
-                {events.map((event) => (
-                  <li key={event.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="font-semibold text-slate-950">{event.title}</p>
-                      <p className="text-sm text-slate-600">
-                        {event.start_date ?? "—"}
-                        {event.end_date && event.end_date !== event.start_date ? ` – ${event.end_date}` : ""}
-                      </p>
-                      {event.status === "rejected" && event.admin_notes ? (
-                        <p className="mt-1 text-sm text-rose-700">Note: {event.admin_notes}</p>
-                      ) : null}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <StatusBadge status={event.status} />
-                      <Link
-                        href={`/events/${buildEventSlug(event.short_id, event.title)}/edit`}
-                        className="rounded-full border border-(--color-sand-strong) px-4 py-2 text-sm font-medium text-slate-700 hover:border-(--color-pine) hover:text-(--color-pine)"
-                      >
-                        Edit
-                      </Link>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              {organizeEvents.length === 0 ? (
+                <p className="mt-6 text-base leading-7 text-slate-600">
+                  No events linked to your profile yet. Submit one with the button above.
+                </p>
+              ) : (
+                <EventList events={organizeEvents} />
+              )}
+            </section>
+
+            {teachEvents.length > 0 && (
+              <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h2 className="font-serif text-2xl text-slate-950">Events you teach</h2>
+                  {profile && (
+                    <Link
+                      href={`/teachers/${profile.slug}`}
+                      className="text-sm font-medium text-(--color-pine) hover:underline"
+                    >
+                      View public profile →
+                    </Link>
+                  )}
+                </div>
+                <EventList events={teachEvents} />
+              </section>
             )}
-          </section>
+
+            {musicEvents.length > 0 && (
+              <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h2 className="font-serif text-2xl text-slate-950">Events you play music for</h2>
+                  {profile && (
+                    <Link
+                      href={`/teachers/${profile.slug}`}
+                      className="text-sm font-medium text-(--color-pine) hover:underline"
+                    >
+                      View public profile →
+                    </Link>
+                  )}
+                </div>
+                <EventList events={musicEvents} />
+              </section>
+            )}
+          </div>
         )}
       </div>
     </main>
+  );
+}
+
+function EventList({ events }: { events: DashboardEvent[] }) {
+  return (
+    <ul className="mt-6 divide-y divide-(--color-sand-strong)">
+      {events.map((event) => (
+        <li key={event.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-semibold text-slate-950">{event.title}</p>
+            <p className="text-sm text-slate-600">
+              {event.start_date ?? "—"}
+              {event.end_date && event.end_date !== event.start_date ? ` – ${event.end_date}` : ""}
+            </p>
+            {event.status === "rejected" && event.admin_notes ? (
+              <p className="mt-1 text-sm text-rose-700">Note: {event.admin_notes}</p>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-3">
+            <StatusBadge status={event.status} />
+            <Link
+              href={`/events/${buildEventSlug(event.short_id, event.title)}/edit`}
+              className="rounded-full border border-(--color-sand-strong) px-4 py-2 text-sm font-medium text-slate-700 hover:border-(--color-pine) hover:text-(--color-pine)"
+            >
+              Edit
+            </Link>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

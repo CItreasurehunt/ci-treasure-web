@@ -94,31 +94,55 @@ export async function getTeacherBySlug(slug: string): Promise<TeacherProfile | n
   return data as TeacherProfile;
 }
 
-export async function getTeacherEvents(profileId: string): Promise<EventListItem[]> {
+export async function getTeacherEvents(profileId: string): Promise<(EventListItem & { teacher_id?: string; organizer_id?: string; role?: string })[]> {
   if (!hasSupabaseEnv()) {
     return [];
   }
   const supabase = await createClient();
-  const fields = `events (id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, status)`;
+  const fields = `role, teacher_id, events (id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, status)`;
+  const orgFields = `organizer_id, events (id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, status)`;
 
   const [{ data: asTeacher }, { data: asOrganizer }] = await Promise.all([
     supabase.from("event_teachers").select(fields).eq("teacher_id", profileId),
-    supabase.from("event_organizers").select(fields).eq("organizer_id", profileId),
+    supabase.from("event_organizers").select(orgFields).eq("organizer_id", profileId),
   ]);
 
-  const allRows = [...(asTeacher ?? []), ...(asOrganizer ?? [])];
+  const allRows = [
+    ...(asTeacher ?? []).map(r => ({ ...r.events, role: r.role, teacher_id: r.teacher_id })),
+    ...(asOrganizer ?? []).map(r => ({ ...r.events, organizer_id: r.organizer_id }))
+  ];
 
   // Deduplicate by event id, keep published only, sort ascending
   const seen = new Set<string>();
-  return allRows
-    .map(row => row.events as unknown as SupabaseEventRow & { status: string })
-    .filter(e => {
-      if (!e || e.status !== "published" || seen.has(e.id)) return false;
-      seen.add(e.id);
-      return true;
-    })
-    .map(e => mapEventRow(e))
-    .sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const results: (EventListItem & { teacher_id?: string; organizer_id?: string; role?: string })[] = [];
+
+  for (const row of allRows) {
+    const e = row as unknown as SupabaseEventRow & { status: string, teacher_id?: string, organizer_id?: string, role?: string };
+    if (!e || e.status !== "published") continue;
+
+    // We might have the same event twice (as teacher AND organizer).
+    // We want to keep both pieces of info for role derivation, OR just make sure we don't drop them.
+    // If we want a deduplicated list for display, but keep all roles...
+    // Let's actually keep the first one we see but combine the flags if needed.
+
+    const existing = results.find(r => r.id === e.id);
+    if (existing) {
+        if (e.teacher_id) {
+            existing.teacher_id = e.teacher_id;
+            existing.role = e.role;
+        }
+        if (e.organizer_id) existing.organizer_id = e.organizer_id;
+    } else {
+        results.push({
+            ...mapEventRow(e),
+            teacher_id: e.teacher_id,
+            organizer_id: e.organizer_id,
+            role: e.role
+        });
+    }
+  }
+
+  return results.sort((a, b) => a.startDate.localeCompare(b.startDate));
 }
 
 export async function getAllPublicTeacherSlugs(): Promise<string[]> {
