@@ -21,7 +21,7 @@ export const EVENT_TYPE_OPTIONS = [
 // (published -> archived once end_date passes), never manually by an admin.
 export const EVENT_STATUS_OPTIONS = ["draft", "published"] as const;
 export const LINK_TYPE_OPTIONS = ["registration", "website", "info", "facebook", "instagram", "telegram", "whatsapp", "video", "youtube", "program", "other"] as const;
-export const TEACHER_ROLE_OPTIONS = ["teacher", "assistant", "guest", "musician"] as const;
+export const TEACHER_ROLE_OPTIONS = ["teacher", "assistant", "guest", "musician", "intensive"] as const;
 export const ORGANIZER_ROLE_OPTIONS = ["lead", "co-organizer", "hosting_venue"] as const;
 
 export type AdminPriceItem = {
