@@ -36,15 +36,18 @@ Deno.serve(async (req) => {
     })
     const data = await res.json()
 
-    // 400 = message already deleted by hand — treat as done
-    if (data.ok || data.error_code === 400) {
+    // ok = deleted; 400 + "not found" = already gone (manually deleted) → treat as done
+    // 400 + other description = permission error → log visibly, do NOT mark deleted
+    const alreadyGone = !data.ok && data.error_code === 400 &&
+      (data.description ?? '').toLowerCase().includes('not found')
+    if (data.ok || alreadyGone) {
       await supabase
         .from('tg_announcements')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', row.id)
       deleted++
     } else {
-      console.error('Delete failed:', row.message_id, JSON.stringify(data))
+      console.error('TG delete failed:', row.message_id, JSON.stringify(data))
     }
   }
 
