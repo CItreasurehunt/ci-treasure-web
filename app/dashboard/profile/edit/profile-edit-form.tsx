@@ -9,7 +9,22 @@ import { getCountryLabel } from "@/lib/events";
 const inputClassName =
   "w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm text-slate-950 outline-none ring-0 transition focus:border-(--color-pine)";
 
-export function ProfileEditForm({ profile }: { profile: any }) {
+type ProfileRow = {
+  name: string;
+  slug: string;
+  bio: string | null;
+  city: string | null;
+  country: string | null;
+  website: string | null;
+  facebook: string | null;
+  instagram: string | null;
+  youtube: string | null;
+  telegram: string | null;
+  newsletter: string | null;
+  public_email: string | null;
+};
+
+export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);

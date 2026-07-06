@@ -38,16 +38,29 @@ export async function updateProfile(data: ProfileUpdateData) {
     return { success: false, error: "Not authenticated" };
   }
 
+  // Convert empty strings to null for optional fields so DB stays clean
+  const nullIfEmpty = (v: string) => v.trim() === "" ? null : v.trim();
+
   const normalizedData = {
-    ...data,
-    instagram: normalizeInstagram(data.instagram),
-    telegram: normalizeTelegram(data.telegram),
+    bio:          nullIfEmpty(data.bio),
+    city:         nullIfEmpty(data.city),
+    country:      nullIfEmpty(data.country),
+    website:      nullIfEmpty(data.website),
+    facebook:     nullIfEmpty(data.facebook),
+    instagram:    nullIfEmpty(normalizeInstagram(data.instagram)),
+    youtube:      nullIfEmpty(data.youtube),
+    telegram:     nullIfEmpty(normalizeTelegram(data.telegram)),
+    newsletter:   nullIfEmpty(data.newsletter),
+    public_email: nullIfEmpty(data.public_email),
+    updated_at:   new Date().toISOString(),
   };
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("profiles")
     .update(normalizedData)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .select("slug")
+    .single();
 
   if (error) {
     console.error("Error updating profile:", error);
@@ -56,10 +69,9 @@ export async function updateProfile(data: ProfileUpdateData) {
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile/edit");
-  // Also revalidate the public teacher page. We don't know the slug here easily,
-  // but revalidatePath("/teachers/[slug]", "page") might work if supported,
-  // or we just rely on the fact that teachers page is revalidated on demand or via TTL.
-  // Actually, revalidatePath is usually enough for the current user's view.
+  if (updated?.slug) {
+    revalidatePath(`/teachers/${updated.slug}`);
+  }
 
   return { success: true };
 }
