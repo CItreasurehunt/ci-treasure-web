@@ -55,6 +55,19 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
 
   const events = await getTeacherEvents(teacher.id);
 
+  // Derive roles from both stored flags and linked events (I-115)
+  // getTeacherEvents returns events where teacher is linked as either teacher or organizer.
+  // We need to distinguish roles.
+  const derivedIsTeacher = teacher.is_teacher || events.some(e =>
+    e.teacher_id === teacher.id && e.role !== 'musician'
+  );
+  const derivedIsMusician = teacher.is_musician || events.some(e =>
+    e.teacher_id === teacher.id && e.role === 'musician'
+  );
+  const derivedIsOrganizer = teacher.is_organizer || events.some(e =>
+    e.organizer_id === teacher.id
+  );
+
   const ensureHttps = (url: string) => url.startsWith("http") ? url : `https://${url}`;
   type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
   const teacherLinks: LinkRow[] = [];
@@ -77,9 +90,9 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
           <div className="border-b border-(--color-sand-strong) bg-[linear-gradient(135deg,#1f3b46_0%,#3a6a73_50%,#ead9b1_100%)] px-6 py-10 sm:px-8">
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
-                {teacher.is_teacher && <RoleBadge>Teacher</RoleBadge>}
-                {teacher.is_organizer && <RoleBadge>Organizer</RoleBadge>}
-                {teacher.is_musician && <RoleBadge>Musician</RoleBadge>}
+                {derivedIsTeacher && <RoleBadge>Teacher</RoleBadge>}
+                {derivedIsOrganizer && <RoleBadge>Organizer</RoleBadge>}
+                {derivedIsMusician && <RoleBadge>Musician</RoleBadge>}
               </div>
               <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 {teacher.name}
