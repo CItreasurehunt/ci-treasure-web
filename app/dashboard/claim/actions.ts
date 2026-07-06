@@ -67,7 +67,7 @@ export async function submitClaim(profileId: string): Promise<{ success: boolean
   }
 
   // Fire-and-forget admin notification (same pattern as lib/report-action.ts).
-  notifyAdminClaim(profileId, user.email ?? "unknown").catch(() => {});
+  notifyAdminClaim().catch(() => {});
 
   revalidatePath("/dashboard");
   return { success: true };
@@ -76,19 +76,17 @@ export async function submitClaim(profileId: string): Promise<{ success: boolean
 // Admin group topic for profile claims (env-overridable).
 const CLAIM_THREAD_ID = Number(process.env.TELEGRAM_CLAIM_THREAD_ID ?? 683);
 
-async function notifyAdminClaim(profileId: string, email: string) {
+// No profile name or claimant email here by design — the notification is just a nudge
+// to go review the queue, not a record of who claimed what (avoids putting personal
+// data in Telegram, which isn't a documented processor in the privacy policy).
+async function notifyAdminClaim() {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
   if (!token || !chatId) return;
 
-  const admin = createAdminClient();
-  const { data } = await admin.from("profiles").select("name").eq("id", profileId).single();
-  const name = data?.name ?? "unknown profile";
-
   const text = [
-    `🔔 New profile claim: ${name}`,
-    `From: ${email}`,
-    `Review: https://citreasurehunt.com/admin/claims`,
+    "🔔 New profile claim submitted.",
+    "Review: https://citreasurehunt.com/admin/claims",
   ].join("\n");
 
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

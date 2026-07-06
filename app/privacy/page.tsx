@@ -196,7 +196,28 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-semibold text-slate-950">12. Changes to this policy</h2>
+          <h2 className="font-semibold text-slate-950">12. Community invite links</h2>
+          <p>
+            Some community pages hide their private Telegram/WhatsApp/Signal/LINE group link behind a
+            &quot;Request access&quot; button, to keep it from being scraped. Before revealing the link, we run a
+            Cloudflare Turnstile check: Turnstile collects technical data (such as browser and device signals,
+            including your IP address) and sends it to Cloudflare, Inc. (US) to verify you&apos;re not a bot. We
+            also store a daily-rotating hash of your IP address ourselves to rate-limit repeated requests; like the
+            report-form hash in section 8, this cannot be used to identify you. Legal basis: Art. 6(1)(f) GDPR —
+            legitimate interest in preventing these links from being scraped and spammed. See{" "}
+            <a
+              href="https://www.cloudflare.com/privacypolicy/"
+              className="underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Cloudflare&apos;s privacy policy
+            </a>
+            .
+          </p>
+        </section>
+        <section>
+          <h2 className="font-semibold text-slate-950">13. Changes to this policy</h2>
           <p>
             This policy will be updated when new features affecting data processing are added. The date at the top of
             this page reflects the most recent revision.
