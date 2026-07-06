@@ -549,6 +549,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
   pt: "Portuguese", pl: "Polish", cs: "Czech", nl: "Dutch", he: "Hebrew",
   no: "Norwegian", sv: "Swedish", da: "Danish", fi: "Finnish", ru: "Russian",
   ja: "Japanese", zh: "Chinese", ko: "Korean", ar: "Arabic",
+  hu: "Hungarian", sk: "Slovak", uk: "Ukrainian", ca: "Catalan", el: "Greek", lt: "Lithuanian",
 };
 
 export function getLanguageLabel(code: string): string {
