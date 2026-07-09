@@ -17,6 +17,7 @@ export type SupabaseEventRow = {
   cancelled: boolean;
   cancelled_text: string | null;
   image_url: string | null;
+  image_credit?: string | null;
   links: unknown;
   price: unknown;
   segments: unknown;
@@ -116,6 +117,7 @@ export type EventDetail = EventListItem & {
   language: string[];
   seriesName: string | null;
   seriesSiblings: SeriesSibling[];
+  imageCredit: string | null;
   // True for archived (past) events — the page renders an "event has ended" state.
   isPast: boolean;
 };
@@ -366,7 +368,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
   }
 
   const columns =
-    "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, level, language, event_series(title)";
+    "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, image_credit, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, level, language, event_series(title)";
 
   // events_select_public RLS covers both 'published' and 'archived' (I-112) -- archived
   // (past) events stay publicly readable so their pages keep working for SEO + history,
@@ -449,6 +451,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
       ? (eventRow.event_series[0] as { title?: string } | null)?.title ?? null
       : (eventRow.event_series as { title?: string } | null)?.title ?? null,
     seriesSiblings,
+    imageCredit: eventRow.image_credit ?? null,
     isPast: eventRow.status === "archived",
   };
 }

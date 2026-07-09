@@ -189,6 +189,9 @@ export default async function EventPage({ params }: EventPageProps) {
                   alt={event.title}
                   className="max-h-120 w-auto max-w-2xl rounded-2xl drop-shadow-lg"
                 />
+                {event.imageCredit ? (
+                  <p className="mt-2 text-xs text-slate-500/80">{event.imageCredit}</p>
+                ) : null}
               </div>
             ) : null}
           </div>
