@@ -84,7 +84,9 @@ export default async function EventPage({ params }: EventPageProps) {
     redirect(`/events/${event.slug}`);
   }
 
-  const timeRange = event.startTime || event.endTime ? formatTimeRange(event) : "";
+  const isSingleDay = event.startDate === event.endDate;
+  const timeRange =
+    isSingleDay && (event.startTime || event.endTime) ? formatTimeRange(event) : "";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -215,7 +217,7 @@ export default async function EventPage({ params }: EventPageProps) {
                 {timeRange ? (
                   <InfoCard
                     icon={<Clock3 className="size-4" />}
-                    label="Time zone"
+                    label="Time"
                     value={timeRange}
                   />
                 ) : null}
