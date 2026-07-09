@@ -293,7 +293,12 @@ export default async function EventPage({ params }: EventPageProps) {
                       title="Organizers"
                       items={event.organizers.map((o) => ({
                         ...o,
-                        role: o.role === "hosting_venue" ? "Venue" : null,
+                        role:
+                          o.role === "hosting_venue"
+                            ? "Venue"
+                            : o.role === "co-organizer"
+                              ? "Co-organizer"
+                              : null,
                       }))}
                     />
                   ) : null}
