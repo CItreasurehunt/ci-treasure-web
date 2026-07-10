@@ -14,6 +14,8 @@ type AdminEventRow = {
   hide: boolean;
 };
 
+const STATUS_OPTIONS = ["draft", "pending", "published", "archived", "rejected"] as const;
+
 async function toggleStatus(formData: FormData) {
   "use server";
 
@@ -57,8 +59,16 @@ async function toggleHide(formData: FormData) {
   revalidatePath("/admin/events");
 }
 
-export default async function AdminEventsPage() {
+export default async function AdminEventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string | string[] }>;
+}) {
   await requireAdminUser();
+
+  const { status } = await searchParams;
+  const requestedStatuses = status === undefined ? [] : Array.isArray(status) ? status : [status];
+  const selectedStatuses = requestedStatuses.length > 0 ? requestedStatuses : [...STATUS_OPTIONS];
 
   const supabase = createAdminClient();
   const [{ data: events, error: eventsError }, { data: teacherLinks, error: teacherError }, { data: organizerLinks, error: organizerError }] =
@@ -66,6 +76,7 @@ export default async function AdminEventsPage() {
       supabase
         .from("events")
         .select("id, title, type, start_date, country, status, hide")
+        .in("status", selectedStatuses)
         .order("start_date", { ascending: true }),
       supabase.from("event_teachers").select("event_id"),
       supabase.from("event_organizers").select("event_id"),
@@ -105,6 +116,30 @@ export default async function AdminEventsPage() {
           New event
         </Link>
       </div>
+
+      <form
+        method="get"
+        className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) p-4"
+      >
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">status</span>
+        {STATUS_OPTIONS.map((s) => (
+          <label key={s} className="flex items-center gap-1.5 text-sm text-slate-800">
+            <input type="checkbox" name="status" value={s} defaultChecked={selectedStatuses.includes(s)} />
+            {s}
+          </label>
+        ))}
+        <button
+          type="submit"
+          className="rounded-full bg-(--color-ink) px-4 py-1.5 text-xs font-semibold text-(--color-cream)"
+        >
+          Apply
+        </button>
+        {requestedStatuses.length > 0 ? (
+          <Link href="/admin/events" className="text-xs text-slate-500 underline">
+            Reset (show all)
+          </Link>
+        ) : null}
+      </form>
 
       <div className="mt-6 overflow-x-auto pb-2">
         <div className="space-y-3 lg:min-w-[1080px]">
