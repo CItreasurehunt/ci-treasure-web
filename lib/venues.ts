@@ -30,6 +30,7 @@ export type Venue = {
   description: string | null;
   website: string | null;
   imageUrl: string | null;
+  imageCredit: string | null;
   email: string | null;
   newsletter: string | null;
   instagram: string | null;
@@ -68,6 +69,7 @@ export async function getVenueBySlug(slug: string): Promise<Venue | null> {
     description: data.description,
     website: data.website,
     imageUrl: data.image_url,
+    imageCredit: data.image_credit ?? null,
     email: data.email,
     newsletter: data.newsletter,
     instagram: data.instagram,
