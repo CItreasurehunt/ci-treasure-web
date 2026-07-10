@@ -40,10 +40,14 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient();
     const slug = await createUniqueSlug(slugify(name) || "profile");
-    const insertPayload =
-      kind === "organizer"
-        ? { name, slug, is_organizer: true, source: "manual", visibility: "public" }
-        : { name, slug, is_teacher: true, source: "manual", visibility: "public" };
+    const insertPayload = {
+      name,
+      slug,
+      is_organizer: kind === "organizer",
+      is_teacher: kind === "teacher",
+      source: "manual",
+      visibility: "public",
+    };
 
     const { data, error } = await supabase
       .from("profiles")
