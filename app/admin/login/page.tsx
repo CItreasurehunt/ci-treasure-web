@@ -9,7 +9,12 @@ async function sendMagicLink(formData: FormData) {
   "use server";
 
   const email = String(formData.get("email") ?? "").trim();
-  const next = String(formData.get("next") ?? "/admin/events");
+  // Default to /dashboard, not /admin/events — the middleware already injects an
+  // explicit next=/admin/events when a logged-out admin is redirected here from an
+  // admin subpage (proxy.ts). This bare default only fires when /admin/login is
+  // visited directly with no next param, which should be safe for non-admins too
+  // (see safeNext() in auth/confirm/route.ts — same reasoning, kept in sync).
+  const next = String(formData.get("next") ?? "/dashboard");
 
   if (!email) {
     redirect(`/admin/login?error=${encodeURIComponent("Enter an email address.")}&next=${encodeURIComponent(next)}`);
@@ -56,7 +61,8 @@ export default async function AdminLoginPage({
   }
 
   const params = (await searchParams) ?? {};
-  const next = params.next ?? "/admin/events";
+  // Same reasoning as the default in sendMagicLink above — /dashboard, not /admin/events.
+  const next = params.next ?? "/dashboard";
   const sentEmail = params.sent === "1" ? params.email ?? "" : "";
   const errorMessage = params.error ?? "";
 
