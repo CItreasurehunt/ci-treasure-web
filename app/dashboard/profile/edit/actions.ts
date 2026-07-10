@@ -7,6 +7,7 @@ export type ProfileUpdateData = {
   bio: string;
   city: string;
   country: string;
+  is_nomadic: boolean;
   website: string;
   facebook: string;
   instagram: string;
@@ -41,10 +42,13 @@ export async function updateProfile(data: ProfileUpdateData) {
   // Convert empty strings to null for optional fields so DB stays clean
   const nullIfEmpty = (v: string) => v.trim() === "" ? null : v.trim();
 
+  // Belt-and-suspenders alongside the DB check constraint: never send a populated city/country
+  // alongside is_nomadic=true, regardless of what the client sent.
   const normalizedData = {
     bio:          nullIfEmpty(data.bio),
-    city:         nullIfEmpty(data.city),
-    country:      nullIfEmpty(data.country),
+    city:         data.is_nomadic ? null : nullIfEmpty(data.city),
+    country:      data.is_nomadic ? null : nullIfEmpty(data.country),
+    is_nomadic:   data.is_nomadic,
     website:      nullIfEmpty(data.website),
     facebook:     nullIfEmpty(data.facebook),
     instagram:    nullIfEmpty(normalizeInstagram(data.instagram)),

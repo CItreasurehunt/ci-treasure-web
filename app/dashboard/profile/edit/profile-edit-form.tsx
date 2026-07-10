@@ -15,6 +15,7 @@ type ProfileRow = {
   bio: string | null;
   city: string | null;
   country: string | null;
+  is_nomadic: boolean;
   website: string | null;
   facebook: string | null;
   instagram: string | null;
@@ -34,6 +35,7 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
     bio: profile.bio || "",
     city: profile.city || "",
     country: profile.country || "",
+    is_nomadic: profile.is_nomadic,
     website: profile.website || "",
     facebook: profile.facebook || "",
     instagram: profile.instagram || "",
@@ -50,6 +52,20 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+    setSuccess(false);
+    setError(null);
+  }
+
+  function handleNomadicToggle(e: React.ChangeEvent<HTMLInputElement>) {
+    const checked = e.target.checked;
+    setForm(prev => ({
+      ...prev,
+      is_nomadic: checked,
+      // Nomadic and a fixed city/country can't coexist (enforced in the DB too) -- clear the
+      // fields the moment the toggle flips so the form never shows a state it can't save.
+      city: checked ? "" : prev.city,
+      country: checked ? "" : prev.country,
+    }));
     setSuccess(false);
     setError(null);
   }
@@ -100,7 +116,8 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
                 name="city"
                 value={form.city}
                 onChange={handleChange}
-                className={inputClassName}
+                disabled={form.is_nomadic}
+                className={form.is_nomadic ? `${inputClassName} bg-slate-50 text-slate-400 cursor-not-allowed` : inputClassName}
                 placeholder="e.g. Berlin"
               />
             </Field>
@@ -109,7 +126,8 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
                 name="country"
                 value={form.country}
                 onChange={handleChange}
-                className={inputClassName}
+                disabled={form.is_nomadic}
+                className={form.is_nomadic ? `${inputClassName} bg-slate-50 text-slate-400 cursor-not-allowed` : inputClassName}
               >
                 <option value="">Select a country</option>
                 {allCountries.map(code => (
@@ -120,6 +138,24 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
               </select>
             </Field>
           </div>
+          <label className="flex items-start gap-3 rounded-2xl border border-(--color-sand-strong) bg-(--color-sand)/30 px-4 py-3">
+            <input
+              type="checkbox"
+              checked={form.is_nomadic}
+              onChange={handleNomadicToggle}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300"
+            />
+            <span className="text-sm text-slate-700">
+              <span className="font-medium">🌍 I don&apos;t have one home base (nomadic)</span>
+              <br />
+              <span className="text-slate-500">
+                For teachers who genuinely move between places rather than being based somewhere.
+                Checking this clears city/country above — we&apos;ll show &quot;Nomadic&quot;
+                instead of a location. If you mostly live in one place but travel a lot for
+                teaching, leave this unchecked and enter that city instead.
+              </span>
+            </span>
+          </label>
         </div>
       </section>
 
