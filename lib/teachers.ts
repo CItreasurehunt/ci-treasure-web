@@ -94,13 +94,18 @@ export async function getTeacherBySlug(slug: string): Promise<TeacherProfile | n
   return data as TeacherProfile;
 }
 
-export async function getTeacherEvents(profileId: string): Promise<(EventListItem & { teacher_id?: string; organizer_id?: string; role?: string })[]> {
+type TeacherEventItem = EventListItem & { teacher_id?: string; organizer_id?: string; role?: string };
+
+export async function getTeacherEvents(profileId: string): Promise<{
+  upcoming: TeacherEventItem[];
+  past: TeacherEventItem[];
+}> {
   if (!hasSupabaseEnv()) {
-    return [];
+    return { upcoming: [], past: [] };
   }
   const supabase = await createClient();
-  const fields = `role, teacher_id, events (id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, status)`;
-  const orgFields = `organizer_id, events (id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, status)`;
+  const fields = `role, teacher_id, events (id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, status, hide)`;
+  const orgFields = `organizer_id, events (id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, status, hide)`;
 
   const [{ data: asTeacher }, { data: asOrganizer }] = await Promise.all([
     supabase.from("event_teachers").select(fields).eq("teacher_id", profileId),
@@ -112,13 +117,15 @@ export async function getTeacherEvents(profileId: string): Promise<(EventListIte
     ...(asOrganizer ?? []).map(r => ({ ...r.events, organizer_id: r.organizer_id }))
   ];
 
-  // Deduplicate by event id, keep published only, sort ascending
-  const seen = new Set<string>();
-  const results: (EventListItem & { teacher_id?: string; organizer_id?: string; role?: string })[] = [];
+  // Deduplicate by event id, keep published + visible archived (same public-visibility rule
+  // as getVenueEvents), sort ascending.
+  const results: TeacherEventItem[] = [];
 
   for (const row of allRows) {
-    const e = row as unknown as SupabaseEventRow & { status: string, teacher_id?: string, organizer_id?: string, role?: string };
-    if (!e || e.status !== "published") continue;
+    const e = row as unknown as SupabaseEventRow & { status: string, hide?: boolean, teacher_id?: string, organizer_id?: string, role?: string };
+    if (!e) continue;
+    const isVisible = e.status === "published" || (e.status === "archived" && e.hide === false);
+    if (!isVisible) continue;
 
     // We might have the same event twice (as teacher AND organizer).
     // We want to keep both pieces of info for role derivation, OR just make sure we don't drop them.
@@ -142,7 +149,15 @@ export async function getTeacherEvents(profileId: string): Promise<(EventListIte
     }
   }
 
-  return results.sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const today = new Date().toISOString().split("T")[0];
+  return {
+    upcoming: results
+      .filter(e => e.endDate >= today)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate)),
+    past: results
+      .filter(e => e.endDate < today)
+      .sort((a, b) => b.startDate.localeCompare(a.startDate)),
+  };
 }
 
 export async function getAllPublicTeacherSlugs(): Promise<string[]> {

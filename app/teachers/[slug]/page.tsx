@@ -1,8 +1,6 @@
-import Link from "next/link";
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  CalendarDays,
-  ExternalLink,
   Facebook,
   Globe,
   Instagram,
@@ -20,15 +18,16 @@ import {
 } from "@/lib/teachers";
 import { ReportButton } from "@/components/report-button";
 import BackButton from "@/components/back-button";
+import { SocialLink } from "@/components/social-link";
+import { EntityEventCard } from "@/components/entity-event-card";
 import {
+  GENERIC_ACCENT_GRADIENT,
   getCountryLabel,
-  formatEventDateRange,
   getLinkLabel,
-  getTypeLabel,
-  getEventHref,
   linkSortKey,
 } from "@/lib/events";
 import { getCountryFlag } from "@/lib/utils";
+import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
 
@@ -45,6 +44,26 @@ type TeacherPageProps = {
   }>;
 };
 
+export async function generateMetadata({ params }: TeacherPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const teacher = await getTeacherBySlug(slug);
+  if (!teacher) return {};
+
+  const description =
+    teacher.bio?.slice(0, 160) ??
+    `Contact Improvisation teacher${teacher.city ? ` based in ${teacher.city}` : ""} — CI Treasure Hunt`;
+
+  return {
+    title: `${teacher.name} — CI Treasure Hunt`,
+    description,
+    openGraph: {
+      title: teacher.name,
+      description,
+      url: `${SITE_URL}/teachers/${teacher.slug}`,
+    },
+  };
+}
+
 export default async function TeacherPage({ params }: TeacherPageProps) {
   const { slug } = await params;
   const teacher = await getTeacherBySlug(slug);
@@ -53,18 +72,19 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
     notFound();
   }
 
-  const events = await getTeacherEvents(teacher.id);
+  const { upcoming, past } = await getTeacherEvents(teacher.id);
+  const allEvents = [...upcoming, ...past];
 
   // Derive roles from both stored flags and linked events (I-115)
   // getTeacherEvents returns events where teacher is linked as either teacher or organizer.
   // We need to distinguish roles.
-  const derivedIsTeacher = teacher.is_teacher || events.some(e =>
+  const derivedIsTeacher = teacher.is_teacher || allEvents.some(e =>
     e.teacher_id === teacher.id && e.role !== 'musician'
   );
-  const derivedIsMusician = teacher.is_musician || events.some(e =>
+  const derivedIsMusician = teacher.is_musician || allEvents.some(e =>
     e.teacher_id === teacher.id && e.role === 'musician'
   );
-  const derivedIsOrganizer = teacher.is_organizer || events.some(e =>
+  const derivedIsOrganizer = teacher.is_organizer || allEvents.some(e =>
     e.organizer_id === teacher.id
   );
 
@@ -87,7 +107,7 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
           <BackButton />
         </div>
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
-          <div className="border-b border-(--color-sand-strong) bg-[linear-gradient(135deg,#1f3b46_0%,#3a6a73_50%,#ead9b1_100%)] px-6 py-10 sm:px-8">
+          <div className={`border-b border-(--color-sand-strong) ${GENERIC_ACCENT_GRADIENT} px-6 py-10 sm:px-8`}>
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {derivedIsTeacher && <RoleBadge>Teacher</RoleBadge>}
@@ -111,7 +131,7 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
             </div>
           </div>
 
-          <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.6fr]">
+          <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr]">
             <div className="space-y-8">
               {teacher.bio ? (
                 <section className="space-y-3">
@@ -122,42 +142,48 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                 </section>
               ) : null}
 
-              <section className="space-y-5">
+              <section className="space-y-6">
                 <h2 className="font-serif text-2xl text-slate-950">Events</h2>
-                {events.length > 0 ? (
-                  <div className="grid gap-4">
-                    {events.map((event) => (
-                      <Link key={event.id} href={getEventHref(event)} className="group">
-                        <div className="rounded-[1.5rem] border border-(--color-sand-strong) bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-(--color-pine) sm:p-6">
-                          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-                            <h3 className="font-serif text-xl leading-tight text-slate-900 group-hover:text-(--color-pine) transition-colors">
-                              {event.title}
-                            </h3>
-                            <span className="shrink-0 text-sm font-semibold text-(--color-pine) flex items-center gap-1.5">
-                              <CalendarDays className="h-4 w-4" />
-                              {formatEventDateRange(event)}
-                            </span>
-                          </div>
-                          <div className="mt-4 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="inline-flex items-center rounded-full border border-slate-100 bg-slate-50 px-3 py-1 text-xs font-medium tracking-wider text-slate-600 uppercase">
-                                {getTypeLabel(event.type)}
-                              </span>
-                              <span className="text-sm text-slate-500">
-                                {getCountryFlag(event.country)} {event.city}
-                              </span>
-                            </div>
-                            <span className="text-sm font-medium text-(--color-pine) opacity-0 group-hover:opacity-100 transition-opacity">
-                              View event →
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
+
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">
+                      Upcoming Events
+                    </h3>
+                    {upcoming.length > 0 ? (
+                      <div className="grid gap-4">
+                        {upcoming.map((event) => (
+                          <EntityEventCard key={event.id} event={event} />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="italic text-slate-500">No upcoming events scheduled.</p>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-slate-500 italic">No published events found for this teacher.</p>
-                )}
+
+                  {past.length > 0 && (
+                    <details className="group">
+                      <summary className="cursor-pointer list-none space-y-4">
+                        <div className="flex items-center justify-between border-t border-(--color-sand-strong) pt-6">
+                          <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">
+                            Past Events ({past.length})
+                          </h3>
+                          <span className="text-sm font-medium text-violet-600 group-open:hidden">
+                            Show past events
+                          </span>
+                          <span className="hidden text-sm font-medium text-violet-600 group-open:block">
+                            Hide past events
+                          </span>
+                        </div>
+                      </summary>
+                      <div className="mt-4 grid gap-4">
+                        {past.map((event) => (
+                          <EntityEventCard key={event.id} event={event} />
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
               </section>
             </div>
 
@@ -201,22 +227,5 @@ function RoleBadge({ children }: { children: React.ReactNode }) {
     <span className="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm border border-white/30">
       {children}
     </span>
-  );
-}
-
-function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex items-center justify-between rounded-xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-(--color-pine) hover:text-(--color-pine)"
-    >
-      <span className="flex items-center gap-3">
-        <span className="text-(--color-pine)">{icon}</span>
-        <span>{label}</span>
-      </span>
-      <ExternalLink className="h-4 w-4 opacity-30" />
-    </a>
   );
 }

@@ -1,9 +1,6 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ArrowLeft,
-  CalendarDays,
   ExternalLink,
   Facebook,
   Globe,
@@ -14,22 +11,19 @@ import {
   Youtube,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import BackButton from "@/components/back-button";
 import VenueMap from "@/components/venue-map";
+import { SocialLink } from "@/components/social-link";
+import { EntityEventCard } from "@/components/entity-event-card";
 import {
-  formatEventDateRange,
+  GENERIC_ACCENT_GRADIENT,
   getCountryLabel,
-  getEventHref,
-  getEventLocation,
   getLinkLabel,
-  getTypeLabel,
   linkSortKey,
 } from "@/lib/events";
 import { getAllVenueSlugs, getVenueBySlug, getVenueEvents } from "@/lib/venues";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL } from "@/lib/site";
-import { EventListItem } from "@/lib/events";
 import { ReportButton } from "@/components/report-button";
 
 export const revalidate = 3600;
@@ -72,15 +66,16 @@ export default async function VenuePage({ params }: VenuePageProps) {
 
   const { upcoming, past } = await getVenueEvents(venue.id);
 
+  const ensureHttps = (url: string) => url.startsWith("http") ? url : `https://${url}`;
   type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
   const venueLinks: LinkRow[] = [];
-  if (venue.website) venueLinks.push({ type: "website", href: venue.website, label: getLinkLabel("website"), icon: <Globe className="h-4 w-4" /> });
-  if (venue.facebook) venueLinks.push({ type: "facebook", href: venue.facebook, label: getLinkLabel("facebook"), icon: <Facebook className="h-4 w-4" /> });
-  if (venue.instagram) venueLinks.push({ type: "instagram", href: venue.instagram, label: getLinkLabel("instagram"), icon: <Instagram className="h-4 w-4" /> });
-  if (venue.youtube) venueLinks.push({ type: "youtube", href: venue.youtube, label: getLinkLabel("youtube"), icon: <Youtube className="h-4 w-4" /> });
-  if (venue.newsletter) venueLinks.push({ type: "newsletter", href: venue.newsletter, label: getLinkLabel("newsletter"), icon: <MessageSquare className="h-4 w-4" /> });
+  if (venue.website) venueLinks.push({ type: "website", href: ensureHttps(venue.website), label: getLinkLabel("website"), icon: <Globe className="h-4 w-4" /> });
+  if (venue.facebook) venueLinks.push({ type: "facebook", href: ensureHttps(venue.facebook), label: getLinkLabel("facebook"), icon: <Facebook className="h-4 w-4" /> });
+  if (venue.instagram) venueLinks.push({ type: "instagram", href: ensureHttps(venue.instagram), label: getLinkLabel("instagram"), icon: <Instagram className="h-4 w-4" /> });
+  if (venue.youtube) venueLinks.push({ type: "youtube", href: ensureHttps(venue.youtube), label: getLinkLabel("youtube"), icon: <Youtube className="h-4 w-4" /> });
+  if (venue.newsletter) venueLinks.push({ type: "newsletter", href: ensureHttps(venue.newsletter), label: getLinkLabel("newsletter"), icon: <MessageSquare className="h-4 w-4" /> });
   for (const link of venue.links?.items ?? []) {
-    venueLinks.push({ type: link.type, href: link.url, label: getLinkLabel(link.type, link.label), icon: <ExternalLink className="h-4 w-4" /> });
+    venueLinks.push({ type: link.type, href: ensureHttps(link.url), label: getLinkLabel(link.type, link.label), icon: <ExternalLink className="h-4 w-4" /> });
   }
   venueLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
   if (venue.email) venueLinks.push({ type: "email", href: `mailto:${venue.email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
@@ -93,23 +88,23 @@ export default async function VenuePage({ params }: VenuePageProps) {
         </div>
 
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
-          <div className="border-b border-(--color-sand-strong) px-6 py-10 sm:px-8">
+          <div className={`border-b border-(--color-sand-strong) ${GENERIC_ACCENT_GRADIENT} px-6 py-10 sm:px-8`}>
             <div className="max-w-3xl space-y-4">
               <div className="flex items-center gap-2">
                 <span className="text-2xl" aria-hidden="true">
                   {getCountryFlag(venue.country)}
                 </span>
-                <p className="text-sm font-semibold uppercase tracking-widest text-(--color-pine)">
+                <p className="text-sm font-semibold uppercase tracking-widest text-white/90">
                   {venue.city}, {getCountryLabel(venue.country)}
                   {venue.region ? ` · ${venue.region}` : ""}
                 </p>
               </div>
-              <h1 className="font-serif text-4xl leading-tight tracking-tight text-slate-950 sm:text-5xl">
+              <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 {venue.name}
               </h1>
               {venue.address && (
-                <p className="flex items-start gap-2 text-slate-600">
-                  <MapPin className="mt-1 h-4 w-4 shrink-0 text-(--color-pine)" />
+                <p className="flex items-start gap-2 text-white/90">
+                  <MapPin className="mt-1 h-4 w-4 shrink-0 text-white/70" />
                   <span>{venue.address}</span>
                 </p>
               )}
@@ -163,7 +158,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
                     {upcoming.length > 0 ? (
                       <div className="grid gap-4">
                         {upcoming.map((event) => (
-                          <EventCard key={event.id} event={event} />
+                          <EntityEventCard key={event.id} event={event} />
                         ))}
                       </div>
                     ) : (
@@ -188,7 +183,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
                       </summary>
                       <div className="mt-4 grid gap-4">
                         {past.map((event) => (
-                          <EventCard key={event.id} event={event} />
+                          <EntityEventCard key={event.id} event={event} />
                         ))}
                       </div>
                     </details>
@@ -199,7 +194,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
 
             <aside className="space-y-6">
               <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
-                <h2 className="font-serif text-2xl text-slate-950">Links & Contact</h2>
+                <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                 <div className="mt-5 flex flex-col gap-3">
                   {venueLinks.length > 0
                     ? venueLinks.map((row, i) => (
@@ -222,59 +217,5 @@ export default async function VenuePage({ params }: VenuePageProps) {
         </div>
       </div>
     </main>
-  );
-}
-
-function EventCard({ event }: { event: EventListItem }) {
-  return (
-    <Link
-      href={getEventHref(event)}
-      className="group flex flex-col justify-between gap-4 rounded-2xl border border-(--color-sand-strong) bg-white p-5 transition hover:border-violet-300 hover:shadow-md sm:flex-row sm:items-center"
-    >
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Badge
-            variant="secondary"
-            className="bg-violet-50 text-xs font-semibold uppercase tracking-wider text-violet-700"
-          >
-            {getTypeLabel(event.type)}
-          </Badge>
-          <span className="text-xs text-slate-500">{getCountryFlag(event.country)}</span>
-        </div>
-        <h4 className="font-serif text-xl font-bold text-slate-950 group-hover:text-violet-700 transition">
-          {event.title}
-        </h4>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
-          <p className="flex items-center gap-1.5">
-            <CalendarDays className="h-3.5 w-3.5" />
-            {formatEventDateRange(event)}
-          </p>
-          <p className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5" />
-            {getEventLocation(event)}
-          </p>
-        </div>
-      </div>
-      <div className="text-violet-600 opacity-0 transition group-hover:opacity-100 sm:block hidden">
-        <ArrowLeft className="h-5 w-5 rotate-180" />
-      </div>
-    </Link>
-  );
-}
-
-function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex items-center justify-between rounded-xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-(--color-pine) hover:text-(--color-pine)"
-    >
-      <span className="flex items-center gap-3">
-        <span className="text-(--color-pine)">{icon}</span>
-        <span className="capitalize">{label}</span>
-      </span>
-      <ExternalLink className="h-4 w-4 opacity-30" />
-    </a>
   );
 }

@@ -141,6 +141,12 @@ export function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+// Shared fallback gradient — used for event types without a dedicated accent (below),
+// and as the generic hero background for entity types with no "type" taxonomy of their
+// own (venues, profiles). See I-123 for the decision to formalize this as the generic
+// gradient rather than leaving it an unnamed accident of mapAccent()'s default case.
+export const GENERIC_ACCENT_GRADIENT = "bg-[linear-gradient(135deg,#1f3b46_0%,#3a6a73_50%,#ead9b1_100%)]";
+
 function mapAccent(type: string) {
   const palette: Record<string, string> = {
     festival:
@@ -153,7 +159,7 @@ function mapAccent(type: string) {
       "bg-[radial-gradient(circle_at_22%_18%,rgba(255,255,255,0.28),transparent_18%),linear-gradient(135deg,#3a425d_0%,#0f7c82_55%,#edd6a1_100%)]",
   };
 
-  return palette[type] ?? "bg-[linear-gradient(135deg,#1f3b46_0%,#3a6a73_50%,#ead9b1_100%)]";
+  return palette[type] ?? GENERIC_ACCENT_GRADIENT;
 }
 
 export function mapEventRow(row: SupabaseEventRow): EventListItem {
