@@ -88,12 +88,14 @@ export default async function VenuePage({ params }: VenuePageProps) {
         </div>
 
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
-          <div className={`min-h-52 border-b border-(--color-sand-strong) ${GENERIC_ACCENT_GRADIENT} px-6 py-8 sm:px-8`}>
+          <div className={`flex min-h-52 flex-col justify-end border-b border-(--color-sand-strong) ${GENERIC_ACCENT_GRADIENT} px-6 py-8 sm:px-8`}>
             <div className="max-w-3xl space-y-3">
-              <p className="flex min-h-6.5 items-center gap-2 text-sm font-semibold uppercase tracking-widest text-white/90">
-                {venue.city}, {getCountryLabel(venue.country)}
-                {venue.region && venue.region !== venue.city ? ` · ${venue.region}` : ""}
-                <span title={getCountryLabel(venue.country)}>{getCountryFlag(venue.country)}</span>
+              <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-white/90">
+                <span className="leading-none" title={getCountryLabel(venue.country)}>{getCountryFlag(venue.country)}</span>
+                <span>
+                  {venue.city}, {getCountryLabel(venue.country)}
+                  {venue.region && venue.region !== venue.city ? ` · ${venue.region}` : ""}
+                </span>
               </p>
               <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 {venue.name}

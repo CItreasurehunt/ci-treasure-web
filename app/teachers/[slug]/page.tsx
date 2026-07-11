@@ -107,7 +107,7 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
           <BackButton />
         </div>
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
-          <div className={`min-h-52 border-b border-(--color-sand-strong) ${GENERIC_ACCENT_GRADIENT} px-6 py-8 sm:px-8`}>
+          <div className={`flex min-h-52 flex-col justify-end border-b border-(--color-sand-strong) ${GENERIC_ACCENT_GRADIENT} px-6 py-8 sm:px-8`}>
             <div className="max-w-3xl space-y-3">
               <div className="flex flex-wrap gap-2">
                 {derivedIsTeacher && <RoleBadge>Teacher</RoleBadge>}
@@ -119,10 +119,14 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
               </h1>
               {(teacher.city || teacher.country) && (
                 <p className="flex items-center gap-2 text-white/90">
-                  <MapPin className="h-4 w-4 text-white/70" />
-                  {teacher.city}{teacher.city && teacher.country ? ", " : ""}{teacher.country ? getCountryLabel(teacher.country) : ""}
-                  <span title={teacher.country ? getCountryLabel(teacher.country) : undefined}>
-                    {teacher.country ? getCountryFlag(teacher.country) : ""}
+                  <MapPin className="h-4 w-4 shrink-0 text-white/70" />
+                  {teacher.country ? (
+                    <span className="leading-none" title={getCountryLabel(teacher.country)}>
+                      {getCountryFlag(teacher.country)}
+                    </span>
+                  ) : null}
+                  <span>
+                    {teacher.city}{teacher.city && teacher.country ? ", " : ""}{teacher.country ? getCountryLabel(teacher.country) : ""}
                   </span>
                 </p>
               )}
