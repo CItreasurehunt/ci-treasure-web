@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { isAdminEmail } from "@/lib/admin-auth";
+import { RemoveMeButton } from "@/components/organizer/remove-me-button";
 import { buildEventSlug } from "@/lib/events";
 import { createClient } from "@/lib/supabase/server";
 
@@ -227,7 +228,7 @@ export default async function DashboardPage() {
                     </Link>
                   )}
                 </div>
-                <EventList events={teachEvents} />
+                <EventList events={teachEvents} teacherId={profile.id} />
               </section>
             )}
 
@@ -244,7 +245,7 @@ export default async function DashboardPage() {
                     </Link>
                   )}
                 </div>
-                <EventList events={musicEvents} />
+                <EventList events={musicEvents} teacherId={profile.id} />
               </section>
             )}
           </div>
@@ -254,7 +255,7 @@ export default async function DashboardPage() {
   );
 }
 
-function EventList({ events }: { events: DashboardEvent[] }) {
+function EventList({ events, teacherId }: { events: DashboardEvent[]; teacherId?: string }) {
   return (
     <ul className="mt-6 divide-y divide-(--color-sand-strong)">
       {events.map((event) => (
@@ -271,6 +272,7 @@ function EventList({ events }: { events: DashboardEvent[] }) {
           </div>
           <div className="flex items-center gap-3">
             <StatusBadge status={event.status} />
+            {teacherId && <RemoveMeButton eventId={event.id} teacherId={teacherId} />}
             <Link
               href={`/events/${buildEventSlug(event.short_id, event.title)}/edit`}
               className="rounded-full border border-(--color-sand-strong) px-4 py-2 text-sm font-medium text-slate-700 hover:border-(--color-pine) hover:text-(--color-pine)"
