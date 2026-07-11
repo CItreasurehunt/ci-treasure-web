@@ -177,7 +177,7 @@ export default async function EventPage({ params }: EventPageProps) {
               <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-4 py-1 text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">
                 {getTypeLabel(event.type)}
               </p>
-              <h1 className="font-serif text-4xl leading-tight tracking-tight text-slate-950 sm:text-5xl">
+              <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 {event.title}
               </h1>
             </div>
@@ -185,28 +185,6 @@ export default async function EventPage({ params }: EventPageProps) {
 
           <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr]">
             <div className="space-y-8">
-              {event.imageUrl ? (
-                <div>
-                  {/* EXPERIMENT (I-123): photo moved out of the gradient band into its own
-                      card below the header, matching venues/teachers — auto-height/no forced
-                      crop kept (unlike venues' object-cover) since event images are often
-                      flyers/posters with unpredictable aspect ratios and baked-in text. */}
-                  <div className="inline-block overflow-hidden rounded-2xl border border-(--color-sand-strong)">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={event.imageUrl}
-                      alt={event.title}
-                      className="block max-h-120 w-auto max-w-full"
-                    />
-                  </div>
-                  {event.imageCredit ? (
-                    <p className="mt-2 inline-block rounded-full bg-white/80 px-2.5 py-0.5 text-xs text-slate-700 backdrop-blur-sm">
-                      {event.imageCredit}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-
               {event.cancelled ? (
                 <div className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-950">
                   <p className="font-semibold">This event has been cancelled.</p>
@@ -312,6 +290,29 @@ export default async function EventPage({ params }: EventPageProps) {
             </div>
 
             <aside className="space-y-6">
+              {event.imageUrl ? (
+                <div>
+                  {/* EXPERIMENT (I-123), v2: moved to the sidebar column instead of the wide
+                      left column — flyers are usually portrait/poster-shaped, so a narrower
+                      column fits them without leftover blank space next to the info cards.
+                      w-full/h-auto (fills the column, no crop) rather than venues' object-cover,
+                      since event images are often flyers with baked-in text. */}
+                  <div className="overflow-hidden rounded-2xl border border-(--color-sand-strong)">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={event.imageUrl}
+                      alt={event.title}
+                      className="h-auto w-full"
+                    />
+                  </div>
+                  {event.imageCredit ? (
+                    <p className="mt-2 inline-block rounded-full bg-white/80 px-2.5 py-0.5 text-xs text-slate-700 backdrop-blur-sm">
+                      {event.imageCredit}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
               <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-5">
                 <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                 <div className="mt-4 flex flex-col gap-3">
