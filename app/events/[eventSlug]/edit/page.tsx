@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { OrganizerEventForm } from "@/components/organizer/event-form";
+import { TeacherManager } from "@/components/organizer/teacher-manager";
 import { getKnownDisciplines, parseEventSlug } from "@/lib/events";
 import { eventRowToFormData } from "@/lib/organizer-events";
 import { createClient } from "@/lib/supabase/server";
@@ -63,6 +64,20 @@ export default async function EditEventPage({
 
   const initial = eventRowToFormData(event);
   const availablePractices = await getKnownDisciplines();
+
+  const { data: teachers } = await supabase
+    .from("event_teachers")
+    .select("role, profiles(id, name, city, country)")
+    .eq("event_id", event.id);
+
+  const initialTeachers = (teachers ?? []).map((t: any) => ({
+    id: t.profiles.id,
+    name: t.profiles.name,
+    role: t.role,
+    city: t.profiles.city,
+    country: t.profiles.country,
+  }));
+
   const segments = (event.segments?.items ?? event.segments ?? []) as SegmentDisplay[];
   const hasSegments = Array.isArray(segments) && segments.length > 0;
 
@@ -84,6 +99,8 @@ export default async function EditEventPage({
         <div className="mt-8">
           <OrganizerEventForm mode="edit" eventId={event.id} initial={initial} availablePractices={availablePractices} />
         </div>
+
+        <TeacherManager eventId={event.id} initialTeachers={initialTeachers} />
 
         {hasSegments ? (
           <section className="mt-6 rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
