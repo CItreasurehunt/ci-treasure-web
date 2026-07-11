@@ -217,7 +217,22 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-semibold text-slate-950">13. Changes to this policy</h2>
+          <h2 className="font-semibold text-slate-950">13. Profile photos</h2>
+          <p>
+            If you upload a profile photo, it is stored in our Supabase Storage (Supabase Inc., US) and is not
+            publicly visible until we&apos;ve reviewed and approved it. Approved photos are shown publicly on your
+            teacher/organiser profile page, together with a photo credit if you provide one. You can replace or
+            remove your photo at any time from your dashboard; a new upload is reviewed again before going live.
+            Legal basis: Art.&nbsp;6(1)(a) GDPR — your consent, given by choosing to upload a photo. Data transfers
+            to Supabase are governed by Standard Contractual Clauses (SCCs) under Art.&nbsp;46(2)(c) GDPR. See{" "}
+            <a href="https://supabase.com/legal/privacy" className="underline" target="_blank" rel="noopener noreferrer">
+              Supabase&apos;s privacy policy
+            </a>
+            .
+          </p>
+        </section>
+        <section>
+          <h2 className="font-semibold text-slate-950">14. Changes to this policy</h2>
           <p>
             This policy will be updated when new features affecting data processing are added. The date at the top of
             this page reflects the most recent revision.
