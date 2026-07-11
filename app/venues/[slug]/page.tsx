@@ -90,15 +90,11 @@ export default async function VenuePage({ params }: VenuePageProps) {
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
           <div className={`border-b border-(--color-sand-strong) ${GENERIC_ACCENT_GRADIENT} px-6 py-10 sm:px-8`}>
             <div className="max-w-3xl space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl" aria-hidden="true">
-                  {getCountryFlag(venue.country)}
-                </span>
-                <p className="text-sm font-semibold uppercase tracking-widest text-white/90">
-                  {venue.city}, {getCountryLabel(venue.country)}
-                  {venue.region ? ` · ${venue.region}` : ""}
-                </p>
-              </div>
+              <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-white/90">
+                {venue.city}, {getCountryLabel(venue.country)}
+                {venue.region && venue.region !== venue.city ? ` · ${venue.region}` : ""}
+                <span title={getCountryLabel(venue.country)}>{getCountryFlag(venue.country)}</span>
+              </p>
               <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 {venue.name}
               </h1>
@@ -134,7 +130,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
               {venue.description && (
                 <section className="space-y-4">
                   <h2 className="font-serif text-2xl text-slate-950">About the venue</h2>
-                  <p className="whitespace-pre-line text-lg leading-8 text-slate-700">
+                  <p className="whitespace-pre-line text-base leading-8 text-slate-700">
                     {venue.description}
                   </p>
                 </section>
@@ -148,7 +144,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
               )}
 
               <section className="space-y-6">
-                <h2 className="font-serif text-3xl text-slate-950">Events at this venue</h2>
+                <h2 className="font-serif text-2xl text-slate-950">Events at this venue</h2>
 
                 <div className="space-y-8">
                   <div className="space-y-4">
