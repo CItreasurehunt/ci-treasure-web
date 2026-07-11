@@ -34,7 +34,7 @@ export default async function ClaimPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f7f0e5_0%,#fffdf8_45%,#fffaf2_100%)] px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-mist) px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-2xl">
         <Link href="/dashboard" className="text-sm font-medium text-(--color-pine) hover:underline">
           ← Back to dashboard

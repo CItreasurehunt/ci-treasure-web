@@ -46,7 +46,7 @@ export default async function AdminLoginPage({
   const adminUser = await getAdminUser();
   if (adminUser) {
     return (
-      <main className="min-h-screen bg-[linear-gradient(180deg,_#f7f0e5_0%,_#fffdf8_45%,_#fffaf2_100%)] px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
+      <main className="min-h-screen bg-(--color-mist) px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-2xl rounded-[1.75rem] border border-white/80 bg-white/90 p-8 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
           <h1 className="font-serif text-4xl text-slate-950">Admin already signed in</h1>
           <p className="mt-4 text-base leading-7 text-slate-700">You are signed in as {adminUser.email}.</p>
@@ -67,7 +67,7 @@ export default async function AdminLoginPage({
   const errorMessage = params.error ?? "";
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,_#f7f0e5_0%,_#fffdf8_45%,_#fffaf2_100%)] px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-mist) px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-2xl rounded-[1.75rem] border border-white/80 bg-white/90 p-8 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
         <p className="text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">Admin login</p>
         <h1 className="mt-3 font-serif text-4xl text-slate-950">Magic link only</h1>
