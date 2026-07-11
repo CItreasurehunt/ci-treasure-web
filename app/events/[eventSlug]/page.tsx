@@ -149,7 +149,7 @@ export default async function EventPage({ params }: EventPageProps) {
       />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="flex flex-wrap items-center gap-3">
-          <BackButton label="Back to events" />
+          <BackButton label="Back to events" toEventsList />
           <ShareButton
             url={`${SITE_URL}/events/${event.slug}`}
             title={event.title}
