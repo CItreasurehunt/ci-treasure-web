@@ -8,6 +8,7 @@ const REASONS = [
   { value: "incorrect_info", label: "Incorrect or outdated information" },
   { value: "spam_fake", label: "Spam or fake listing" },
   { value: "copyright", label: "Copyright infringement" },
+  { value: "inappropriate_photo", label: "Inappropriate photo" },
   { value: "illegal_other", label: "Other / illegal content" },
 ] as const;
 

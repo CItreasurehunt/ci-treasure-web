@@ -5,13 +5,14 @@ import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const VALID_ENTITY_TYPES = ["event", "venue", "profile", "community"] as const;
-const VALID_REASONS = ["incorrect_info", "spam_fake", "copyright", "illegal_other"] as const;
+const VALID_REASONS = ["incorrect_info", "spam_fake", "copyright", "inappropriate_photo", "illegal_other"] as const;
 const RATE_LIMIT = 5;
 
 const REASON_LABELS: Record<string, string> = {
   incorrect_info: "Incorrect or outdated information",
   spam_fake: "Spam or fake listing",
   copyright: "Copyright infringement",
+  inappropriate_photo: "Inappropriate photo",
   illegal_other: "Other / illegal content",
 };
 

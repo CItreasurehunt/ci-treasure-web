@@ -20,6 +20,7 @@ import { ReportButton } from "@/components/report-button";
 import BackButton from "@/components/back-button";
 import { SocialLink } from "@/components/social-link";
 import { EntityEventCard } from "@/components/entity-event-card";
+import { EntityImage } from "@/components/entity-image";
 import {
   GENERIC_ACCENT_GRADIENT,
   getCountryLabel,
@@ -53,6 +54,8 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
     teacher.bio?.slice(0, 160) ??
     `Contact Improvisation teacher${teacher.city ? ` based in ${teacher.city}` : ""} — CI Treasure Hunt`;
 
+  const approvedImage = teacher.image_status === "approved" ? teacher.image_url : null;
+
   return {
     title: `${teacher.name} — CI Treasure Hunt`,
     description,
@@ -60,6 +63,7 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
       title: teacher.name,
       description,
       url: `${SITE_URL}/teachers/${teacher.slug}`,
+      images: approvedImage ? [{ url: approvedImage }] : [],
     },
   };
 }
@@ -135,6 +139,10 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
 
           <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr]">
             <div className="space-y-8">
+              {teacher.image_url && teacher.image_status === "approved" && (
+                <EntityImage src={teacher.image_url} alt={teacher.name} credit={teacher.image_credit} />
+              )}
+
               {teacher.bio ? (
                 <section className="space-y-3">
                   <h2 className="font-serif text-2xl text-slate-950">About</h2>

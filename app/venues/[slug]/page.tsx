@@ -15,6 +15,7 @@ import BackButton from "@/components/back-button";
 import VenueMap from "@/components/venue-map";
 import { SocialLink } from "@/components/social-link";
 import { EntityEventCard } from "@/components/entity-event-card";
+import { EntityImage } from "@/components/entity-image";
 import {
   GENERIC_ACCENT_GRADIENT,
   getCountryLabel,
@@ -112,21 +113,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
           <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr]">
             <div className="space-y-10">
               {venue.imageUrl && (
-                <div>
-                  <div className="overflow-hidden rounded-2xl border border-(--color-sand-strong)">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={venue.imageUrl}
-                      alt={venue.name}
-                      className="h-auto w-full object-cover"
-                    />
-                  </div>
-                  {venue.imageCredit ? (
-                    <p className="mt-2 inline-block rounded-full bg-white/80 px-2.5 py-0.5 text-xs text-slate-700 backdrop-blur-sm">
-                      {venue.imageCredit}
-                    </p>
-                  ) : null}
-                </div>
+                <EntityImage src={venue.imageUrl} alt={venue.name} credit={venue.imageCredit} />
               )}
 
               {venue.description && (

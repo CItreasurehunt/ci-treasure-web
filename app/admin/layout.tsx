@@ -50,6 +50,20 @@ async function getPendingEventCount(): Promise<number> {
   }
 }
 
+async function getPendingPhotoCount(): Promise<number> {
+  try {
+    const supabase = createAdminClient();
+    const { count } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("image_status", "pending")
+      .not("image_url", "is", null);
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 function NavBadge({ count }: { count: number }) {
   if (count <= 0) return null;
   return (
@@ -65,9 +79,14 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }>) {
   const adminUser = await getAdminUser();
-  const [openReports, pendingClaims, pendingEvents] = adminUser
-    ? await Promise.all([getOpenReportCount(), getPendingClaimCount(), getPendingEventCount()])
-    : [0, 0, 0];
+  const [openReports, pendingClaims, pendingEvents, pendingPhotos] = adminUser
+    ? await Promise.all([
+        getOpenReportCount(),
+        getPendingClaimCount(),
+        getPendingEventCount(),
+        getPendingPhotoCount(),
+      ])
+    : [0, 0, 0, 0];
 
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-6 text-slate-900 sm:px-8 lg:px-10">
@@ -89,6 +108,10 @@ export default async function AdminLayout({
             <Link href="/admin/claims" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
               Claims
               <NavBadge count={pendingClaims} />
+            </Link>
+            <Link href="/admin/profile-photos" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
+              Photos
+              <NavBadge count={pendingPhotos} />
             </Link>
             <Link href="/admin/reports" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
               Reports

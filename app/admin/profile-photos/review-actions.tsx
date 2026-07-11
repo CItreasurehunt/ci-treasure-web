@@ -1,0 +1,48 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+
+import { approveProfilePhoto, rejectProfilePhoto } from "./actions";
+
+export function PhotoReviewActions({ profileId }: { profileId: string }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function act(fn: () => Promise<{ success: boolean; error?: string }>) {
+    setError(null);
+    startTransition(async () => {
+      const result = await fn();
+      if (result.success) {
+        router.refresh();
+      } else {
+        setError(result.error ?? "Action failed.");
+      }
+    });
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => act(() => approveProfilePhoto(profileId))}
+          className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          Approve
+        </button>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => act(() => rejectProfilePhoto(profileId))}
+          className="rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50"
+        >
+          Reject
+        </button>
+      </div>
+      {error ? <p className="text-xs text-rose-700">{error}</p> : null}
+    </div>
+  );
+}

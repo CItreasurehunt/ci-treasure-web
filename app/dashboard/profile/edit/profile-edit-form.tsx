@@ -3,11 +3,14 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfile, type ProfileUpdateData } from "./actions";
+import { uploadProfilePhoto } from "./photo-actions";
 import { CONTINENT_COUNTRIES } from "@/lib/continents";
 import { getCountryLabel } from "@/lib/events";
 
 const inputClassName =
   "w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm text-slate-950 outline-none ring-0 transition focus:border-(--color-pine)";
+
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
 type ProfileRow = {
   name: string;
@@ -23,6 +26,9 @@ type ProfileRow = {
   telegram: string | null;
   newsletter: string | null;
   public_email: string | null;
+  image_url: string | null;
+  image_credit: string | null;
+  image_status: string;
 };
 
 export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
@@ -87,7 +93,14 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
+      <PhotoUploadSection
+        imageUrl={profile.image_url}
+        imageCredit={profile.image_credit}
+        imageStatus={profile.image_status}
+      />
+
+      <form onSubmit={handleSubmit} className="space-y-6">
       <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Basic Info</h3>
         <div className="mt-4 space-y-4">
@@ -261,7 +274,134 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
           </button>
         </div>
       </div>
-    </form>
+      </form>
+    </div>
+  );
+}
+
+function PhotoUploadSection({
+  imageUrl,
+  imageCredit,
+  imageStatus,
+}: {
+  imageUrl: string | null;
+  imageCredit: string | null;
+  imageStatus: string;
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [credit, setCredit] = useState(imageCredit || "");
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setError(null);
+    setSuccess(false);
+    const file = e.target.files?.[0] ?? null;
+    if (!file) {
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setError("File too large (max 8MB)");
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  }
+
+  function handleUpload() {
+    if (!selectedFile) return;
+    setError(null);
+    setSuccess(false);
+
+    const formData = new FormData();
+    formData.set("file", selectedFile);
+    formData.set("credit", credit);
+
+    startTransition(async () => {
+      const result = await uploadProfilePhoto(formData);
+      if (result.success) {
+        setSuccess(true);
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        router.refresh();
+      } else {
+        setError(result.error || "Failed to upload photo");
+      }
+    });
+  }
+
+  const displayUrl = previewUrl || imageUrl;
+
+  return (
+    <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Photo</h3>
+      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+        <div className="h-40 w-40 shrink-0 overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-(--color-sand)/30">
+          {displayUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={displayUrl} alt="Profile photo" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+              No photo
+            </div>
+          )}
+        </div>
+        <div className="flex-1 space-y-3">
+          {imageUrl && imageStatus === "pending" && !selectedFile && (
+            <p className="text-xs font-medium text-amber-700 bg-amber-50 px-3 py-2 rounded-xl border border-amber-100">
+              Your photo is awaiting review and isn&apos;t public yet.
+            </p>
+          )}
+          {imageStatus === "rejected" && !selectedFile && (
+            <p className="text-xs font-medium text-rose-700 bg-rose-50 px-3 py-2 rounded-xl border border-rose-100">
+              Your previous photo wasn&apos;t approved. Upload a new one to try again.
+            </p>
+          )}
+          <Field label="Upload a photo">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full text-sm text-slate-700 file:mr-3 file:rounded-full file:border-0 file:bg-(--color-ink) file:px-4 file:py-2 file:text-xs file:font-semibold file:text-(--color-mist)"
+            />
+            <p className="mt-1 text-xs text-slate-500">JPEG, PNG, or WEBP. Max 8MB.</p>
+          </Field>
+          <Field label="Credit (optional)">
+            <input
+              value={credit}
+              onChange={(e) => setCredit(e.target.value)}
+              className={inputClassName}
+              placeholder="e.g. Photo by Jane Doe"
+            />
+          </Field>
+          {error && (
+            <p className="text-sm font-medium text-rose-600 bg-rose-50 p-3 rounded-2xl border border-rose-100">
+              {error}
+            </p>
+          )}
+          {success && (
+            <p className="text-sm font-medium text-emerald-600 bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
+              Photo uploaded — it&apos;s now awaiting review.
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={handleUpload}
+            disabled={!selectedFile || isPending}
+            className="rounded-full bg-(--color-ink) px-6 py-2.5 text-sm font-semibold text-(--color-mist) shadow-sm transition hover:bg-slate-800 disabled:opacity-50"
+          >
+            {isPending ? "Uploading..." : "Upload photo"}
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
 

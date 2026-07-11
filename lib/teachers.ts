@@ -27,6 +27,9 @@ export type TeacherProfile = {
   year_starting_teaching: number | null;
   visibility: string;
   show_in_list: boolean;
+  image_url: string | null;
+  image_credit: string | null;
+  image_status: string;
   event_count?: number;
 };
 
