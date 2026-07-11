@@ -143,9 +143,10 @@ export function slugify(value: string) {
 
 // Shared fallback gradient — used for event types without a dedicated accent (below),
 // and as the generic hero background for entity types with no "type" taxonomy of their
-// own (venues, profiles). See I-123 for the decision to formalize this as the generic
-// gradient rather than leaving it an unnamed accident of mapAccent()'s default case.
-export const GENERIC_ACCENT_GRADIENT = "bg-[linear-gradient(135deg,#1f3b46_0%,#3a6a73_50%,#ead9b1_100%)]";
+// own (venues, profiles). Derived from the brand tokens (--color-ink -> --color-pine ->
+// --color-sand) rather than an unrelated palette — see I-123/design.md D-02 for the trial
+// and decision history.
+export const GENERIC_ACCENT_GRADIENT = "bg-[linear-gradient(135deg,#1e0c30_0%,#7c3aed_50%,#f3e8ff_100%)]";
 
 function mapAccent(type: string) {
   const palette: Record<string, string> = {
