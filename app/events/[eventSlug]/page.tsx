@@ -172,15 +172,32 @@ export default async function EventPage({ params }: EventPageProps) {
             event.isPast ? "opacity-75 grayscale-[0.35]" : ""
           }`}
         >
-          <div className={`flex min-h-56 flex-col justify-center border-b border-(--color-sand-strong) ${getOgImageStyle(event.type)} px-6 py-10 sm:px-8`}>
-            <div className="max-w-3xl space-y-5">
-              <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-4 py-1 text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">
-                {getTypeLabel(event.type)}
-              </p>
-              <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
-                {event.title}
-              </h1>
+          <div className={`border-b border-(--color-sand-strong) ${getOgImageStyle(event.type)}`}>
+            <div className="px-6 py-10 sm:px-8">
+              <div className="max-w-3xl space-y-5">
+                <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-4 py-1 text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">
+                  {getTypeLabel(event.type)}
+                </p>
+                <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
+                  {event.title}
+                </h1>
+              </div>
             </div>
+            {event.imageUrl ? (
+              <div className="px-6 pb-8 sm:px-8">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={event.imageUrl}
+                  alt={event.title}
+                  className="max-h-120 w-auto max-w-2xl rounded-2xl drop-shadow-lg"
+                />
+                {event.imageCredit ? (
+                  <p className="mt-2 inline-block rounded-full bg-white/80 px-2.5 py-0.5 text-xs text-slate-700 backdrop-blur-sm">
+                    {event.imageCredit}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr]">
@@ -290,29 +307,6 @@ export default async function EventPage({ params }: EventPageProps) {
             </div>
 
             <aside className="space-y-6">
-              {event.imageUrl ? (
-                <div>
-                  {/* EXPERIMENT (I-123), v2: moved to the sidebar column instead of the wide
-                      left column — flyers are usually portrait/poster-shaped, so a narrower
-                      column fits them without leftover blank space next to the info cards.
-                      w-full/h-auto (fills the column, no crop) rather than venues' object-cover,
-                      since event images are often flyers with baked-in text. */}
-                  <div className="overflow-hidden rounded-2xl border border-(--color-sand-strong)">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={event.imageUrl}
-                      alt={event.title}
-                      className="h-auto w-full"
-                    />
-                  </div>
-                  {event.imageCredit ? (
-                    <p className="mt-2 inline-block rounded-full bg-white/80 px-2.5 py-0.5 text-xs text-slate-700 backdrop-blur-sm">
-                      {event.imageCredit}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-
               <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-5">
                 <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                 <div className="mt-4 flex flex-col gap-3">
