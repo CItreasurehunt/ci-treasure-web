@@ -4,7 +4,6 @@ import {
   Facebook,
   Globe,
   Instagram,
-  Mail,
   MapPin,
   MessageSquare,
   Send,
@@ -19,6 +18,7 @@ import {
 import { ReportButton } from "@/components/report-button";
 import BackButton from "@/components/back-button";
 import { SocialLink } from "@/components/social-link";
+import { RevealEmail } from "@/components/reveal-email";
 import { EntityEventCard } from "@/components/entity-event-card";
 import { EntityImage } from "@/components/entity-image";
 import {
@@ -102,7 +102,6 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
   if (teacher.telegram) teacherLinks.push({ type: "telegram", href: teacher.telegram.startsWith("http") ? teacher.telegram : `https://t.me/${teacher.telegram.replace(/^@/, "")}`, label: getLinkLabel("telegram"), icon: <Send className="h-4 w-4" /> });
   if (teacher.newsletter) teacherLinks.push({ type: "newsletter", href: ensureHttps(teacher.newsletter), label: getLinkLabel("newsletter"), icon: <MessageSquare className="h-4 w-4" /> });
   teacherLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
-  if (teacher.public_email) teacherLinks.push({ type: "email", href: `mailto:${teacher.public_email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
 
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
@@ -205,6 +204,9 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                     {teacherLinks.map((row, i) => (
                       <SocialLink key={i} href={row.href} icon={row.icon} label={row.label} />
                     ))}
+                    {teacher.public_email && (
+                      <RevealEmail entityType="profile" entityId={teacher.id} />
+                    )}
                   </div>
                 </section>
               )}

@@ -5,7 +5,6 @@ import {
   Facebook,
   Globe,
   Instagram,
-  Mail,
   MapPin,
   MessageSquare,
   Youtube,
@@ -14,6 +13,7 @@ import {
 import BackButton from "@/components/back-button";
 import VenueMap from "@/components/venue-map";
 import { SocialLink } from "@/components/social-link";
+import { RevealEmail } from "@/components/reveal-email";
 import { EntityEventCard } from "@/components/entity-event-card";
 import { EntityImage } from "@/components/entity-image";
 import {
@@ -79,7 +79,6 @@ export default async function VenuePage({ params }: VenuePageProps) {
     venueLinks.push({ type: link.type, href: ensureHttps(link.url), label: getLinkLabel(link.type, link.label), icon: <ExternalLink className="h-4 w-4" /> });
   }
   venueLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
-  if (venue.email) venueLinks.push({ type: "email", href: `mailto:${venue.email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
 
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
@@ -185,8 +184,9 @@ export default async function VenuePage({ params }: VenuePageProps) {
                     ? venueLinks.map((row, i) => (
                         <SocialLink key={i} href={row.href} icon={row.icon} label={row.label} />
                       ))
-                    : <p className="text-sm text-slate-500 italic">No links available.</p>
+                    : !venue.email && <p className="text-sm text-slate-500 italic">No links available.</p>
                   }
+                  {venue.email && <RevealEmail entityType="venue" entityId={venue.id} />}
                 </div>
               </section>
             </aside>

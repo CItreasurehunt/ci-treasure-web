@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { CalendarDays, Clock3, ExternalLink, GraduationCap, Languages, Mail, MapPin } from "lucide-react";
+import { CalendarDays, Clock3, ExternalLink, GraduationCap, Languages, MapPin } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { ShareButton } from "@/components/share-button";
 import { ReportButton } from "@/components/report-button";
 import { SegmentsSection } from "@/components/segments-section";
+import { RevealEmail } from "@/components/reveal-email";
 import BackButton from "@/components/back-button";
 import {
   type SeriesSibling,
@@ -327,13 +328,11 @@ export default async function EventPage({ params }: EventPageProps) {
                     <p className="text-sm leading-6 text-slate-600">No public links added yet.</p>
                   )}
                   {event.contactEmail ? (
-                    <a
-                      href={`mailto:${event.contactEmail}`}
+                    <RevealEmail
+                      entityType="event"
+                      entityId={event.id}
                       className="inline-flex items-center justify-between rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:border-(--color-pine) hover:text-(--color-pine)"
-                    >
-                      Email
-                      <Mail className="size-4" />
-                    </a>
+                    />
                   ) : null}
                 </div>
               </section>
