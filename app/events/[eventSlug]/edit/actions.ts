@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { isAdminEmail } from "@/lib/admin-auth";
 import { sendEmail } from "@/lib/email";
+import { buildEventSlug } from "@/lib/events";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyAdminTeacherAdded } from "@/app/events/actions";
@@ -123,7 +124,9 @@ export async function addTeacher(
   }
 
   revalidatePath("/dashboard");
-  revalidatePath(`/events/${event?.short_id}/edit`);
+  if (event?.short_id && event?.title) {
+    revalidatePath(`/events/${buildEventSlug(event.short_id, event.title)}/edit`);
+  }
   return { success: true };
 }
 
