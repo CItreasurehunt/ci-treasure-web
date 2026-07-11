@@ -9,9 +9,8 @@ export default function BackButton({ label = "Back" }: { label?: string }) {
 
   function handleBack() {
     if (typeof window === "undefined") return;
-    const cameFromEvents = sessionStorage.getItem("cameFromEvents");
-    if (cameFromEvents) {
-      sessionStorage.removeItem("cameFromEvents");
+    const hasInternalHistory = sessionStorage.getItem("hasInternalHistory");
+    if (hasInternalHistory) {
       router.back();
     } else {
       const lastEventsUrl = sessionStorage.getItem("lastEventsUrl");

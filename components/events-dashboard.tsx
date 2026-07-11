@@ -220,7 +220,6 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
   const handleCardClick = (eventId: string) => {
     setHighlightedEventId(eventId);
     if (typeof window !== "undefined") {
-      sessionStorage.setItem("cameFromEvents", "true");
       // Switch to map view on mobile if user clicks on cards, so they see where it is
       if (window.innerWidth < 1024) {
         setMobileView("map");
