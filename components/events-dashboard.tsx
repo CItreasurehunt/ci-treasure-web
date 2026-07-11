@@ -217,16 +217,6 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
     });
   }, [events, searchQuery, selectedCountry, selectedType, selectedMonth, soonOnly, selectedDisciplines, showAllDisciplines]);
 
-  const handleCardClick = (eventId: string) => {
-    setHighlightedEventId(eventId);
-    if (typeof window !== "undefined") {
-      // Switch to map view on mobile if user clicks on cards, so they see where it is
-      if (window.innerWidth < 1024) {
-        setMobileView("map");
-      }
-    }
-  };
-
   const handleMarkerClick = (eventId: string) => {
     setHighlightedEventId(eventId);
     
@@ -434,8 +424,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
               <div
                 key={event.id}
                 id={`event-card-${event.id}`}
-                onClick={() => handleCardClick(event.id)}
-                className={`cursor-pointer transition rounded-lg ${
+                className={`transition rounded-lg ${
                   highlightedEventId === event.id
                     ? "ring-2 ring-violet-500 ring-offset-2 scale-[0.99] shadow-sm"
                     : ""
