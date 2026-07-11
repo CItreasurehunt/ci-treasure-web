@@ -97,11 +97,11 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
 
           <dl className="space-y-2 text-sm text-slate-600">
             <div className="flex items-start gap-2">
-              <CalendarDays className="mt-0.5 size-4 text-(--color-ember)" />
+              <CalendarDays className="mt-0.5 size-4 text-(--color-pine)" />
               <dd>{formatEventDateRange(event)}</dd>
             </div>
             <div className="flex items-start gap-2">
-              <MapPin className="mt-0.5 size-4 text-(--color-ember)" />
+              <MapPin className="mt-0.5 size-4 text-(--color-pine)" />
               <dd>
                 {event.city}, {getCountryLabel(event.country)}
               </dd>
