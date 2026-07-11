@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function TeachersPage() {
   return (
-    <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto w-full max-w-5xl space-y-8">
         <div className="flex items-center gap-3">
           <Button asChild variant="outline" className="border-(--color-sand-strong) bg-white/80">

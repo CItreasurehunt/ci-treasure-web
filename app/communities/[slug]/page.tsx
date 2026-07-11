@@ -106,7 +106,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   communityLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
 
   return (
-    <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="flex flex-wrap items-center gap-3">
           <BackButton />
@@ -245,7 +245,7 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
             </div>
 
             <aside className="space-y-6">
-              <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
+              <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-mist) p-6">
                 <h2 className="font-serif text-2xl text-slate-950">Links & Resources</h2>
                 <div className="mt-5 flex flex-col gap-3">
                   {communityLinks.length > 0

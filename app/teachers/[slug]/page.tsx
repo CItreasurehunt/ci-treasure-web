@@ -101,7 +101,7 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
   if (teacher.public_email) teacherLinks.push({ type: "email", href: `mailto:${teacher.public_email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
 
   return (
-    <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div>
           <BackButton />
@@ -191,7 +191,7 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
 
             <aside className="space-y-6">
               {teacherLinks.length > 0 && (
-                <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
+                <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-mist) p-6">
                   <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                   <div className="mt-4 flex flex-col gap-3">
                     {teacherLinks.map((row, i) => (

@@ -24,7 +24,7 @@ export default function AdminForbiddenPage() {
           <form action={signOut}>
             <button
               type="submit"
-              className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)"
+              className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist)"
             >
               Sign out
             </button>

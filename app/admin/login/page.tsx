@@ -51,7 +51,7 @@ export default async function AdminLoginPage({
           <h1 className="font-serif text-4xl text-slate-950">Admin already signed in</h1>
           <p className="mt-4 text-base leading-7 text-slate-700">You are signed in as {adminUser.email}.</p>
           <div className="mt-6">
-            <Link href="/admin/events" className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)">
+            <Link href="/admin/events" className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist)">
               Open admin events
             </Link>
           </div>
@@ -94,7 +94,7 @@ export default async function AdminLoginPage({
           </div>
           <button
             type="submit"
-            className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)"
+            className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist)"
           >
             Send magic link
           </button>

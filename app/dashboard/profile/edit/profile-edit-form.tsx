@@ -248,7 +248,7 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-full bg-(--color-ink) px-8 py-3 text-sm font-semibold text-(--color-cream) shadow-sm transition hover:bg-slate-800 disabled:opacity-50"
+            className="rounded-full bg-(--color-ink) px-8 py-3 text-sm font-semibold text-(--color-mist) shadow-sm transition hover:bg-slate-800 disabled:opacity-50"
           >
             {isPending ? "Saving..." : "Save changes"}
           </button>

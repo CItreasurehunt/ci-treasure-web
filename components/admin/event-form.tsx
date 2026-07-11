@@ -346,7 +346,7 @@ export function EventForm({
             type="button"
             disabled={isSaving}
             onClick={() => startSaveTransition(() => void saveEvent())}
-            className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream) disabled:opacity-60"
+            className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist) disabled:opacity-60"
           >
             {isSaving ? "Saving..." : "Save"}
           </button>
@@ -392,7 +392,7 @@ function JsonListSection<T>({
       <div className="mt-4 space-y-3">
         {items.length ? (
           items.map((item, index) => (
-            <div key={index} className="rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) p-4">
+            <div key={index} className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) p-4">
               <div className="grid gap-3">
                 {renderItem(item, index)}
                 <div>
@@ -509,7 +509,7 @@ function PeoplePicker({
       <h3 className="font-serif text-2xl text-slate-950">{title}</h3>
       <p className="mt-1 text-sm text-slate-600">Search existing profiles, or create a missing one inline.</p>
 
-      <div className="mt-4 rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) p-4">
+      <div className="mt-4 rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) p-4">
         <div className="flex flex-col gap-3">
           <input
             value={query}
@@ -548,7 +548,7 @@ function PeoplePicker({
       <div className="mt-4 space-y-3">
         {items.length ? (
           items.map((item, index) => (
-            <div key={`${item.profileId}-${index}`} className="rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) p-4">
+            <div key={`${item.profileId}-${index}`} className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) p-4">
               <div className="grid gap-3 md:grid-cols-[2fr_1fr_auto] md:items-center">
                 <div>
                   <p className="font-medium text-slate-950">{item.name}</p>

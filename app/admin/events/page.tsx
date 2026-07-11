@@ -112,14 +112,14 @@ export default async function AdminEventsPage({
           <h2 className="mt-2 font-serif text-3xl text-slate-950">Manage events</h2>
           <p className="mt-1 text-sm text-slate-600">Review, publish, hide, and open each event for detailed editing.</p>
         </div>
-        <Link href="/admin/events/new" className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)">
+        <Link href="/admin/events/new" className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist)">
           New event
         </Link>
       </div>
 
       <form
         method="get"
-        className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) p-4"
+        className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) p-4"
       >
         <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">status</span>
         {STATUS_OPTIONS.map((s) => (
@@ -130,7 +130,7 @@ export default async function AdminEventsPage({
         ))}
         <button
           type="submit"
-          className="rounded-full bg-(--color-ink) px-4 py-1.5 text-xs font-semibold text-(--color-cream)"
+          className="rounded-full bg-(--color-ink) px-4 py-1.5 text-xs font-semibold text-(--color-mist)"
         >
           Apply
         </button>
@@ -157,7 +157,7 @@ export default async function AdminEventsPage({
         {(events as AdminEventRow[]).map((event) => (
           <div
             key={event.id}
-            className="rounded-2xl bg-(--color-cream) p-4 text-sm text-slate-900 shadow-[0_10px_30px_rgba(106,75,25,0.05)]"
+            className="rounded-2xl bg-(--color-mist) p-4 text-sm text-slate-900 shadow-[0_10px_30px_rgba(106,75,25,0.05)]"
           >
             <div className="grid gap-4 lg:grid-cols-[minmax(240px,3fr)_90px_105px_70px_120px_70px_80px_200px] lg:items-center">
               <DetailItem label="title" value={event.title} strong truncate />

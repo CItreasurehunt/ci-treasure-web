@@ -55,37 +55,41 @@
   --card-foreground: #1e0c30;
   --popover: #ffffff;
   --popover-foreground: #1e0c30;
-  --primary: #581c87;
-  --primary-foreground: #faf5ff;
-  --secondary: #f3e8ff;
-  --secondary-foreground: #581c87;
-  --muted: #f5f2fa;
+  /* Repointed to the real brand tokens below (were a disconnected, effectively-unused
+     shadcn default violet/lavender set — see I-123/design.md D-01) so any future
+     shadcn primitive rendered with its bare default variant is on-brand automatically,
+     instead of silently falling back to a dead palette. */
+  --primary: var(--color-pine);
+  --primary-foreground: var(--color-mist);
+  --secondary: var(--color-sand);
+  --secondary-foreground: var(--color-ink);
+  --muted: var(--color-sand);
   --muted-foreground: #6b5e78;
-  --accent: #e9d5ff;
-  --accent-foreground: #3b0764;
+  --accent: var(--color-sand);
+  --accent-foreground: var(--color-ink);
   --destructive: oklch(0.58 0.22 27);
   --border: #e5dbf0;
   --input: #e5dbf0;
-  --ring: #8b5cf6;
+  --ring: var(--color-pine);
   --chart-1: oklch(0.809 0.105 251.813);
   --chart-2: oklch(0.623 0.214 259.815);
   --chart-3: oklch(0.546 0.245 262.881);
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
   --radius: 0.625rem;
-  --sidebar: #faf8fd;
-  --sidebar-foreground: #1e0c30;
-  --sidebar-primary: #581c87;
-  --sidebar-primary-foreground: #faf5ff;
-  --sidebar-accent: #f3e8ff;
-  --sidebar-accent-foreground: #581c87;
-  --sidebar-border: #e5dbf0;
-  --sidebar-ring: #8b5cf6;
-  --color-cream: #faf8fd;
+  --sidebar: var(--color-mist);
+  --sidebar-foreground: var(--color-ink);
+  --sidebar-primary: var(--color-pine);
+  --sidebar-primary-foreground: var(--color-mist);
+  --sidebar-accent: var(--color-sand);
+  --sidebar-accent-foreground: var(--color-ink);
+  --sidebar-border: var(--color-sand-strong);
+  --sidebar-ring: var(--color-pine);
+  --color-mist: #faf8fd;
   --color-sand: #f3e8ff;
   --color-sand-strong: #e2d5f0;
   --color-ink: #1e0c30;
-  --color-pine: #7c3aed;
+  --color-pine: #6834b2;
 }
 
 /* Leaflet custom map pin markers */
@@ -107,7 +111,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: var(--pin-color, #7c3aed);
+  background-color: var(--pin-color, var(--color-pine));
   border: 2.5px solid white;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   position: relative;
@@ -118,7 +122,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background-color: var(--pin-color, #7c3aed);
+  background-color: var(--pin-color, var(--color-pine));
   opacity: 0;
   animation: pin-pulse 2.4s ease-out infinite;
   z-index: 1;

@@ -142,7 +142,7 @@ export default async function EventPage({ params }: EventPageProps) {
   };
 
   return (
-    <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -307,7 +307,7 @@ export default async function EventPage({ params }: EventPageProps) {
             </div>
 
             <aside className="space-y-6">
-              <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-5">
+              <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-mist) p-5">
                 <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                 <div className="mt-4 flex flex-col gap-3">
                   {event.linkItems.length ? (
@@ -345,7 +345,7 @@ export default async function EventPage({ params }: EventPageProps) {
                     {event.priceItems.map((item, index) => (
                       <div
                         key={`${item.currency}-${item.amount}-${index}`}
-                        className="rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) px-4 py-3"
+                        className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) px-4 py-3"
                       >
                         <p className="text-lg font-semibold text-slate-950">{formatPriceLabel(item)}</p>
                         {item.description ? (
@@ -382,7 +382,7 @@ function InfoCard({
   value: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-(--color-sand-strong) bg-(--color-cream) p-4">
+    <div className="rounded-[1.5rem] border border-(--color-sand-strong) bg-(--color-mist) p-4">
       <p className="flex items-center gap-2 text-sm font-medium text-slate-600">
         <span className="text-(--color-pine)">{icon}</span>
         {label}

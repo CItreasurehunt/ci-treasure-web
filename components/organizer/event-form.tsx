@@ -280,7 +280,7 @@ export function OrganizerEventForm({
             type="button"
             disabled={isSaving}
             onClick={save}
-            className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream) disabled:opacity-60"
+            className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist) disabled:opacity-60"
           >
             {isSaving ? "Saving…" : mode === "create" ? "Submit event" : "Save changes"}
           </button>
@@ -335,7 +335,7 @@ function ArraySection<T>({
       <div className="mt-4 space-y-3">
         {items.length ? (
           items.map((item, index) => (
-            <div key={index} className="rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) p-4">
+            <div key={index} className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) p-4">
               {render(item, index)}
               <button type="button" onClick={() => onRemove(index)} className="mt-3 text-sm font-semibold text-rose-700">
                 Delete row

@@ -146,7 +146,7 @@ export function slugify(value: string) {
 // own (venues, profiles). Derived from the brand tokens (--color-ink -> --color-pine ->
 // --color-sand) rather than an unrelated palette — see I-123/design.md D-02 for the trial
 // and decision history.
-export const GENERIC_ACCENT_GRADIENT = "bg-[linear-gradient(135deg,#1e0c30_0%,#522598_50%,#f3e8ff_100%)]";
+export const GENERIC_ACCENT_GRADIENT = "bg-[linear-gradient(135deg,#1e0c30_0%,#472278_50%,#f3e8ff_100%)]";
 
 function mapAccent(type: string) {
   const palette: Record<string, string> = {

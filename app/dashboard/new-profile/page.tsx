@@ -156,7 +156,7 @@ export default async function NewProfilePage({
             </fieldset>
             <button
               type="submit"
-              className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)"
+              className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist)"
             >
               Create profile
             </button>

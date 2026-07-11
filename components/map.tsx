@@ -59,7 +59,7 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, on
 
   // Helper to build custom HTML markers matching violet theme
   const createCustomMarker = (_event: EventListItem, isSoon: boolean) => {
-    const color = isSoon ? "#ec4899" : "#7c3aed";
+    const color = isSoon ? "#ec4899" : "#6834b2";
     return L.divIcon({
       className: "",
       html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>`,

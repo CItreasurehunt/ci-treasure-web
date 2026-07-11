@@ -51,7 +51,7 @@ export function ClaimSearch() {
         <button
           type="submit"
           disabled={isSearching || query.trim().length < 2}
-          className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream) disabled:opacity-50"
+          className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist) disabled:opacity-50"
         >
           {isSearching ? "Searching…" : "Search"}
         </button>
@@ -78,7 +78,7 @@ export function ClaimSearch() {
                     type="button"
                     onClick={() => claim(profile.id)}
                     disabled={claimingId !== null}
-                    className="shrink-0 rounded-full border border-(--color-pine) px-4 py-2 text-sm font-semibold text-(--color-pine) hover:bg-(--color-pine) hover:text-(--color-cream) disabled:opacity-50"
+                    className="shrink-0 rounded-full border border-(--color-pine) px-4 py-2 text-sm font-semibold text-(--color-pine) hover:bg-(--color-pine) hover:text-(--color-mist) disabled:opacity-50"
                   >
                     {claimingId === profile.id ? "Submitting…" : "This is me"}
                   </button>

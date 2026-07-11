@@ -93,7 +93,7 @@ export default async function EditEventPage({
             </p>
             <ul className="mt-4 space-y-2">
               {segments.map((segment, i) => (
-                <li key={i} className="rounded-2xl border border-(--color-sand-strong) bg-(--color-cream) p-3 text-sm">
+                <li key={i} className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) p-3 text-sm">
                   <p className="font-semibold text-slate-900">{segment.title ?? `Segment ${i + 1}`}</p>
                   {segment.teachers?.length ? (
                     <p className="mt-1 text-slate-600">

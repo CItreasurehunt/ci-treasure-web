@@ -16,7 +16,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="border-b border-(--color-sand-strong) bg-(--color-cream)/90 backdrop-blur">
+    <header className="border-b border-(--color-sand-strong) bg-(--color-mist)/90 backdrop-blur">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8 lg:px-10">
         <Link
           href="/"
@@ -66,7 +66,7 @@ export function SiteHeader() {
 
       {/* Mobile dropdown */}
       {open && (
-        <nav className="sm:hidden border-t border-(--color-sand-strong) bg-(--color-cream) px-5 py-4 flex flex-col gap-4 text-base font-medium text-slate-700 items-end">
+        <nav className="sm:hidden border-t border-(--color-sand-strong) bg-(--color-mist) px-5 py-4 flex flex-col gap-4 text-base font-medium text-slate-700 items-end">
           {NAV_LINKS.map((link) =>
             link.external ? (
               <a

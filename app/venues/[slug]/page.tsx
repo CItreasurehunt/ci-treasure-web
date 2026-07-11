@@ -81,7 +81,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
   if (venue.email) venueLinks.push({ type: "email", href: `mailto:${venue.email}`, label: "Email", icon: <Mail className="h-4 w-4" /> });
 
   return (
-    <main className="min-h-screen bg-(--color-cream) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="flex flex-wrap items-center gap-3">
           <BackButton />
@@ -191,7 +191,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
             </div>
 
             <aside className="space-y-6">
-              <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-cream) p-6">
+              <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-mist) p-6">
                 <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                 <div className="mt-5 flex flex-col gap-3">
                   {venueLinks.length > 0

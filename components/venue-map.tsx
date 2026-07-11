@@ -41,7 +41,7 @@ export default function VenueMap({ lat, lng, name }: VenueMapProps) {
 
       const icon = L.divIcon({
         className: "",
-        html: `<div style="width:16px;height:16px;border-radius:50%;background:#7c3aed;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>`,
+        html: `<div style="width:16px;height:16px;border-radius:50%;background:#6834b2;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>`,
         iconSize: [16, 16],
         iconAnchor: [8, 8],
       });

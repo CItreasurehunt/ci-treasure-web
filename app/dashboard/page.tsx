@@ -176,7 +176,7 @@ export default async function DashboardPage() {
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/dashboard/claim"
-                className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)"
+                className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist)"
               >
                 Claim your profile
               </Link>
@@ -198,7 +198,7 @@ export default async function DashboardPage() {
                   )}
                   <Link
                     href="/events/new"
-                    className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-cream)"
+                    className="rounded-full bg-(--color-ink) px-5 py-3 text-sm font-semibold text-(--color-mist)"
                   >
                     Submit a new event
                   </Link>
