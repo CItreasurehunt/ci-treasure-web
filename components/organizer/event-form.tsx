@@ -61,6 +61,7 @@ export function OrganizerEventForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [isSaving, startSaving] = useTransition();
 
   function set<K extends keyof OrganizerEventFormData>(key: K, value: OrganizerEventFormData[K]) {
@@ -79,6 +80,7 @@ export function OrganizerEventForm({
   function save() {
     setError(null);
     setSuccess(null);
+    setWarning(null);
     startSaving(async () => {
       const result =
         mode === "create" ? await createEvent(form) : await updateEvent(eventId!, form);
@@ -86,13 +88,17 @@ export function OrganizerEventForm({
         setError(result.error ?? "Could not save.");
         return;
       }
-      if (mode === "create") {
+      // A rehost warning means the event image didn't come through — stay on the page so
+      // it's actually seen instead of redirecting straight past it (create mode otherwise
+      // jumps to /dashboard immediately).
+      if (mode === "create" && !result.warning) {
         router.push("/dashboard");
         router.refresh();
-      } else {
-        setSuccess("Saved.");
-        router.refresh();
+        return;
       }
+      setSuccess(mode === "create" ? "Event submitted." : "Saved.");
+      if (result.warning) setWarning(result.warning);
+      router.refresh();
     });
   }
 
@@ -275,6 +281,7 @@ export function OrganizerEventForm({
       <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
         {error ? <p className="text-sm text-rose-700">{error}</p> : null}
         {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
+        {warning ? <p className="text-sm text-amber-700">{warning}</p> : null}
         <div className="mt-2 flex flex-wrap gap-3">
           <button
             type="button"
