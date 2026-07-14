@@ -99,12 +99,13 @@ Deno.serve(async (req) => {
   const url   = `https://citreasurehunt.com/events/${event.short_id}`
 
   // Non-CI events still announce (decided 2026-07-04: mark, don't skip) — a lowercase
-  // bracketed tag naming the adjacent discipline(s), so a CI-only reader can decide to
-  // skip at a glance. Pure-CI events (the overwhelming majority) get no tag at all.
-  const nonCiDisciplines: string[] = (event.discipline ?? []).filter(
-    (d: string) => d !== 'contact_improvisation'
-  )
-  const disciplineTag = nonCiDisciplines.length ? `[${nonCiDisciplines.join(', ')}] ` : ''
+  // bracketed tag naming the discipline(s), so a CI-only reader can decide to skip at a
+  // glance. Any event that includes Contact Improvisation gets no tag, even if it also
+  // lists other disciplines (2026-07-14: an event tagged CI + something else was wrongly
+  // getting a tag before).
+  const disciplines: string[] = event.discipline ?? []
+  const isCi = disciplines.includes('contact_improvisation')
+  const disciplineTag = !isCi && disciplines.length ? `[${disciplines.join(', ')}] ` : ''
 
   const text  = `New: ${disciplineTag}${toFlag(event.country)} ${formatDates(event.start_date, event.end_date)} — [${title}](${url}), ${location}`
 
