@@ -1,4 +1,3 @@
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type SupabaseEventRow = {
@@ -542,8 +541,11 @@ export function disciplineLabel(value: string): string {
 // is always included even if (hypothetically) no event had it, since it's the default.
 export async function getKnownDisciplines(): Promise<string[]> {
   try {
-    const admin = createAdminClient();
-    const { data } = await admin.from("events").select("discipline").not("discipline", "is", null);
+    // Regular client, not admin: discipline tags aren't sensitive, only event visibility needs
+    // gating, and events_select_public RLS already restricts this to public
+    // (hide=false, status published/archived) rows — same condition, no bypass needed.
+    const supabase = await createClient();
+    const { data } = await supabase.from("events").select("discipline").not("discipline", "is", null);
     const all = new Set<string>(["contact_improvisation"]);
     for (const row of data ?? []) {
       for (const d of (row.discipline as string[] | null) ?? []) all.add(d);
