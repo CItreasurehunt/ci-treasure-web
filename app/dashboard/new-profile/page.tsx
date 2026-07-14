@@ -49,6 +49,7 @@ async function createProfile(formData: FormData) {
   const website = String(formData.get("website") ?? "").trim();
   const isOrganizer = formData.get("is_organizer") === "on";
   const isTeacher = formData.get("is_teacher") === "on";
+  const isMusician = formData.get("is_musician") === "on";
 
   if (!name) {
     redirect(`/dashboard/new-profile?error=${encodeURIComponent("Name is required.")}`);
@@ -68,6 +69,7 @@ async function createProfile(formData: FormData) {
     source: "self_submitted",
     is_organizer: isOrganizer,
     is_teacher: isTeacher,
+    is_musician: isMusician,
     is_trusted: false,
   });
 
@@ -128,7 +130,7 @@ export default async function NewProfilePage({
                 type="text"
                 required
                 className="w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-(--color-pine)"
-                placeholder="Your name or organizer name"
+                placeholder="Your name"
               />
             </div>
             <div className="space-y-2">
@@ -153,6 +155,10 @@ export default async function NewProfilePage({
                 <input type="checkbox" name="is_teacher" className="h-4 w-4" />
                 Teacher
               </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input type="checkbox" name="is_musician" className="h-4 w-4" />
+                Musician
+              </label>
             </fieldset>
             <button
               type="submit"
@@ -160,6 +166,10 @@ export default async function NewProfilePage({
             >
               Create profile
             </button>
+            <p className="text-sm text-slate-500">
+              This is just the basics — you can add a bio, photo, city, and social links once your
+              profile is created.
+            </p>
           </form>
         </div>
       </div>

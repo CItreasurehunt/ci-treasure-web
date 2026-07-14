@@ -23,6 +23,17 @@ export default async function ProfileEditPage() {
     redirect("/dashboard");
   }
 
+  // Roles backed by real event links are locked on (can't be unchecked here) so the checkbox
+  // never contradicts the junction-table data — see event_organizers/event_teachers below.
+  const [{ data: organizerLinks }, { data: teacherLinks }] = await Promise.all([
+    supabase.from("event_organizers").select("id").eq("organizer_id", profile.id).limit(1),
+    supabase.from("event_teachers").select("role").eq("teacher_id", profile.id),
+  ]);
+
+  const lockedOrganizer = Boolean(organizerLinks?.length);
+  const lockedMusician = Boolean(teacherLinks?.some((t) => t.role === "musician"));
+  const lockedTeacher = Boolean(teacherLinks?.some((t) => t.role !== "musician"));
+
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-3xl">
@@ -37,7 +48,12 @@ export default async function ProfileEditPage() {
           </p>
         </div>
         <div className="mt-8">
-          <ProfileEditForm profile={profile} />
+          <ProfileEditForm
+            profile={profile}
+            lockedRoles={{ organizer: lockedOrganizer, teacher: lockedTeacher, musician: lockedMusician }}
+            isDeactivated={profile.visibility === "deactivated"}
+            deletionRequested={Boolean(profile.deletion_requested_at)}
+          />
         </div>
       </div>
     </main>

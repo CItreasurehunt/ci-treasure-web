@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateProfile, type ProfileUpdateData } from "./actions";
+import { updateProfile, setProfileDeactivated, requestProfileDeletion, type ProfileUpdateData } from "./actions";
 import { uploadProfilePhoto } from "./photo-actions";
 import { CONTINENT_COUNTRIES } from "@/lib/continents";
 import { getCountryLabel } from "@/lib/events";
@@ -29,9 +29,28 @@ type ProfileRow = {
   image_url: string | null;
   image_credit: string | null;
   image_status: string;
+  is_organizer: boolean;
+  is_teacher: boolean;
+  is_musician: boolean;
 };
 
-export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
+type LockedRoles = {
+  organizer: boolean;
+  teacher: boolean;
+  musician: boolean;
+};
+
+export function ProfileEditForm({
+  profile,
+  lockedRoles,
+  isDeactivated,
+  deletionRequested,
+}: {
+  profile: ProfileRow;
+  lockedRoles: LockedRoles;
+  isDeactivated: boolean;
+  deletionRequested: boolean;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +68,9 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
     telegram: profile.telegram || "",
     newsletter: profile.newsletter || "",
     public_email: profile.public_email || "",
+    is_organizer: profile.is_organizer || lockedRoles.organizer,
+    is_teacher: profile.is_teacher || lockedRoles.teacher,
+    is_musician: profile.is_musician || lockedRoles.musician,
   });
 
   const allCountries = Object.values(CONTINENT_COUNTRIES).flat().sort((a, b) =>
@@ -72,6 +94,44 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
       city: checked ? "" : prev.city,
       country: checked ? "" : prev.country,
     }));
+    setSuccess(false);
+    setError(null);
+  }
+
+  const [dangerPending, startDangerTransition] = useTransition();
+  const [dangerError, setDangerError] = useState<string | null>(null);
+  const [deactivated, setDeactivated] = useState(isDeactivated);
+  const [deletionRequestedState, setDeletionRequestedState] = useState(deletionRequested);
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
+
+  function handleToggleDeactivate() {
+    setDangerError(null);
+    startDangerTransition(async () => {
+      const result = await setProfileDeactivated(!deactivated);
+      if (result.success) {
+        setDeactivated(!deactivated);
+        router.refresh();
+      } else {
+        setDangerError(result.error || "Failed to update");
+      }
+    });
+  }
+
+  function handleRequestDeletion() {
+    setDangerError(null);
+    startDangerTransition(async () => {
+      const result = await requestProfileDeletion();
+      if (result.success) {
+        setDeletionRequestedState(true);
+        setConfirmingDeletion(false);
+      } else {
+        setDangerError(result.error || "Failed to submit request");
+      }
+    });
+  }
+
+  function handleRoleToggle(role: "is_organizer" | "is_teacher" | "is_musician") {
+    setForm(prev => ({ ...prev, [role]: !prev[role] }));
     setSuccess(false);
     setError(null);
   }
@@ -169,6 +229,36 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
               </span>
             </span>
           </label>
+        </div>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Roles</h3>
+        <div className="mt-4 space-y-2">
+          <RoleCheckbox
+            label="Organizer"
+            checked={form.is_organizer}
+            locked={lockedRoles.organizer}
+            onToggle={() => handleRoleToggle("is_organizer")}
+          />
+          <RoleCheckbox
+            label="Teacher"
+            checked={form.is_teacher}
+            locked={lockedRoles.teacher}
+            onToggle={() => handleRoleToggle("is_teacher")}
+          />
+          <RoleCheckbox
+            label="Musician"
+            checked={form.is_musician}
+            locked={lockedRoles.musician}
+            onToggle={() => handleRoleToggle("is_musician")}
+          />
+          {(lockedRoles.organizer || lockedRoles.teacher || lockedRoles.musician) && (
+            <p className="text-xs text-slate-500">
+              Roles you&apos;re already linked to on an event are on automatically and can&apos;t
+              be unchecked here.
+            </p>
+          )}
         </div>
       </section>
 
@@ -275,6 +365,81 @@ export function ProfileEditForm({ profile }: { profile: ProfileRow }) {
         </div>
       </div>
       </form>
+
+      <section className="rounded-[1.75rem] border border-rose-200 bg-rose-50/50 p-6">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-rose-700">Danger zone</h3>
+        <div className="mt-4 space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-800">
+                {deactivated ? "Your profile is deactivated" : "Deactivate your profile"}
+              </p>
+              <p className="text-xs text-slate-600">
+                {deactivated
+                  ? "It's hidden from public view. You can reactivate it anytime — nothing was deleted."
+                  : "Hides your public profile page. Reversible anytime, and your event links are kept."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleToggleDeactivate}
+              disabled={dangerPending}
+              className="shrink-0 rounded-full border border-rose-300 bg-white px-5 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50"
+            >
+              {deactivated ? "Reactivate profile" : "Deactivate profile"}
+            </button>
+          </div>
+
+          <div className="border-t border-rose-200 pt-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-800">Delete your profile permanently</p>
+                <p className="text-xs text-slate-600">
+                  {deletionRequestedState
+                    ? "Request received. It's reviewed by hand, so it may take a little time."
+                    : "This can't be undone by you. We review each request by hand before deleting anything."}
+                </p>
+              </div>
+              {!deletionRequestedState && (
+                confirmingDeletion ? (
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={handleRequestDeletion}
+                      disabled={dangerPending}
+                      className="rounded-full bg-rose-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-rose-800 disabled:opacity-50"
+                    >
+                      Confirm request
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingDeletion(false)}
+                      className="rounded-full border border-(--color-sand-strong) px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingDeletion(true)}
+                    disabled={dangerPending}
+                    className="shrink-0 rounded-full border border-rose-300 bg-white px-5 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50"
+                  >
+                    Request permanent deletion
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+
+          {dangerError && (
+            <p className="text-sm font-medium text-rose-700 bg-rose-100 p-3 rounded-2xl border border-rose-200">
+              {dangerError}
+            </p>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
@@ -402,6 +567,34 @@ function PhotoUploadSection({
         </div>
       </div>
     </section>
+  );
+}
+
+function RoleCheckbox({
+  label,
+  checked,
+  locked,
+  onToggle,
+}: {
+  label: string;
+  checked: boolean;
+  locked: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <label
+      className={`flex items-center gap-2 text-sm ${locked ? "text-slate-400" : "text-slate-700"}`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={locked}
+        onChange={onToggle}
+        className="h-4 w-4"
+      />
+      {label}
+      {locked && <span className="text-xs">(linked to an event)</span>}
+    </label>
   );
 }
 

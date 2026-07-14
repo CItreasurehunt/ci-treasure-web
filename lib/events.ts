@@ -50,6 +50,7 @@ type SupabaseProfileJoin = {
   profiles?: {
     name?: string | null;
     slug?: string | null;
+    visibility?: string | null;
   } | null;
 };
 
@@ -309,7 +310,11 @@ function normalizePeople(rows: SupabaseProfileJoin[] | null | undefined) {
     return {
       name,
       role: row.role ?? null,
-      slug: row.profiles?.slug ?? null,
+      // Name stays visible either way (it's the event's own historical record — who
+      // actually taught/organized it), but only link to a profile page that actually
+      // exists publicly. Shadow (never claimed) and deactivated (self-hidden) profiles
+      // show as plain text, same treatment for both.
+      slug: row.profiles?.visibility === "public" ? row.profiles?.slug ?? null : null,
     };
   });
 
@@ -416,9 +421,15 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     }
   }
 
+  // Admin client for the people join: profiles RLS (unlike venues') restricts whole rows to
+  // 'public' visibility, which would silently drop the *name* too for a shadow/deactivated
+  // profile, not just the link. The event's teacher/organizer credit is the event's own
+  // historical record, so the name should still show — normalizePeople below is what decides
+  // whether it's also a clickable link, same gating pattern as venueSlug just below.
+  const admin = createAdminClient();
   const [teacherResponse, organizerResponse, venueResponse] = await Promise.all([
-    supabase.from("event_teachers").select("role, profiles(name, slug)").eq("event_id", eventRow.id),
-    supabase.from("event_organizers").select("role, profiles(name, slug)").eq("event_id", eventRow.id),
+    admin.from("event_teachers").select("role, profiles(name, slug, visibility)").eq("event_id", eventRow.id),
+    admin.from("event_organizers").select("role, profiles(name, slug, visibility)").eq("event_id", eventRow.id),
     eventRow.venue_id
       ? supabase.from("venues").select("name, address, slug, visibility").eq("id", eventRow.venue_id).single()
       : Promise.resolve({ data: null, error: null }),
