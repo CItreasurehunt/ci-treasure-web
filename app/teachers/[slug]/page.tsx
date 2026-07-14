@@ -120,19 +120,17 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
               <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 {teacher.name}
               </h1>
-              {(teacher.city || teacher.country) && (
-                <p className="flex items-center gap-2 text-white/90">
-                  <MapPin className="h-4 w-4 shrink-0 text-white/70" />
-                  {teacher.country ? (
-                    <span className="leading-none" title={getCountryLabel(teacher.country)}>
-                      {getCountryFlag(teacher.country)}
-                    </span>
-                  ) : null}
-                  <span>
-                    {teacher.city}{teacher.city && teacher.country ? ", " : ""}{teacher.country ? getCountryLabel(teacher.country) : ""}
+              <p className={`flex items-center gap-2 text-white/90 ${teacher.city || teacher.country ? "" : "invisible"}`}>
+                <MapPin className="h-4 w-4 shrink-0 text-white/70" />
+                {teacher.country ? (
+                  <span className="leading-none" title={getCountryLabel(teacher.country)}>
+                    {getCountryFlag(teacher.country)}
                   </span>
-                </p>
-              )}
+                ) : null}
+                <span>
+                  {teacher.city}{teacher.city && teacher.country ? ", " : ""}{teacher.country ? getCountryLabel(teacher.country) : ""}
+                </span>
+              </p>
             </div>
           </div>
 

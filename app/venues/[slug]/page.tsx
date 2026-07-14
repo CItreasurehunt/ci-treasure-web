@@ -100,12 +100,10 @@ export default async function VenuePage({ params }: VenuePageProps) {
               <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 {venue.name}
               </h1>
-              {venue.address && (
-                <p className="flex items-start gap-2 text-white/90">
-                  <MapPin className="mt-1 h-4 w-4 shrink-0 text-white/70" />
-                  <span>{venue.address}</span>
-                </p>
-              )}
+              <p className={`flex items-start gap-2 text-white/90 ${venue.address ? "" : "invisible"}`}>
+                <MapPin className="mt-1 h-4 w-4 shrink-0 text-white/70" />
+                <span>{venue.address}</span>
+              </p>
             </div>
           </div>
 
