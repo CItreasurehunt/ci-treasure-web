@@ -145,15 +145,20 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
   // Discipline chip options — derived from whatever disciplines exist in the loaded
   // events (same pattern as country/type/month above), so a brand-new discipline tag
-  // shows up as a new chip automatically with zero code changes. contact_improvisation
-  // is always pinned first since it's the default.
+  // shows up as a new chip automatically once it clears the visibility threshold, with
+  // zero code changes. contact_improvisation is always pinned first since it's the
+  // default. Practices with too few events (< MIN_DISCIPLINE_COUNT) are dropped from the
+  // chip row — a filter with 1-3 results isn't a useful browsing entry point — but stay
+  // fully tagged/searchable via "All disciplines"; they reappear automatically once they
+  // cross the threshold. Decided 2026-07-14.
+  const MIN_DISCIPLINE_COUNT = 4;
   const disciplineOptions = useMemo(() => {
-    const all = new Set<string>();
-    events.forEach((e) => e.discipline.forEach((d) => all.add(d)));
-    const rest = Array.from(all)
-      .filter((d) => d !== "contact_improvisation")
+    const counts: Record<string, number> = {};
+    events.forEach((e) => e.discipline.forEach((d) => { counts[d] = (counts[d] ?? 0) + 1; }));
+    const rest = Object.keys(counts)
+      .filter((d) => d !== "contact_improvisation" && counts[d] >= MIN_DISCIPLINE_COUNT)
       .sort((a, b) => disciplineLabel(a).localeCompare(disciplineLabel(b)));
-    return all.has("contact_improvisation") ? ["contact_improvisation", ...rest] : rest;
+    return "contact_improvisation" in counts ? ["contact_improvisation", ...rest] : rest;
   }, [events]);
 
   // Extract unique months from events for the month filter
