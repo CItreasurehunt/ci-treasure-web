@@ -38,8 +38,10 @@ export default function TermsPage() {
         <section>
           <h2 className="font-semibold text-slate-950">5. Acceptable use</h2>
           <p>
-            You may not use this site to scrape or bulk-download data for commercial purposes, submit false or
-            misleading information, or attempt to disrupt the service.
+            You may not scrape, crawl, or bulk-download data from this site or its underlying systems, by automated
+            means or otherwise, for any purpose — including to build, populate, or train a competing directory,
+            dataset, or AI system. You may not submit false or misleading information, or attempt to disrupt the
+            service. Individual listings may of course be shared, linked to, or referenced normally.
           </p>
         </section>
         <section>
