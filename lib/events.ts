@@ -45,13 +45,13 @@ export type SeriesSibling = {
   seriesOrder: number | null;
 };
 
-type SupabaseProfileJoin = {
+// Shape returned by the get_event_credited_people RPC (lib/events.ts's getEventBySlug) —
+// already flat, unlike a nested Supabase join.
+type SupabaseProfileJoinFlat = {
   role?: string | null;
-  profiles?: {
-    name?: string | null;
-    slug?: string | null;
-    visibility?: string | null;
-  } | null;
+  name?: string | null;
+  slug?: string | null;
+  visibility?: string | null;
 };
 
 export type LinkItem = {
@@ -299,11 +299,11 @@ function normalizeSegments(payload: unknown): SegmentsData | null {
   return { items };
 }
 
-function normalizePeople(rows: SupabaseProfileJoin[] | null | undefined) {
+function normalizePeopleFlat(rows: SupabaseProfileJoinFlat[] | null | undefined) {
   const items: Array<{ name: string; role: string | null; slug: string | null } | null> = (
     rows ?? []
   ).map((row) => {
-    const name = row.profiles?.name?.trim();
+    const name = row.name?.trim();
     if (!name) {
       return null;
     }
@@ -314,7 +314,7 @@ function normalizePeople(rows: SupabaseProfileJoin[] | null | undefined) {
       // actually taught/organized it), but only link to a profile page that actually
       // exists publicly. Shadow (never claimed) and deactivated (self-hidden) profiles
       // show as plain text, same treatment for both.
-      slug: row.profiles?.visibility === "public" ? row.profiles?.slug ?? null : null,
+      slug: row.visibility === "public" ? row.slug ?? null : null,
     };
   });
 
@@ -421,15 +421,15 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     }
   }
 
-  // Admin client for the people join: profiles RLS (unlike venues') restricts whole rows to
-  // 'public' visibility, which would silently drop the *name* too for a shadow/deactivated
-  // profile, not just the link. The event's teacher/organizer credit is the event's own
-  // historical record, so the name should still show — normalizePeople below is what decides
-  // whether it's also a clickable link, same gating pattern as venueSlug just below.
-  const admin = createAdminClient();
-  const [teacherResponse, organizerResponse, venueResponse] = await Promise.all([
-    admin.from("event_teachers").select("role, profiles(name, slug, visibility)").eq("event_id", eventRow.id),
-    admin.from("event_organizers").select("role, profiles(name, slug, visibility)").eq("event_id", eventRow.id),
+  // The event's teacher/organizer credit is public historical record (who actually
+  // taught/organized it), so the name should still show even for a shadow/deactivated profile
+  // — normalizePeople below is what decides whether it's also a clickable link, same gating
+  // pattern as venueSlug just below. get_event_credited_people is a SECURITY DEFINER RPC scoped
+  // to exactly (kind, role, name, slug, visibility) for credits on publicly-visible events —
+  // deliberately not a blanket admin-client/RLS bypass, which would leak the full profile row
+  // (bio, city, country, socials...) for a profile that chose to deactivate itself.
+  const [creditedPeopleResponse, venueResponse] = await Promise.all([
+    supabase.rpc("get_event_credited_people", { p_event_id: eventRow.id }),
     eventRow.venue_id
       ? supabase.from("venues").select("name, address, slug, visibility").eq("id", eventRow.venue_id).single()
       : Promise.resolve({ data: null, error: null }),
@@ -437,6 +437,9 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
 
   const linkItems = normalizeLinkItems(eventRow.links);
   const venueData = venueResponse.data as { name?: string; address?: string; slug?: string; visibility?: string } | null;
+  const creditedPeople = (creditedPeopleResponse.data ?? []) as Array<
+    SupabaseProfileJoinFlat & { kind: "teacher" | "organizer" }
+  >;
 
   return {
     ...base,
@@ -447,8 +450,8 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     linkItems,
     priceItems: normalizePriceItems(eventRow.price),
     segments: normalizeSegments(eventRow.segments),
-    teachers: normalizePeople(teacherResponse.data as SupabaseProfileJoin[] | undefined),
-    organizers: normalizePeople(organizerResponse.data as SupabaseProfileJoin[] | undefined),
+    teachers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "teacher")),
+    organizers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "organizer")),
     venueName: venueData?.name ?? eventRow.address?.venue_name ?? null,
     venueAddress: venueData?.address ?? null,
     venueSlug: venueData?.visibility === "public" ? (venueData.slug ?? null) : null,
