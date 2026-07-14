@@ -1,22 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, MapPin } from "lucide-react";
 
 import { formatEventDateRange, getCountryLabel, getEventHref, getTypeLabel, type EventListItem } from "@/lib/events";
 
-function canUseNextImage(src: string) {
-  try {
-    const url = new URL(src);
-    return url.hostname === "ormttcjjsumbmvyennfx.supabase.co";
-  } catch {
-    return false;
-  }
-}
-
 export function EventCard({ event, compact = false }: { event: EventListItem; compact?: boolean }) {
   const imageUrl = event.imageUrl?.trim() ?? "";
   const renderImage = imageUrl.length > 0;
-  const useNextImage = renderImage && canUseNextImage(imageUrl);
 
   if (compact) {
     return (
@@ -27,11 +16,8 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
         <article className="flex items-start gap-3 p-3">
           <div className={`h-12 w-12 shrink-0 rounded-md border border-(--color-sand-strong) overflow-hidden ${!renderImage ? event.accentClass : ""}`}>
             {renderImage && (
-              useNextImage ? (
-                <Image src={imageUrl} alt={event.title} width={48} height={48} className="h-full w-full object-cover" />
-              ) : (
-                <img src={imageUrl} alt={event.title} className="h-full w-full object-cover" />
-              )
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imageUrl} alt={event.title} className="h-full w-full object-cover" />
             )}
           </div>
           <div className="min-w-0 flex-1 space-y-0.5">
@@ -62,17 +48,8 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
       <article>
         {renderImage ? (
           <div className="relative h-44 border-b border-(--color-sand-strong)">
-            {useNextImage ? (
-              <Image
-                src={imageUrl}
-                alt={event.title}
-                fill
-                className="object-cover"
-                sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-              />
-            ) : (
-              <img src={imageUrl} alt={event.title} className="h-full w-full object-cover" />
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imageUrl} alt={event.title} className="h-full w-full object-cover" />
           </div>
         ) : (
           <div className={`h-44 border-b border-(--color-sand-strong) ${event.accentClass}`} />
