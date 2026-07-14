@@ -67,9 +67,6 @@ export default function RootLayout({
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2 text-center">
-                <a href="mailto:hello@citreasurehunt.com" className="text-slate-500 transition hover:text-slate-800">
-                  hello@citreasurehunt.com
-                </a>
                 <a
                   href="https://buymeacoffee.com/citreasurehunt"
                   target="_blank"
@@ -79,6 +76,15 @@ export default function RootLayout({
                   <Coffee className="size-3.5" />
                   Support my work ❤️
                 </a>
+                <p className="text-slate-500">
+                  <a href="mailto:hello@citreasurehunt.com" className="transition hover:text-slate-800">
+                    hello@citreasurehunt.com
+                  </a>
+                  {" · "}
+                  <Link href="/feedback" className="transition hover:text-slate-800">
+                    Feedback
+                  </Link>
+                </p>
               </div>
               <div className="flex items-center gap-3 lg:justify-end">
                 <a

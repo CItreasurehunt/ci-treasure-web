@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { mapEventRow, SupabaseEventRow, LinkItem } from "./events";
+import { mapEventRow, SupabaseEventRow, LinkItem, getLinkLabel, linkSortKey } from "./events";
 
 function normalizeAddress(raw: unknown): string | null {
   if (!raw) return null;
@@ -114,6 +114,130 @@ export async function getVenueEvents(venueId: string) {
     upcoming: ((upcoming ?? []) as SupabaseEventRow[]).map(mapEventRow),
     past: ((past ?? []) as SupabaseEventRow[]).map(mapEventRow),
   };
+}
+
+export type VenueLinkItem = { type: string; url: string; label: string };
+
+export type VenueListItem = {
+  id: string;
+  name: string;
+  slug: string;
+  city: string;
+  country: string; // display label, e.g. "Germany"
+  countryIso: string;
+  description: string | null;
+  website: string | null;
+  imageUrl: string | null;
+  // Community-channel-style links (telegram, whatsapp, signal, facebook group, etc.) —
+  // "website" is excluded here since it's already broken out above.
+  channelLinks: VenueLinkItem[];
+};
+
+export type VenuesResponse = {
+  venues: VenueListItem[];
+  countries: Array<{ value: string; label: string }>;
+  venueCount: number;
+  countryCount: number;
+  error: string | null;
+};
+
+const venueCountryNames = new Intl.DisplayNames(["en"], { type: "region" });
+
+function venueCountryLabel(iso: string): string {
+  try {
+    return venueCountryNames.of(iso) ?? iso;
+  } catch {
+    return iso;
+  }
+}
+
+function ensureHttps(url: string): string {
+  return url.startsWith("http") ? url : `https://${url}`;
+}
+
+type VenueListRow = {
+  id: string;
+  name: string;
+  slug: string;
+  city: string;
+  country: string;
+  description: string | null;
+  website: string | null;
+  image_url: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  youtube: string | null;
+  links: { items: LinkItem[] } | null;
+};
+
+function toVenueListItem(row: VenueListRow): VenueListItem {
+  const rawItems = (row.links?.items ?? []).filter((item) => item.type !== "website");
+  // instagram/facebook/youtube live in their own columns, not the links jsonb — fold them
+  // into the same channel-link list so the card only needs one loop.
+  if (row.instagram) rawItems.push({ type: "instagram", url: row.instagram });
+  if (row.facebook) rawItems.push({ type: "facebook", url: row.facebook });
+  if (row.youtube) rawItems.push({ type: "youtube", url: row.youtube });
+
+  const channelLinks = rawItems
+    .map((item) => ({
+      type: item.type,
+      url: ensureHttps(item.url),
+      label: getLinkLabel(item.type, item.label),
+    }))
+    .sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
+
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    city: row.city,
+    country: venueCountryLabel(row.country),
+    countryIso: row.country,
+    description: row.description,
+    website: row.website ? ensureHttps(row.website) : null,
+    imageUrl: row.image_url,
+    channelLinks,
+  };
+}
+
+export async function getVenues(): Promise<VenuesResponse> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("venues")
+      .select("id,name,slug,city,country,description,website,image_url,instagram,facebook,youtube,links")
+      .eq("visibility", "public")
+      .eq("show_in_list", true)
+      .order("country")
+      .order("name");
+
+    if (error) throw new Error(error.message);
+
+    const venues = (data as unknown as VenueListRow[]).map(toVenueListItem);
+
+    const isoToLabel = new Map<string, string>();
+    for (const v of venues) isoToLabel.set(v.countryIso, v.country);
+    const countries = Array.from(isoToLabel.entries())
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .map(([value, label]) => ({ value, label }));
+
+    return {
+      venues,
+      countries,
+      venueCount: venues.length,
+      countryCount: countries.length,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      venues: [],
+      countries: [],
+      venueCount: 0,
+      countryCount: 0,
+      error:
+        error instanceof Error ? error.message : "Failed to load venues. Please try again later.",
+    };
+  }
 }
 
 export async function getAllVenueSlugs(): Promise<string[]> {

@@ -8,9 +8,19 @@ import { Menu, X } from "lucide-react";
 const NAV_LINKS = [
   { label: "Events", href: "/", external: false },
   { label: "Communities", href: "/communities", external: false },
-  { label: "Feedback", href: "/feedback", external: false },
+  { label: "Venues", href: "/venues", external: false, isNew: true },
   { label: "Newsletter", href: "/newsletter", external: false },
 ];
+
+// Small "New" pill for recently-added nav items — remove the isNew flag above once it's
+// been live long enough that regulars have noticed (a few weeks is plenty).
+function NewBadge() {
+  return (
+    <span className="rounded-full bg-amber-100 px-1.5 py-0.5 font-sans text-[9px] font-bold tracking-widest text-amber-700 uppercase">
+      New
+    </span>
+  );
+}
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -38,17 +48,19 @@ export function SiteHeader() {
                 href={link.href}
                 target="_blank"
                 rel="noreferrer"
-                className="transition hover:text-(--color-pine)"
+                className="flex items-center gap-1.5 transition hover:text-(--color-pine)"
               >
                 {link.label}
+                {link.isNew && <NewBadge />}
               </a>
             ) : (
               <Link
                 key={link.label}
                 href={link.href}
-                className="transition hover:text-(--color-pine)"
+                className="flex items-center gap-1.5 transition hover:text-(--color-pine)"
               >
                 {link.label}
+                {link.isNew && <NewBadge />}
               </Link>
             )
           )}
@@ -74,19 +86,21 @@ export function SiteHeader() {
                 href={link.href}
                 target="_blank"
                 rel="noreferrer"
-                className="transition hover:text-(--color-pine)"
+                className="flex items-center gap-1.5 transition hover:text-(--color-pine)"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
+                {link.isNew && <NewBadge />}
               </a>
             ) : (
               <Link
                 key={link.label}
                 href={link.href}
-                className="transition hover:text-(--color-pine)"
+                className="flex items-center gap-1.5 transition hover:text-(--color-pine)"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
+                {link.isNew && <NewBadge />}
               </Link>
             )
           )}

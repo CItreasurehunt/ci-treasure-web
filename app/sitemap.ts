@@ -31,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [
       { url: SITE_URL, changeFrequency: "daily", priority: 1.0 },
       { url: `${SITE_URL}/communities`, changeFrequency: "weekly", priority: 0.7 },
+      { url: `${SITE_URL}/venues`, changeFrequency: "weekly", priority: 0.7 },
     ];
   }
 
@@ -58,6 +59,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "daily", priority: 1.0 },
     { url: `${SITE_URL}/communities`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${SITE_URL}/venues`, changeFrequency: "weekly", priority: 0.7 },
   ];
 
   const eventUrls: MetadataRoute.Sitemap = (events ?? []).map((e) => ({
