@@ -8,6 +8,7 @@ import { getProtectedEmail } from "@/lib/protected-email-action";
 type EntityType = "venue" | "profile" | "event";
 
 const ERROR_MESSAGES: Record<string, string> = {
+  rate_limited: "Too many requests from this network — try again tomorrow.",
   challenge_failed: "Verification failed. Please try again.",
   not_found: "No email available.",
 };

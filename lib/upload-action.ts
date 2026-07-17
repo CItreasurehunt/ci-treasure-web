@@ -1,10 +1,21 @@
 "use server";
 
+import { requireAdminUser } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 
+// Only reachable from the admin event form (components/admin/event-form.tsx), but a
+// server action is an independently callable endpoint regardless of which UI renders
+// it — requireAdminUser() is the real gate, not the component that happens to use this.
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const ALLOWED_TYPES = ["image/jpeg", "image/webp"];
+
 export async function uploadEventImage(formData: FormData) {
+  await requireAdminUser();
+
   const file = formData.get("file") as File;
   if (!file) throw new Error("No file provided");
+  if (file.size > MAX_UPLOAD_BYTES) throw new Error("File too large (max 8MB)");
+  if (!ALLOWED_TYPES.includes(file.type)) throw new Error("File must be JPEG or WEBP");
 
   const supabase = await createClient();
 

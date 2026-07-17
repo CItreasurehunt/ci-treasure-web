@@ -81,6 +81,12 @@ Deno.serve(async (req) => {
     return new Response('already announced', { status: 200 })
   }
 
+  // Legacy Telegram Markdown treats _ * ` [ as formatting characters — an unescaped one
+  // in organizer-controlled text (title, venue name) can break message parsing (send
+  // fails) or bleed formatting into surrounding text. [ ] are replaced rather than
+  // escaped since they sit inside the link label syntax itself.
+  const escapeMarkdown = (s: string) => s.replace(/\[/g, '(').replace(/\]/g, ')').replace(/([_*`])/g, '\\$1')
+
   // Use announce_name (if set) or venue name for known venues; city otherwise
   let location: string = event.city
   if (event.venue_id) {
@@ -93,9 +99,10 @@ Deno.serve(async (req) => {
       location = venue.announce_name ?? venue.name
     }
   }
+  location = escapeMarkdown(location)
 
   // Build message — same format as announce.py
-  const title = event.title.replace(/\[/g, '(').replace(/\]/g, ')')
+  const title = escapeMarkdown(event.title)
   const url   = `https://citreasurehunt.com/events/${event.short_id}`
 
   // Non-CI events still announce (decided 2026-07-04: mark, don't skip) — a lowercase

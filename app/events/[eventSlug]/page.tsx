@@ -146,7 +146,9 @@ export default async function EventPage({ params }: EventPageProps) {
     <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        // jsonLd embeds organizer-controlled free text (title, description, names) —
+        // escape "<" so a value containing "</script>" can't break out of this tag.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="flex flex-wrap items-center gap-3">
