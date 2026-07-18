@@ -170,6 +170,11 @@ export async function updateEvent(
   }
 
   revalidatePath("/dashboard");
+  // Cached ISR pages (homepage list, this event's own detail page) won't
+  // otherwise pick up an organizer edit for up to an hour — revalidate both
+  // immediately, same as the admin edit API route.
+  revalidatePath("/");
+  revalidatePath(`/events/${buildEventSlug(updated.short_id, updated.title)}`);
   return { success: true, slug: buildEventSlug(updated.short_id, updated.title), warning };
 }
 

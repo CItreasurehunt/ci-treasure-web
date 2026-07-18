@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 
 import { requireAdminRequestUser } from "@/lib/admin-api";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -101,6 +102,13 @@ export async function PUT(
         throw insertOrganizersError;
       }
     }
+
+    // Cached ISR pages (homepage list, this event's own detail page) won't
+    // otherwise pick up an admin edit for up to an hour — revalidate both
+    // immediately. Path-pattern form revalidates every slug variant of the
+    // dynamic route without needing to know this event's current slug.
+    revalidatePath("/");
+    revalidatePath("/events/[eventSlug]", "page");
 
     return NextResponse.json({ ok: true });
   } catch (error) {
