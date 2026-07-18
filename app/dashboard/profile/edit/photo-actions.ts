@@ -4,10 +4,18 @@ import { revalidatePath } from "next/cache";
 import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getThumbUrl } from "@/lib/image-url";
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const MIN_LONG_EDGE = 200;
-const RESIZE_LONG_EDGE = 2000;
+// I-129: also produce a small tile-sized thumb alongside the large photo.
+// 0 profiles have an approved photo yet, so there's nothing to backfill here —
+// but wiring this now means teacher photos are two-size-ready from their very
+// first upload, ahead of I-074 Phase 3 (teacher listing) needing tile photos.
+const LARGE_LONG_EDGE = 1600;
+const LARGE_QUALITY = 82;
+const THUMB_LONG_EDGE = 400;
+const THUMB_QUALITY = 75;
 
 export async function uploadProfilePhoto(formData: FormData) {
   const supabase = await createClient();
@@ -52,12 +60,19 @@ export async function uploadProfilePhoto(formData: FormData) {
     return { success: false, error: `Image too small (minimum ${MIN_LONG_EDGE}px)` };
   }
 
-  let outputBuffer: Buffer;
+  let largeBuffer: Buffer;
+  let thumbBuffer: Buffer;
   try {
-    outputBuffer = await sharp(inputBuffer)
-      .rotate()
-      .resize(RESIZE_LONG_EDGE, RESIZE_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 82 })
+    const rotated = sharp(inputBuffer).rotate();
+    largeBuffer = await rotated
+      .clone()
+      .resize(LARGE_LONG_EDGE, LARGE_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: LARGE_QUALITY })
+      .toBuffer();
+    thumbBuffer = await rotated
+      .clone()
+      .resize(THUMB_LONG_EDGE, THUMB_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: THUMB_QUALITY })
       .toBuffer();
   } catch {
     return { success: false, error: "Could not process image" };
@@ -65,23 +80,37 @@ export async function uploadProfilePhoto(formData: FormData) {
 
   const admin = createAdminClient();
   const path = `${profile.slug}.jpg`;
+  const thumbPath = getThumbUrl(path);
 
   const { error: uploadError } = await admin.storage
     .from("profile-images")
     // 30 days, not longer — see rehost-image.ts for the same reasoning
     // (upsert overwrites in place on re-upload, so this bounds staleness).
-    .upload(path, outputBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
+    .upload(path, largeBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
 
   if (uploadError) {
     return { success: false, error: uploadError.message };
   }
 
+  // Atomic-ish: large uploads first, then thumb. If the thumb upload fails,
+  // roll back the large so storage never ends up with a large file and no
+  // matching thumb (I-129 — see spec for why this isn't a DB column).
+  const { error: thumbError } = await admin.storage
+    .from("profile-images")
+    .upload(thumbPath, thumbBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
+
+  if (thumbError) {
+    await admin.storage.from("profile-images").remove([path]);
+    return { success: false, error: thumbError.message };
+  }
+
   // Orphan cleanup: if the previous image_url pointed into this bucket under a
   // different path than what we just wrote (e.g. a legacy/manually-set URL
-  // with a different extension), remove it so it doesn't linger unreferenced.
+  // with a different extension), remove it (and its thumb) so it doesn't
+  // linger unreferenced.
   const previousPath = extractProfileImagesPath(profile.image_url);
   if (previousPath && previousPath !== path) {
-    await admin.storage.from("profile-images").remove([previousPath]);
+    await admin.storage.from("profile-images").remove([previousPath, getThumbUrl(previousPath)]);
   }
 
   const { data: { publicUrl } } = admin.storage.from("profile-images").getPublicUrl(path);

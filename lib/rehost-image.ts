@@ -1,11 +1,16 @@
 import sharp from "sharp";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getThumbUrl } from "@/lib/image-url";
 
 // Same conventions as app/dashboard/profile/edit/photo-actions.ts (I-122): resize long edge,
-// EXIF-safe rotate, JPEG quality 82.
+// EXIF-safe rotate, JPEG quality 82. I-129 adds a second, smaller thumb output for
+// tile/list/map contexts, uploaded alongside the large file.
 const MAX_FETCH_BYTES = 8 * 1024 * 1024;
 const FETCH_TIMEOUT_MS = 10_000;
-const RESIZE_LONG_EDGE = 2000;
+const LARGE_LONG_EDGE = 1600;
+const LARGE_QUALITY = 82;
+const THUMB_LONG_EDGE = 400;
+const THUMB_QUALITY = 75;
 
 function isOwnBucketUrl(url: string): boolean {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -60,27 +65,47 @@ export async function rehostExternalImage(
   }
   const inputBuffer = Buffer.concat(chunks.map((c) => Buffer.from(c)));
 
-  let outputBuffer: Buffer;
+  let largeBuffer: Buffer;
+  let thumbBuffer: Buffer;
   try {
-    outputBuffer = await sharp(inputBuffer)
-      .rotate()
-      .resize(RESIZE_LONG_EDGE, RESIZE_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 82 })
+    const rotated = sharp(inputBuffer).rotate();
+    largeBuffer = await rotated
+      .clone()
+      .resize(LARGE_LONG_EDGE, LARGE_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: LARGE_QUALITY })
+      .toBuffer();
+    thumbBuffer = await rotated
+      .clone()
+      .resize(THUMB_LONG_EDGE, THUMB_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: THUMB_QUALITY })
       .toBuffer();
   } catch {
     return { error: "Could not process image" };
   }
 
   const admin = createAdminClient();
+  const thumbPath = getThumbUrl(path);
+
   const { error: uploadError } = await admin.storage
     .from(bucket)
     // 30 days, not longer: upsert overwrites in place on re-save, so this caps
     // how stale a browser's cached copy can get after an organizer swaps their
     // event image. Supabase's default was 1h — PageSpeed Insights flagged
     // ~14.7MB in avoidable re-fetches across the homepage at that TTL.
-    .upload(path, outputBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
+    .upload(path, largeBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
   if (uploadError) {
     return { error: uploadError.message };
+  }
+
+  // Atomic-ish: large uploads first, then thumb. If the thumb upload fails,
+  // roll back the large so storage never ends up with a large file and no
+  // matching thumb (I-129 — see spec for why this isn't a DB column).
+  const { error: thumbError } = await admin.storage
+    .from(bucket)
+    .upload(thumbPath, thumbBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
+  if (thumbError) {
+    await admin.storage.from(bucket).remove([path]);
+    return { error: thumbError.message };
   }
 
   const { data: { publicUrl } } = admin.storage.from(bucket).getPublicUrl(path);
