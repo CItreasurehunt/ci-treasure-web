@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, Clock3, ExternalLink, GraduationCap, Languages, MapPin } from "lucide-react";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { ShareButton } from "@/components/share-button";
 import { ReportButton } from "@/components/report-button";
@@ -52,6 +52,9 @@ export async function generateMetadata({ params }: { params: Promise<{ eventSlug
   return {
     title: `${event.title} — CI Treasure Hunt`,
     description,
+    alternates: {
+      canonical: `${SITE_URL}/events/${event.slug}`,
+    },
     openGraph: {
       title: event.title,
       description,
@@ -91,7 +94,7 @@ export default async function EventPage({ params }: EventPageProps) {
   }
 
   if (eventSlug !== event.slug) {
-    redirect(`/events/${event.slug}`);
+    permanentRedirect(`/events/${event.slug}`);
   }
 
   const isSingleDay = event.startDate === event.endDate;
