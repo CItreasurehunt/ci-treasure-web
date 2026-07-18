@@ -160,11 +160,14 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                 {teacher.name}
               </h1>
               <p className={`flex items-center gap-2 text-white/90 ${teacher.city || teacher.country || teacher.is_nomadic ? "" : "invisible"}`}>
-                <MapPin className="h-4 w-4 shrink-0 text-white/70" />
                 {teacher.is_nomadic ? (
-                  <span>🌍 Nomadic</span>
+                  <>
+                    <Globe className="h-4 w-4 shrink-0 text-white/70" />
+                    <span>Nomadic</span>
+                  </>
                 ) : (
                   <>
+                    <MapPin className="h-4 w-4 shrink-0 text-white/70" />
                     {teacher.country ? (
                       <span className="leading-none" title={getCountryLabel(teacher.country)}>
                         {getCountryFlag(teacher.country)}
