@@ -201,6 +201,28 @@ function toVenueListItem(row: VenueListRow): VenueListItem {
   };
 }
 
+// Lightweight query for contexts that just need the count + distinct countries (e.g. the
+// homepage About section, which unions this with events'/communities' countries for an
+// accurate sitewide "across N countries" figure) - avoids pulling all columns of every row
+// just for that like getVenues() above.
+export async function getVenueCountries(): Promise<{ count: number; countries: string[] }> {
+  try {
+    const supabase = createStaticClient();
+    const { data, error } = await supabase
+      .from("venues")
+      .select("country")
+      .eq("visibility", "public")
+      .eq("show_in_list", true);
+    if (error) throw new Error(error.message);
+    return {
+      count: data.length,
+      countries: Array.from(new Set(data.map((row) => row.country))),
+    };
+  } catch {
+    return { count: 0, countries: [] };
+  }
+}
+
 export async function getVenues(): Promise<VenuesResponse> {
   try {
     // Static (cookie-free) client — see getUpcomingEvents() in lib/events.ts

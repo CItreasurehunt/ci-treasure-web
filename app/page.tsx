@@ -4,6 +4,8 @@ import { Suspense } from "react";
 
 import { EventsDashboard } from "@/components/events-dashboard";
 import { getCountryLabel, getUpcomingEvents } from "@/lib/events";
+import { getVenueCountries } from "@/lib/venues";
+import { getCommunityCountries } from "@/lib/communities";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -45,11 +47,19 @@ function getTodayDateKey() {
 }
 
 export default async function Home() {
-  const { events, error } = await getUpcomingEvents(getTodayDateKey());
+  const [{ events, error }, venues, communities] = await Promise.all([
+    getUpcomingEvents(getTodayDateKey()),
+    getVenueCountries(),
+    getCommunityCountries(),
+  ]);
 
   const countries = Array.from(new Set(events.map((event) => event.country))).sort((a, b) =>
     getCountryLabel(a).localeCompare(getCountryLabel(b)),
   );
+
+  // Union across all three entity types, not just events - venues/communities each cover a
+  // different (and, for communities, much larger) set of countries than events alone.
+  const allCountriesCount = new Set([...countries, ...venues.countries, ...communities.countries]).size;
 
   return (
     <main className="min-h-screen bg-(--color-mist) text-slate-900">
@@ -59,7 +69,11 @@ export default async function Home() {
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="border-l-4 border-(--color-pine) pl-5 py-1">
             <h1 className="font-serif text-4xl tracking-tight text-slate-950 sm:text-5xl">
-              Contact Improvisation events &amp;{" "}
+              Contact Improvisation events,{" "}
+              <Link href="/venues" className="text-violet-600 underline underline-offset-4 hover:text-violet-800">
+                venues
+              </Link>{" "}
+              &amp;{" "}
               <Link href="/communities" className="text-violet-600 underline underline-offset-4 hover:text-violet-800">
                 communities
               </Link>
@@ -89,6 +103,44 @@ export default async function Home() {
         <Suspense>
           <EventsDashboard events={events} />
         </Suspense>
+
+        <section className="mx-auto max-w-3xl border-t border-(--color-sand-strong) pt-8 text-slate-700">
+          <h2 className="mb-4 font-serif text-2xl text-slate-950">What is Contact Improvisation?</h2>
+          <div className="space-y-4 text-sm leading-7 sm:text-base">
+            <p>
+              Contact Improvisation (CI) is an improvised dance form. Two or more people move
+              together through shared weight and momentum, rather than fixed steps or a set lead,
+              staying connected through a rolling point of contact. Steve Paxton originated the
+              form in 1972; Nancy Stark Smith became one of its most influential early developers,
+              shaping much of what CI is today. It has since spread worldwide, practiced in
+              studios, festivals, and open-air jams, as both a dance form and a somatic or
+              movement research practice.
+            </p>
+          </div>
+
+          <h2 className="mt-8 mb-4 font-serif text-2xl text-slate-950">About CI Treasure Hunt</h2>
+          <div className="space-y-4 text-sm leading-7 sm:text-base">
+            <p>
+              CI Treasure Hunt is a global directory of Contact Improvisation festivals, jams,
+              workshops, intensives, and retreats, along with the{" "}
+              <Link href="/venues" className="text-violet-600 underline underline-offset-4 hover:text-violet-800">
+                venues
+              </Link>
+              , teachers, and{" "}
+              <Link href="/communities" className="text-violet-600 underline underline-offset-4 hover:text-violet-800">
+                communities
+              </Link>{" "}
+              behind them. The directory currently lists {events.length} events,{" "}
+              {venues.count} venues, and {communities.count} communities across{" "}
+              {allCountriesCount} countries.
+            </p>
+            <p>
+              Planning travel and want to find a jam or community wherever you go? Looking for
+              your first jam, scouting the festival calendar for your next vacation or journey, or
+              trying to find teachers and community near you? This is where to look.
+            </p>
+          </div>
+        </section>
       </section>
     </main>
   );

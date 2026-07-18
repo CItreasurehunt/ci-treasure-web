@@ -46,6 +46,19 @@ export const metadata: Metadata = {
   },
 };
 
+// Site-wide identity for search engines - who runs this, what to call it, which
+// social profiles are the same entity (sameAs). Same escaped-JSON-LD pattern as
+// the Event/Place/Person blocks on entity detail pages.
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "CI Treasure Hunt",
+  url: SITE_URL,
+  logo: `${SITE_URL}/icon.png`,
+  email: "hello@citreasurehunt.com",
+  sameAs: [TELEGRAM_URL, FACEBOOK_URL, INSTAGRAM_URL],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,6 +67,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${sans.variable} ${serif.variable} antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }}
+        />
         <NavigationTracker />
         <div className="min-h-screen">
           <SiteHeader />

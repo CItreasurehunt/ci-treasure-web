@@ -263,6 +263,27 @@ function sortCommunities(communities: Community[]): Community[] {
   });
 }
 
+// Lightweight query for contexts that just need the count + distinct countries (e.g. the
+// homepage About section, which unions this with events'/venues' countries for an accurate
+// sitewide "across N countries" figure) - avoids pulling all columns of every row just for
+// that like getCommunities() below.
+export async function getCommunityCountries(): Promise<{ count: number; countries: string[] }> {
+  try {
+    const supabase = createStaticClient();
+    const { data, error } = await supabase
+      .from("communities")
+      .select("country")
+      .is("deleted_at", null);
+    if (error) throw new Error(error.message);
+    return {
+      count: data.length,
+      countries: Array.from(new Set(data.map((row) => row.country).filter((c): c is string => !!c))),
+    };
+  } catch {
+    return { count: 0, countries: [] };
+  }
+}
+
 export async function getCommunities(): Promise<CommunitiesResponse> {
   try {
     // Static (cookie-free) client — see getUpcomingEvents() in lib/events.ts
