@@ -65,6 +65,12 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
       url: `${SITE_URL}/teachers/${teacher.slug}`,
       images: approvedImage ? [{ url: approvedImage }] : [],
     },
+    twitter: {
+      card: approvedImage ? "summary_large_image" : "summary",
+      title: teacher.name,
+      description,
+      images: approvedImage ? [approvedImage] : [],
+    },
   };
 }
 
@@ -103,8 +109,38 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
   if (teacher.newsletter) teacherLinks.push({ type: "newsletter", href: ensureHttps(teacher.newsletter), label: getLinkLabel("newsletter"), icon: <MessageSquare className="h-4 w-4" /> });
   teacherLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
 
+  const approvedImage = teacher.image_status === "approved" ? teacher.image_url : null;
+  const sameAs = teacherLinks
+    .filter((row) => ["facebook", "instagram", "youtube", "telegram"].includes(row.type))
+    .map((row) => row.href);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: teacher.name,
+    image: approvedImage ?? undefined,
+    description: teacher.bio ?? undefined,
+    url: `${SITE_URL}/teachers/${teacher.slug}`,
+    sameAs: sameAs.length > 0 ? sameAs : undefined,
+    address:
+      teacher.city || teacher.country
+        ? {
+            "@type": "PostalAddress",
+            addressLocality: teacher.city ?? undefined,
+            addressCountry: teacher.country ?? undefined,
+          }
+        : undefined,
+  };
+
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+      <script
+        type="application/ld+json"
+        // teacher.bio/name are profile-owner-controlled free text — escape "<" so a
+        // value containing "</script>" can't break out of this tag (same pattern as
+        // the event page's JSON-LD).
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div>
           <BackButton />

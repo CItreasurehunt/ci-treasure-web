@@ -45,14 +45,21 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
   const venue = await getVenueBySlug(slug);
   if (!venue) return {};
 
+  const description = venue.description?.slice(0, 160) ?? `Venue in ${venue.city}, ${venue.country}`;
   return {
     title: `${venue.name} — ${venue.city}, ${venue.country} — CI Treasure Hunt`,
-    description: venue.description?.slice(0, 160) ?? `Venue in ${venue.city}, ${venue.country}`,
+    description,
     openGraph: {
       title: venue.name,
-      description: venue.description?.slice(0, 160) ?? `Venue in ${venue.city}, ${venue.country}`,
+      description,
       url: `${SITE_URL}/venues/${venue.slug}`,
       images: venue.imageUrl ? [{ url: venue.imageUrl }] : [],
+    },
+    twitter: {
+      card: venue.imageUrl ? "summary_large_image" : "summary",
+      title: venue.name,
+      description,
+      images: venue.imageUrl ? [venue.imageUrl] : [],
     },
   };
 }
@@ -80,8 +87,34 @@ export default async function VenuePage({ params }: VenuePageProps) {
   }
   venueLinks.sort((a, b) => linkSortKey(a.type) - linkSortKey(b.type));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: venue.name,
+    image: venue.imageUrl ?? undefined,
+    description: venue.description ?? undefined,
+    url: `${SITE_URL}/venues/${venue.slug}`,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: venue.address ?? undefined,
+      addressLocality: venue.city,
+      addressCountry: venue.country,
+    },
+    geo:
+      venue.lat && venue.lng
+        ? { "@type": "GeoCoordinates", latitude: venue.lat, longitude: venue.lng }
+        : undefined,
+  };
+
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
+      <script
+        type="application/ld+json"
+        // venue.description/name are organizer/curator-controlled free text — escape "<"
+        // so a value containing "</script>" can't break out of this tag (same pattern
+        // as the event page's JSON-LD).
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="flex flex-wrap items-center gap-3">
           <BackButton />

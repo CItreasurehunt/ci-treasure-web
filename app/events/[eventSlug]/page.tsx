@@ -46,15 +46,24 @@ export async function generateMetadata({ params }: { params: Promise<{ eventSlug
   if (!parsed) return {};
   const event = await getEventBySlug(parsed.shortId);
   if (!event) return {};
+  const description = event.description
+    ? stripMarkdown(event.description).slice(0, 160)
+    : `${event.type} in ${event.city}, ${event.country}`;
   return {
     title: `${event.title} — CI Treasure Hunt`,
-    description: event.description?.slice(0, 160) ?? `${event.type} in ${event.city}, ${event.country}`,
+    description,
     openGraph: {
       title: event.title,
-      description: event.description?.slice(0, 160) ?? `${event.type} in ${event.city}, ${event.country}`,
+      description,
       url: `${SITE_URL}/events/${event.slug}`,
       type: "article",
       images: event.imageUrl ? [{ url: event.imageUrl }] : [],
+    },
+    twitter: {
+      card: event.imageUrl ? "summary_large_image" : "summary",
+      title: event.title,
+      description,
+      images: event.imageUrl ? [event.imageUrl] : [],
     },
   };
 }

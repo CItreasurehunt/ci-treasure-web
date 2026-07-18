@@ -1,11 +1,37 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
 import { EventsDashboard } from "@/components/events-dashboard";
 import { getCountryLabel, getUpcomingEvents } from "@/lib/events";
+import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
+
+const TITLE = "Contact Improvisation Events, Communities & Teachers Worldwide | CI Treasure Hunt";
+const DESCRIPTION =
+  "A living map of Contact Improvisation events, communities, teachers & venues worldwide — find jams, festivals, workshops and intensives near you.";
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: SITE_URL,
+    siteName: "CI Treasure Hunt",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    // No site-default OG image exists yet — "summary_large_image" with no image
+    // would just show an empty card, so this stays "summary" until one does.
+    card: "summary",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+};
 
 function getTodayDateKey() {
   const parts = new Intl.DateTimeFormat("en-CA", {
