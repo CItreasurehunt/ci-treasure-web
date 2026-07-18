@@ -162,7 +162,17 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, on
       const isSoon = isEventSoon(event.startDate);
       const icon = createCustomMarker(event, isSoon);
 
-      const marker = L.marker([event.lat, event.lng], { icon });
+      const marker = L.marker([event.lat, event.lng], { icon, alt: event.title });
+      // Leaflet's `alt` option only reaches an <img>-based icon; this is a
+      // divIcon, so set the accessible name directly once it's actually in
+      // the DOM (markers inside a cluster group aren't always mounted yet).
+      marker.on("add", () => {
+        const el = marker.getElement();
+        if (el) {
+          el.setAttribute("aria-label", event.title);
+          el.setAttribute("title", event.title);
+        }
+      });
 
       // Build rich aesthetic popup content
       const eventHref = getEventHref(event);

@@ -46,7 +46,14 @@ export default function VenueMap({ lat, lng, name }: VenueMapProps) {
         iconAnchor: [8, 8],
       });
 
-      L.marker([lat, lng], { icon }).addTo(map).bindPopup(name);
+      const marker = L.marker([lat, lng], { icon, alt: name }).addTo(map).bindPopup(name);
+      // Leaflet's `alt` option only reaches an <img>-based icon; this is a
+      // divIcon, so set the accessible name directly on its DOM element.
+      const el = marker.getElement();
+      if (el) {
+        el.setAttribute("aria-label", name);
+        el.setAttribute("title", name);
+      }
 
       mapRef.current = map;
     };

@@ -68,7 +68,9 @@ export async function uploadProfilePhoto(formData: FormData) {
 
   const { error: uploadError } = await admin.storage
     .from("profile-images")
-    .upload(path, outputBuffer, { contentType: "image/jpeg", upsert: true });
+    // 30 days, not longer — see rehost-image.ts for the same reasoning
+    // (upsert overwrites in place on re-upload, so this bounds staleness).
+    .upload(path, outputBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
 
   if (uploadError) {
     return { success: false, error: uploadError.message };

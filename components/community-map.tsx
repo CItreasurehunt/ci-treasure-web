@@ -145,7 +145,17 @@ export default function CommunityMap({ communities, highlightedCommunityId, onMa
       if (typeof community.latitude !== "number" || typeof community.longitude !== "number") return;
 
       const icon = createCustomMarker();
-      const marker = L.marker([community.latitude, community.longitude], { icon });
+      const marker = L.marker([community.latitude, community.longitude], { icon, alt: community.name });
+      // Leaflet's `alt` option only reaches an <img>-based icon; this is a
+      // divIcon, so set the accessible name directly once it's actually in
+      // the DOM (markers inside a cluster group aren't always mounted yet).
+      marker.on("add", () => {
+        const el = marker.getElement();
+        if (el) {
+          el.setAttribute("aria-label", community.name);
+          el.setAttribute("title", community.name);
+        }
+      });
 
       const badgeText = community.type || "Community";
       const badgeColor = "bg-violet-100 text-violet-700";

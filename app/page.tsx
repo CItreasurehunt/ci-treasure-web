@@ -72,6 +72,10 @@ export default async function Home() {
           <img
             src="/ci-hero.jpg"
             alt="Contact improvisation dancers"
+            // This is the page's LCP element (confirmed via PageSpeed Insights) —
+            // fetchPriority tells the browser to fetch it ahead of lower-priority
+            // requests instead of discovering it at normal priority mid-render.
+            fetchPriority="high"
             className="w-full h-52 rounded-2xl object-cover shadow-lg lg:w-72 xl:w-96 lg:h-52 xl:h-64"
           />
         </div>

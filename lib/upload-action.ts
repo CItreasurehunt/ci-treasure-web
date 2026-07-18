@@ -25,7 +25,9 @@ export async function uploadEventImage(formData: FormData) {
 
   const { data, error } = await supabase.storage
     .from('event-images')
-    .upload(filePath, file);
+    // 30 days — Supabase's default is 1h, which PageSpeed Insights flagged as
+    // ~14.7MB in avoidable re-fetches across the homepage's event images.
+    .upload(filePath, file, { cacheControl: '2592000' });
 
   if (error) {
     throw error;

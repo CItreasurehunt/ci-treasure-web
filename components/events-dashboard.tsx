@@ -338,6 +338,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             {/* Country / Continent Selector */}
             <select
+              aria-label="Filter by country"
               value={selectedCountry}
               onChange={(e) => setSelectedCountry(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 sm:w-44"
@@ -362,6 +363,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
             {/* Type Selector */}
             <select
+              aria-label="Filter by event type"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 sm:w-44"
@@ -376,6 +378,7 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
 
             {/* Month Selector */}
             <select
+              aria-label="Filter by month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 sm:w-44"

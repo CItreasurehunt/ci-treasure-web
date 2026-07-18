@@ -74,7 +74,11 @@ export async function rehostExternalImage(
   const admin = createAdminClient();
   const { error: uploadError } = await admin.storage
     .from(bucket)
-    .upload(path, outputBuffer, { contentType: "image/jpeg", upsert: true });
+    // 30 days, not longer: upsert overwrites in place on re-save, so this caps
+    // how stale a browser's cached copy can get after an organizer swaps their
+    // event image. Supabase's default was 1h — PageSpeed Insights flagged
+    // ~14.7MB in avoidable re-fetches across the homepage at that TTL.
+    .upload(path, outputBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
   if (uploadError) {
     return { error: uploadError.message };
   }
