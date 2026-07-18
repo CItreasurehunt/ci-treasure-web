@@ -100,7 +100,13 @@ export default async function Home() {
           </div>
         )}
 
-        <Suspense>
+        {/* Suspense is required here because EventsDashboard calls useSearchParams(), not for
+            data (events is already resolved above). Without a fallback matching the real
+            dashboard's height, Next's streaming reveal pops the whole grid in at once — the
+            content is parsed/styled ahead of time but sits height-0 until JS swaps it into
+            place — which shoves everything below it (this section) down in one large layout
+            shift. Confirmed via Playwright layout-shift trace against production. */}
+        <Suspense fallback={<div className="h-[calc(100vh-270px)] min-h-[500px]" />}>
           <EventsDashboard events={events} />
         </Suspense>
 

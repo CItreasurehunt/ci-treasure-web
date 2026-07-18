@@ -91,6 +91,24 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  // Leaflet is a ~145KB chunk. On desktop the map panel is visible immediately, so mount it
+  // right away; on mobile it's hidden behind the "list"/"map" toggle by default, so defer
+  // downloading/mounting it until the user actually asks for it (matches PageSpeed's flagged
+  // "unused JavaScript" finding — mobile's default view never touched this code).
+  const [shouldRenderMap, setShouldRenderMap] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    if (mql.matches) setShouldRenderMap(true);
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setShouldRenderMap(true);
+    };
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+  useEffect(() => {
+    if (mobileView === "map") setShouldRenderMap(true);
+  }, [mobileView]);
+
   const activeFilterCount = [selectedCountry, selectedType, selectedMonth, soonOnly ? "1" : ""].filter(Boolean).length;
 
   // Reset all filters
@@ -465,13 +483,22 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
             mobileView === "map" ? "block" : "hidden lg:block"
           }`}
         >
-          <EventMap
-            events={filteredEvents}
-            highlightedEventId={highlightedEventId}
-            onMarkerClick={handleMarkerClick}
-            onReset={() => setHighlightedEventId(null)}
-            visible={mobileView === "map"}
-          />
+          {shouldRenderMap ? (
+            <EventMap
+              events={filteredEvents}
+              highlightedEventId={highlightedEventId}
+              onMarkerClick={handleMarkerClick}
+              onReset={() => setHighlightedEventId(null)}
+              visible={mobileView === "map"}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400">
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent"></div>
+                <p className="text-sm font-medium">Loading Interactive Map...</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
