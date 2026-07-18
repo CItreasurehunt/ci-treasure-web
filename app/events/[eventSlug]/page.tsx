@@ -22,7 +22,7 @@ import {
   getTypeLabel,
   parseEventSlug,
 } from "@/lib/events";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 
 export const revalidate = 3600;
 
@@ -57,13 +57,13 @@ export async function generateMetadata({ params }: { params: Promise<{ eventSlug
       description,
       url: `${SITE_URL}/events/${event.slug}`,
       type: "article",
-      images: event.imageUrl ? [{ url: event.imageUrl }] : [],
+      images: [{ url: event.imageUrl ?? SITE_OG_IMAGE }],
     },
     twitter: {
-      card: event.imageUrl ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: event.title,
       description,
-      images: event.imageUrl ? [event.imageUrl] : [],
+      images: [event.imageUrl ?? SITE_OG_IMAGE],
     },
   };
 }

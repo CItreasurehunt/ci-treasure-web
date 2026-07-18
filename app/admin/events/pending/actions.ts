@@ -100,6 +100,7 @@ export async function approveEvent(eventId: string): Promise<{ success: boolean;
   }
 
   revalidatePath("/admin/events/pending");
+  revalidatePath("/");
   return { success: true };
 }
 

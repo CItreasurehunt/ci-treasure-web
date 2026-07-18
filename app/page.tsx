@@ -6,10 +6,9 @@ import { EventsDashboard } from "@/components/events-dashboard";
 import { getCountryLabel, getUpcomingEvents } from "@/lib/events";
 import { SITE_URL } from "@/lib/site";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
-const TITLE = "Contact Improvisation Events, Communities & Teachers Worldwide | CI Treasure Hunt";
+const TITLE = "CI Treasure Hunt — Contact Improvisation Events Worldwide";
 const DESCRIPTION =
   "A living map of Contact Improvisation events, communities, teachers & venues worldwide — find jams, festivals, workshops and intensives near you.";
 
@@ -25,9 +24,9 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
-    // No site-default OG image exists yet — "summary_large_image" with no image
-    // would just show an empty card, so this stays "summary" until one does.
-    card: "summary",
+    // app/opengraph-image.jpg (site-default, Next.js file convention) applies
+    // automatically since this page doesn't set its own openGraph.images.
+    card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
   },

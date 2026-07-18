@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createStaticClient } from "@/lib/supabase/static";
 import { mapEventRow, type SupabaseEventRow } from "./events";
 
 export type InvitePlatform = "telegram" | "whatsapp" | "signal" | "line";
@@ -264,7 +265,10 @@ function sortCommunities(communities: Community[]): Community[] {
 
 export async function getCommunities(): Promise<CommunitiesResponse> {
   try {
-    const supabase = await createClient();
+    // Static (cookie-free) client — see getUpcomingEvents() in lib/events.ts
+    // for why: this public listing has no auth-dependent RLS branch, and the
+    // cookie-aware client would force dynamic rendering on every request.
+    const supabase = createStaticClient();
     const { data, error } = await supabase
       .from("communities")
       .select(

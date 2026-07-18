@@ -125,6 +125,7 @@ export async function createEvent(data: OrganizerEventFormData): Promise<ActionR
   if (profile.is_trusted) {
     const admin = createAdminClient();
     await admin.from("events").update({ status: "published" }).eq("id", inserted.id);
+    revalidatePath("/");
   } else {
     notifyAdminNewEvent(inserted.title, user.email ?? "unknown").catch(() => {});
   }

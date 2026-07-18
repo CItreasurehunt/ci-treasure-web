@@ -8,7 +8,6 @@ export const metadata: Metadata = {
   description: "Find and join Contact Improvisation communities around the world.",
 };
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export default async function CommunitiesPage() {

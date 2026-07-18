@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createStaticClient } from "@/lib/supabase/static";
 import { mapEventRow, SupabaseEventRow, LinkItem, getLinkLabel, linkSortKey } from "./events";
 
 function normalizeAddress(raw: unknown): string | null {
@@ -202,7 +203,10 @@ function toVenueListItem(row: VenueListRow): VenueListItem {
 
 export async function getVenues(): Promise<VenuesResponse> {
   try {
-    const supabase = await createClient();
+    // Static (cookie-free) client — see getUpcomingEvents() in lib/events.ts
+    // for why: this public listing has no auth-dependent RLS branch, and the
+    // cookie-aware client would force dynamic rendering on every request.
+    const supabase = createStaticClient();
     const { data, error } = await supabase
       .from("venues")
       .select("id,name,slug,city,country,description,website,image_url,instagram,facebook,youtube,links")

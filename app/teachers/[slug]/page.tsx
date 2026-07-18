@@ -28,7 +28,7 @@ import {
   linkSortKey,
 } from "@/lib/events";
 import { getCountryFlag } from "@/lib/utils";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 
 export const revalidate = 3600;
 
@@ -63,13 +63,13 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
       title: teacher.name,
       description,
       url: `${SITE_URL}/teachers/${teacher.slug}`,
-      images: approvedImage ? [{ url: approvedImage }] : [],
+      images: [{ url: approvedImage ?? SITE_OG_IMAGE }],
     },
     twitter: {
-      card: approvedImage ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: teacher.name,
       description,
-      images: approvedImage ? [approvedImage] : [],
+      images: [approvedImage ?? SITE_OG_IMAGE],
     },
   };
 }

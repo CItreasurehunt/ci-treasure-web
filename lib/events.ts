@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createStaticClient } from "@/lib/supabase/static";
 
 export type SupabaseEventRow = {
   id: string;
@@ -331,7 +332,11 @@ export async function getUpcomingEvents(today: string): Promise<{ events: EventL
   }
 
   try {
-    const supabase = await createClient();
+    // Static (cookie-free) client: this is a public, single-purpose homepage
+    // query with no auth-dependent RLS branch, and calling next/headers'
+    // cookies() (via the default createClient()) would force this route to
+    // render dynamically on every request, defeating the page's `revalidate`.
+    const supabase = createStaticClient();
     const { data, error } = await supabase
       .from("events")
       .select("id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, discipline, cancelled")

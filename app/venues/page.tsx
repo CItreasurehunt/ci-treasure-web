@@ -8,7 +8,6 @@ export const metadata: Metadata = {
   description: "Find Contact Improvisation venues and spaces around the world.",
 };
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export default async function VenuesPage() {

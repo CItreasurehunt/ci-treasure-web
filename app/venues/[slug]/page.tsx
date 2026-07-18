@@ -24,7 +24,7 @@ import {
 } from "@/lib/events";
 import { getAllVenueSlugs, getVenueBySlug, getVenueEvents } from "@/lib/venues";
 import { getCountryFlag } from "@/lib/utils";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 import { ReportButton } from "@/components/report-button";
 
 export const revalidate = 3600;
@@ -53,13 +53,13 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
       title: venue.name,
       description,
       url: `${SITE_URL}/venues/${venue.slug}`,
-      images: venue.imageUrl ? [{ url: venue.imageUrl }] : [],
+      images: [{ url: venue.imageUrl ?? SITE_OG_IMAGE }],
     },
     twitter: {
-      card: venue.imageUrl ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: venue.name,
       description,
-      images: venue.imageUrl ? [venue.imageUrl] : [],
+      images: [venue.imageUrl ?? SITE_OG_IMAGE],
     },
   };
 }

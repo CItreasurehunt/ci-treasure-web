@@ -38,7 +38,9 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
-    card: "summary",
+    // app/opengraph-image.jpg (site-default) applies automatically to any
+    // page that doesn't set its own openGraph.images.
+    card: "summary_large_image",
     title: "CI Treasure Hunt",
     description: "A living map of contact improvisation events, communities, teachers & venues worldwide.",
   },
