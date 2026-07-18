@@ -49,6 +49,9 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
   return {
     title: `${venue.name} — ${venue.city}, ${venue.country} — CI Treasure Hunt`,
     description,
+    alternates: {
+      canonical: `${SITE_URL}/venues/${venue.slug}`,
+    },
     openGraph: {
       title: venue.name,
       description,

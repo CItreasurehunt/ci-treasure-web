@@ -59,6 +59,9 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
   return {
     title: `${teacher.name} — CI Treasure Hunt`,
     description,
+    alternates: {
+      canonical: `${SITE_URL}/teachers/${teacher.slug}`,
+    },
     openGraph: {
       title: teacher.name,
       description,

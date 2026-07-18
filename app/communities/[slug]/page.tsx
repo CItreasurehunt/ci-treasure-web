@@ -64,6 +64,9 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
   return {
     title: `${community.name} — ${community.city}, ${getCountryLabel(community.country ?? "")} — CI Treasure Hunt`,
     description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
+    alternates: {
+      canonical: `${SITE_URL}/communities/${community.slug}`,
+    },
     openGraph: {
       title: community.name,
       description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
