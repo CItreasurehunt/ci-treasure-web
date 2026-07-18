@@ -12,6 +12,7 @@ export type TeacherProfile = {
   bio: string | null;
   city: string | null;
   country: string | null;
+  is_nomadic: boolean;
   website: string | null;
   public_email: string | null;
   instagram: string | null;
@@ -43,7 +44,7 @@ export async function getAllPublicTeachers(): Promise<TeacherProfile[]> {
   const { data: teachers, error } = await supabase
     .from("profiles")
     .select(`
-      id, name, slug, city, country,
+      id, name, slug, city, country, is_nomadic,
       is_teacher, is_organizer, is_musician,
       visibility, show_in_list
     `)
