@@ -443,7 +443,7 @@ function CommunityCard({ community, onShowOnMap }: CommunityCardProps) {
       <Link href={`/communities/${community.slug}`} className="absolute inset-0 z-10" aria-label={community.name} />
 
       {/* Name + location */}
-      <h3 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">{community.name}</h3>
+      <h2 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">{community.name}</h2>
       <p className="mb-3 flex min-w-0 items-center gap-1 text-sm text-slate-500">
         <MapPin className="size-3 shrink-0 text-slate-400" />
         <span className="min-w-0 wrap-break-word">

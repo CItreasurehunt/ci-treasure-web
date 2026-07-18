@@ -269,7 +269,7 @@ function VenueCard({ venue }: { venue: VenueListItem }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col p-4">
-        <h3 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">{venue.name}</h3>
+        <h2 className="mb-1 font-serif text-lg text-slate-900 wrap-break-word">{venue.name}</h2>
         <p className="mb-3 flex min-w-0 items-center gap-1 text-sm text-slate-500">
           <MapPin className="size-3 shrink-0 text-slate-400" />
           <span className="min-w-0 wrap-break-word">

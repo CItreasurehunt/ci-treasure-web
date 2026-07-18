@@ -31,9 +31,10 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
                 </span>
               )}
             </div>
-            <h3 className="truncate font-serif text-sm font-semibold leading-snug text-slate-950">{event.title}</h3>
+            <h2 className="truncate font-serif text-sm font-semibold leading-snug text-slate-950">{event.title}</h2>
             <p className="text-xs text-slate-500">{formatEventDateRange(event)}</p>
-            <p className="text-xs text-slate-400">{event.city}, {getCountryLabel(event.country)}</p>
+            {/* slate-500, not slate-400: slate-400 measured 2.63:1 on white, below WCAG's 4.5:1 minimum */}
+            <p className="text-xs text-slate-500">{event.city}, {getCountryLabel(event.country)}</p>
           </div>
         </article>
       </Link>
@@ -66,7 +67,7 @@ export function EventCard({ event, compact = false }: { event: EventListItem; co
                 </span>
               )}
             </div>
-            <h3 className="font-serif text-2xl leading-tight text-slate-950">{event.title}</h3>
+            <h2 className="font-serif text-2xl leading-tight text-slate-950">{event.title}</h2>
             {event.description ? (
               <p className="line-clamp-3 text-sm leading-7 text-slate-600">{event.description}</p>
             ) : null}
