@@ -66,6 +66,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      {/* Half the homepage/entity-page images load from this origin — preconnecting lets the
+          browser open the connection (DNS + TCP + TLS) ahead of the first actual image request
+          instead of discovering it mid-render. Flagged by PageSpeed Insights (I-136). Rendered
+          as a plain child, not wrapped in a manual <head>: React 19 auto-hoists <link>/<meta>
+          tags into <head> wherever they appear in the tree, and an explicit <head> element here
+          conflicts with Next's own head management and gets silently dropped (verified — the
+          wrapped version never appeared in rendered output). */}
+      <link rel="preconnect" href="https://ormttcjjsumbmvyennfx.supabase.co" />
       <body className={`${sans.variable} ${serif.variable} antialiased`}>
         <script
           type="application/ld+json"
