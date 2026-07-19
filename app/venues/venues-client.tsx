@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays, ExternalLink, Facebook, Globe, Instagram, MapPin, Search, X, Filter, Youtube } from "lucide-react";
 
 import type { VenueListItem } from "@/lib/venues";
-import { GENERIC_ACCENT_GRADIENT } from "@/lib/events";
+import { GENERIC_ACCENT_GRADIENT } from "@/lib/event-display";
 import { Button } from "@/components/ui/button";
 import { CONTINENT_COUNTRIES, CONTINENT_LABELS } from "@/lib/continents";
 import { PLATFORM_ICON_CLASS, TelegramIcon, WhatsAppIcon, SignalIcon } from "@/components/platform-icons";

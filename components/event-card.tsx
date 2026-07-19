@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, MapPin } from "lucide-react";
 
-import { formatEventDateRange, getCountryLabel, getEventHref, getTypeLabel, type EventListItem } from "@/lib/events";
+import { formatEventDateRange, getCountryLabel, getEventHref, getTypeLabel, type EventListItem } from "@/lib/event-display";
 import { getMediumUrl, getSmallUrl } from "@/lib/image-url";
 
 export function EventCard({ event, compact = false }: { event: EventListItem; compact?: boolean }) {

@@ -9,7 +9,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
-import { formatEventDateRange, getCountryLabel, getEventHref, getTypeLabel, type EventListItem } from "@/lib/events";
+import { formatEventDateRange, getCountryLabel, getEventHref, getTypeLabel, type EventListItem } from "@/lib/event-display";
 
 // Standard fix for Leaflet default icon markers in Next.js/Webpack environment
 const fixLeafletIcons = () => {
@@ -101,6 +101,18 @@ export default function EventMap({ events, highlightedEventId, onMarkerClick, on
         showCoverageOnHover: false,
         spiderfyOnMaxZoom: true,
         disableClusteringAtZoom: 10,
+        // Default cluster icons are 40x40 (below Lighthouse's 48x48 tap-target minimum,
+        // PSI/I-136 flagged 27 of them). Custom size mirrors Leaflet's own
+        // _defaultIconCreateFunction, just bumped to 48x48 — matching CSS in globals.css.
+        iconCreateFunction: (cluster: L.MarkerCluster) => {
+          const count = cluster.getChildCount();
+          const sizeClass = count < 10 ? "small" : count < 100 ? "medium" : "large";
+          return L.divIcon({
+            html: `<div><span>${count}</span></div>`,
+            className: `marker-cluster marker-cluster-${sizeClass}`,
+            iconSize: L.point(48, 48),
+          });
+        },
       });
       map.addLayer(clusterGroup);
 

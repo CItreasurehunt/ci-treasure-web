@@ -9,19 +9,21 @@ import { RevealEmail } from "@/components/reveal-email";
 import BackButton from "@/components/back-button";
 import {
   type SeriesSibling,
-  formatEventDateRange,
   formatPriceLabel,
   formatTimeRange,
   getEventBySlug,
-  getEventHref,
-  getEventLocation,
   getLevelLabel,
   getLanguageLabel,
   getLinkLabel,
   getOgImageStyle,
-  getTypeLabel,
   parseEventSlug,
 } from "@/lib/events";
+import {
+  formatEventDateRange,
+  getEventHref,
+  getEventLocation,
+  getTypeLabel,
+} from "@/lib/event-display";
 import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 
 export const revalidate = 3600;

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateProfile, setProfileDeactivated, requestProfileDeletion, type ProfileUpdateData } from "./actions";
 import { uploadProfilePhoto } from "./photo-actions";
 import { CONTINENT_COUNTRIES } from "@/lib/continents";
-import { getCountryLabel } from "@/lib/events";
+import { getCountryLabel } from "@/lib/event-display";
 
 const inputClassName =
   "w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm text-slate-950 outline-none ring-0 transition focus:border-(--color-pine)";

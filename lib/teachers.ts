@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { type EventListItem, type SupabaseEventRow, mapEventRow } from "./events";
+import { type SupabaseEventRow, mapEventRow } from "./events";
+import { type EventListItem } from "./event-display";
 
 function hasSupabaseEnv() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);

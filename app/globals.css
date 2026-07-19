@@ -134,6 +134,21 @@
   100% { transform: scale(1.8); opacity: 0; }
 }
 
+/* Cluster icon size bumped to 48x48 in map.tsx's iconCreateFunction (was Leaflet's default
+   40x40, under Lighthouse's tap-target minimum — I-136). Matching CSS: keep the same
+   ~75% inner/outer ratio as Leaflet's own default (30/40), scaled up to 36/48. */
+.marker-cluster {
+  border-radius: 24px;
+}
+.marker-cluster div {
+  width: 36px;
+  height: 36px;
+  margin-left: 6px;
+  margin-top: 6px;
+  border-radius: 18px;
+  line-height: 36px;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -150,4 +165,13 @@
   a {
     @apply transition;
   }
+}
+
+/* Leaflet's own controls (zoom in/out, attribution) are plain <a> tags, so the sitewide
+   hover transition above applies to them too — including `color`, which isn't a compositor
+   property and got flagged by Lighthouse's non-composited-animations audit (I-136, traced to
+   the zoom-out button's disabled-state color change). Leaflet's own CSS has no transition on
+   these by design; opt them back out rather than narrowing the transition for every link. */
+.leaflet-container a {
+  transition: none;
 }

@@ -8,7 +8,7 @@ import {
   getEventHref,
   getEventLocation,
   getTypeLabel,
-} from "@/lib/events";
+} from "@/lib/event-display";
 import { getCountryFlag } from "@/lib/utils";
 
 export function EntityEventCard({ event }: { event: EventListItem }) {

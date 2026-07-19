@@ -8,7 +8,7 @@ import { Search, Map, List, X, Filter } from "lucide-react";
 import { EventCard } from "./event-card";
 import { BackToTopButton } from "./back-to-top-button";
 import { Button } from "./ui/button";
-import { disciplineLabel, getCountryLabel, getTypeLabel, type EventListItem } from "@/lib/events";
+import { disciplineLabel, getCountryLabel, getTypeLabel, type EventListItem } from "@/lib/event-display";
 import { TELEGRAM_URL } from "@/lib/site";
 import { CONTINENT_COUNTRIES, CONTINENT_LABELS } from "@/lib/continents";
 

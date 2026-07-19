@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { EventsDashboard } from "@/components/events-dashboard";
-import { getCountryLabel, getUpcomingEvents } from "@/lib/events";
+import { getUpcomingEvents } from "@/lib/events";
+import { getCountryLabel } from "@/lib/event-display";
 import { getVenueCountries } from "@/lib/venues";
 import { getCommunityCountries } from "@/lib/communities";
 import { SITE_URL } from "@/lib/site";

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronUp, User } from "lucide-react";
-import { type SegmentsData, formatEventDateRange } from "@/lib/events";
+import { type SegmentsData, formatEventDateRange } from "@/lib/event-display";
 import { slugify } from "@/lib/slug";
 
 interface SegmentsSectionProps {

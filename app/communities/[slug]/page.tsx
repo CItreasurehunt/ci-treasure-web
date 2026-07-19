@@ -19,16 +19,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import BackButton from "@/components/back-button";
 import VenueMap from "@/components/venue-map";
+import { getLinkLabel, linkSortKey } from "@/lib/events";
 import {
   formatEventDateRange,
   getCountryLabel,
   getEventHref,
   getEventLocation,
-  getLinkLabel,
   getTypeLabel,
-  linkSortKey,
   EventListItem as EventListItemType,
-} from "@/lib/events";
+} from "@/lib/event-display";
 import {
   getAllCommunitySlugs,
   getCommunityBySlug,

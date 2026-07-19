@@ -21,12 +21,8 @@ import { SocialLink } from "@/components/social-link";
 import { RevealEmail } from "@/components/reveal-email";
 import { EntityEventCard } from "@/components/entity-event-card";
 import { EntityImage } from "@/components/entity-image";
-import {
-  GENERIC_ACCENT_GRADIENT,
-  getCountryLabel,
-  getLinkLabel,
-  linkSortKey,
-} from "@/lib/events";
+import { getLinkLabel, linkSortKey } from "@/lib/events";
+import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 

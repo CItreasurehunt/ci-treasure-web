@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createEvent, updateEvent } from "@/app/events/actions";
-import { disciplineLabel } from "@/lib/events";
+import { disciplineLabel } from "@/lib/event-display";
 import {
   EVENT_TYPE_OPTIONS,
   LEVEL_OPTIONS,
