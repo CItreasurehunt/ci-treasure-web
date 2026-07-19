@@ -16,7 +16,9 @@ test.describe('Public Smoke Tests', () => {
     const anyState = eventCards.first().or(noEvents.first()).or(envMissing.first());
     // To handle multiple matches (like both noEvents and envMissing being visible),
     // we check that the count is at least 1 instead of using toBeVisible() which has strict mode.
-    expect(await anyState.count()).toBeGreaterThan(0);
+    // The events list is client-rendered (I-130), so a plain one-shot count() here races
+    // hydration on slower engines (WebKit locally can take ~3s) — expect.poll retries instead.
+    await expect.poll(() => anyState.count(), { timeout: 10_000 }).toBeGreaterThan(0);
   });
 
   test('country filter updates the list', async ({ page }) => {
@@ -28,6 +30,9 @@ test.describe('Public Smoke Tests', () => {
 
     if (options.length > 1) {
       const initialEventCards = page.locator('div[id^="event-card-"]');
+      // Same hydration race as the "homepage renders" test above — wait for the list to
+      // actually render before reading a count from it.
+      await expect.poll(() => initialEventCards.count(), { timeout: 10_000 }).toBeGreaterThan(0);
       const initialCount = await initialEventCards.count();
 
       // On mobile the filters are collapsed — open them first
