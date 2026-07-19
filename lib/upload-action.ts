@@ -4,7 +4,7 @@ import sharp from "sharp";
 
 import { requireAdminUser } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
-import { getThumbUrl } from "@/lib/image-url";
+import { getMediumUrl, getSmallUrl } from "@/lib/image-url";
 
 // Only reachable from the admin event form (components/admin/event-form.tsx), but a
 // server action is an independently callable endpoint regardless of which UI renders
@@ -14,12 +14,16 @@ const ALLOWED_TYPES = ["image/jpeg", "image/webp"];
 // Same conventions as lib/rehost-image.ts / photo-actions.ts (I-122/I-129): this path
 // previously uploaded whatever the admin picked completely unprocessed — a real,
 // uncompressed 4000px camera photo would sail straight through the type/size
-// checks above. Resize + recompress here the same way the other upload paths do,
-// and also produce the small tile-sized thumb alongside it.
+// checks above. Resize + recompress here the same way the other upload paths do.
+// I-129 Phase 2: `large` always stays JPEG (the only size feeding og:image/JSON-LD,
+// and Telegram's link-preview unfurler doesn't reliably render WebP); `medium`/`small`
+// are pure in-page uses, safe to convert to WebP for the extra compression.
 const LARGE_LONG_EDGE = 1600;
 const LARGE_QUALITY = 82;
-const THUMB_LONG_EDGE = 400;
-const THUMB_QUALITY = 75;
+const MEDIUM_LONG_EDGE = 400;
+const MEDIUM_QUALITY = 75;
+const SMALL_LONG_EDGE = 120;
+const SMALL_QUALITY = 70;
 
 export async function uploadEventImage(formData: FormData) {
   await requireAdminUser();
@@ -31,7 +35,8 @@ export async function uploadEventImage(formData: FormData) {
 
   const inputBuffer = Buffer.from(await file.arrayBuffer());
   let largeBuffer: Buffer;
-  let thumbBuffer: Buffer;
+  let mediumBuffer: Buffer;
+  let smallBuffer: Buffer;
   try {
     const rotated = sharp(inputBuffer).rotate();
     largeBuffer = await rotated
@@ -39,10 +44,15 @@ export async function uploadEventImage(formData: FormData) {
       .resize(LARGE_LONG_EDGE, LARGE_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: LARGE_QUALITY })
       .toBuffer();
-    thumbBuffer = await rotated
+    mediumBuffer = await rotated
       .clone()
-      .resize(THUMB_LONG_EDGE, THUMB_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: THUMB_QUALITY })
+      .resize(MEDIUM_LONG_EDGE, MEDIUM_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: MEDIUM_QUALITY })
+      .toBuffer();
+    smallBuffer = await rotated
+      .clone()
+      .resize(SMALL_LONG_EDGE, SMALL_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: SMALL_QUALITY })
       .toBuffer();
   } catch {
     throw new Error("Could not process image");
@@ -52,7 +62,8 @@ export async function uploadEventImage(formData: FormData) {
 
   const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.jpg`;
   const filePath = fileName;
-  const thumbPath = getThumbUrl(filePath);
+  const mediumPath = getMediumUrl(filePath);
+  const smallPath = getSmallUrl(filePath);
 
   const { error } = await supabase.storage
     .from('event-images')
@@ -64,16 +75,26 @@ export async function uploadEventImage(formData: FormData) {
     throw error;
   }
 
-  // Atomic-ish: large uploads first, then thumb. If the thumb upload fails,
-  // roll back the large so storage never ends up with a large file and no
-  // matching thumb (I-129 — see spec for why this isn't a DB column).
-  const { error: thumbError } = await supabase.storage
+  // Atomic-ish: large uploads first, then medium/small. If either smaller
+  // upload fails, roll back everything uploaded so far so storage never ends
+  // up with a large file and missing medium/small siblings (I-129 — see spec
+  // for why this isn't a DB column).
+  const { error: mediumError } = await supabase.storage
     .from('event-images')
-    .upload(thumbPath, thumbBuffer, { contentType: "image/jpeg", cacheControl: '2592000' });
+    .upload(mediumPath, mediumBuffer, { contentType: "image/webp", cacheControl: '2592000' });
 
-  if (thumbError) {
+  if (mediumError) {
     await supabase.storage.from('event-images').remove([filePath]);
-    throw thumbError;
+    throw mediumError;
+  }
+
+  const { error: smallError } = await supabase.storage
+    .from('event-images')
+    .upload(smallPath, smallBuffer, { contentType: "image/webp", cacheControl: '2592000' });
+
+  if (smallError) {
+    await supabase.storage.from('event-images').remove([filePath, mediumPath]);
+    throw smallError;
   }
 
   const { data: { publicUrl } } = supabase.storage

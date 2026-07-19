@@ -4,18 +4,24 @@ import { revalidatePath } from "next/cache";
 import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getThumbUrl } from "@/lib/image-url";
+import { getMediumUrl, getSmallUrl } from "@/lib/image-url";
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const MIN_LONG_EDGE = 200;
-// I-129: also produce a small tile-sized thumb alongside the large photo.
-// 0 profiles have an approved photo yet, so there's nothing to backfill here —
-// but wiring this now means teacher photos are two-size-ready from their very
-// first upload, ahead of I-074 Phase 3 (teacher listing) needing tile photos.
+// I-129 Phase 2: also produce a small tile-sized photo alongside the large +
+// medium ones. 0 profiles have an approved photo yet, so there's nothing to
+// backfill here — but wiring this now means teacher photos are three-size-
+// ready from their very first upload, ahead of I-074 Phase 3 (teacher
+// listing) needing tile-sized photos. `large` stays JPEG (the only size
+// feeding og:image/JSON-LD, and Telegram's link-preview unfurler doesn't
+// reliably render WebP); `medium`/`small` are pure in-page uses, safe to
+// convert to WebP.
 const LARGE_LONG_EDGE = 1600;
 const LARGE_QUALITY = 82;
-const THUMB_LONG_EDGE = 400;
-const THUMB_QUALITY = 75;
+const MEDIUM_LONG_EDGE = 400;
+const MEDIUM_QUALITY = 75;
+const SMALL_LONG_EDGE = 120;
+const SMALL_QUALITY = 70;
 
 export async function uploadProfilePhoto(formData: FormData) {
   const supabase = await createClient();
@@ -61,7 +67,8 @@ export async function uploadProfilePhoto(formData: FormData) {
   }
 
   let largeBuffer: Buffer;
-  let thumbBuffer: Buffer;
+  let mediumBuffer: Buffer;
+  let smallBuffer: Buffer;
   try {
     const rotated = sharp(inputBuffer).rotate();
     largeBuffer = await rotated
@@ -69,10 +76,15 @@ export async function uploadProfilePhoto(formData: FormData) {
       .resize(LARGE_LONG_EDGE, LARGE_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: LARGE_QUALITY })
       .toBuffer();
-    thumbBuffer = await rotated
+    mediumBuffer = await rotated
       .clone()
-      .resize(THUMB_LONG_EDGE, THUMB_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: THUMB_QUALITY })
+      .resize(MEDIUM_LONG_EDGE, MEDIUM_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: MEDIUM_QUALITY })
+      .toBuffer();
+    smallBuffer = await rotated
+      .clone()
+      .resize(SMALL_LONG_EDGE, SMALL_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: SMALL_QUALITY })
       .toBuffer();
   } catch {
     return { success: false, error: "Could not process image" };
@@ -80,7 +92,8 @@ export async function uploadProfilePhoto(formData: FormData) {
 
   const admin = createAdminClient();
   const path = `${profile.slug}.jpg`;
-  const thumbPath = getThumbUrl(path);
+  const mediumPath = getMediumUrl(path);
+  const smallPath = getSmallUrl(path);
 
   const { error: uploadError } = await admin.storage
     .from("profile-images")
@@ -92,25 +105,39 @@ export async function uploadProfilePhoto(formData: FormData) {
     return { success: false, error: uploadError.message };
   }
 
-  // Atomic-ish: large uploads first, then thumb. If the thumb upload fails,
-  // roll back the large so storage never ends up with a large file and no
-  // matching thumb (I-129 — see spec for why this isn't a DB column).
-  const { error: thumbError } = await admin.storage
+  // Atomic-ish: large uploads first, then medium/small. If either smaller
+  // upload fails, roll back everything uploaded so far so storage never ends
+  // up with a large file and missing medium/small siblings (I-129 — see spec
+  // for why this isn't a DB column).
+  const { error: mediumError } = await admin.storage
     .from("profile-images")
-    .upload(thumbPath, thumbBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
+    .upload(mediumPath, mediumBuffer, { contentType: "image/webp", upsert: true, cacheControl: "2592000" });
 
-  if (thumbError) {
+  if (mediumError) {
     await admin.storage.from("profile-images").remove([path]);
-    return { success: false, error: thumbError.message };
+    return { success: false, error: mediumError.message };
+  }
+
+  const { error: smallError } = await admin.storage
+    .from("profile-images")
+    .upload(smallPath, smallBuffer, { contentType: "image/webp", upsert: true, cacheControl: "2592000" });
+
+  if (smallError) {
+    await admin.storage.from("profile-images").remove([path, mediumPath]);
+    return { success: false, error: smallError.message };
   }
 
   // Orphan cleanup: if the previous image_url pointed into this bucket under a
   // different path than what we just wrote (e.g. a legacy/manually-set URL
-  // with a different extension), remove it (and its thumb) so it doesn't
-  // linger unreferenced.
+  // with a different extension), remove it (and its medium/small) so it
+  // doesn't linger unreferenced.
   const previousPath = extractProfileImagesPath(profile.image_url);
   if (previousPath && previousPath !== path) {
-    await admin.storage.from("profile-images").remove([previousPath, getThumbUrl(previousPath)]);
+    await admin.storage.from("profile-images").remove([
+      previousPath,
+      getMediumUrl(previousPath),
+      getSmallUrl(previousPath),
+    ]);
   }
 
   const { data: { publicUrl } } = admin.storage.from("profile-images").getPublicUrl(path);

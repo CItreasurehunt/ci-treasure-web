@@ -1,16 +1,19 @@
 import sharp from "sharp";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getThumbUrl } from "@/lib/image-url";
+import { getMediumUrl, getSmallUrl } from "@/lib/image-url";
 
 // Same conventions as app/dashboard/profile/edit/photo-actions.ts (I-122): resize long edge,
-// EXIF-safe rotate, JPEG quality 82. I-129 adds a second, smaller thumb output for
-// tile/list/map contexts, uploaded alongside the large file.
+// EXIF-safe rotate, JPEG quality 82. I-129 Phase 2: `large` always stays JPEG (the only
+// size feeding og:image/JSON-LD, and Telegram's link-preview unfurler doesn't reliably
+// render WebP); `medium`/`small` are pure in-page uses, safe to convert to WebP.
 const MAX_FETCH_BYTES = 8 * 1024 * 1024;
 const FETCH_TIMEOUT_MS = 10_000;
 const LARGE_LONG_EDGE = 1600;
 const LARGE_QUALITY = 82;
-const THUMB_LONG_EDGE = 400;
-const THUMB_QUALITY = 75;
+const MEDIUM_LONG_EDGE = 400;
+const MEDIUM_QUALITY = 75;
+const SMALL_LONG_EDGE = 120;
+const SMALL_QUALITY = 70;
 
 function isOwnBucketUrl(url: string): boolean {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -66,7 +69,8 @@ export async function rehostExternalImage(
   const inputBuffer = Buffer.concat(chunks.map((c) => Buffer.from(c)));
 
   let largeBuffer: Buffer;
-  let thumbBuffer: Buffer;
+  let mediumBuffer: Buffer;
+  let smallBuffer: Buffer;
   try {
     const rotated = sharp(inputBuffer).rotate();
     largeBuffer = await rotated
@@ -74,17 +78,23 @@ export async function rehostExternalImage(
       .resize(LARGE_LONG_EDGE, LARGE_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: LARGE_QUALITY })
       .toBuffer();
-    thumbBuffer = await rotated
+    mediumBuffer = await rotated
       .clone()
-      .resize(THUMB_LONG_EDGE, THUMB_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: THUMB_QUALITY })
+      .resize(MEDIUM_LONG_EDGE, MEDIUM_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: MEDIUM_QUALITY })
+      .toBuffer();
+    smallBuffer = await rotated
+      .clone()
+      .resize(SMALL_LONG_EDGE, SMALL_LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: SMALL_QUALITY })
       .toBuffer();
   } catch {
     return { error: "Could not process image" };
   }
 
   const admin = createAdminClient();
-  const thumbPath = getThumbUrl(path);
+  const mediumPath = getMediumUrl(path);
+  const smallPath = getSmallUrl(path);
 
   const { error: uploadError } = await admin.storage
     .from(bucket)
@@ -97,15 +107,24 @@ export async function rehostExternalImage(
     return { error: uploadError.message };
   }
 
-  // Atomic-ish: large uploads first, then thumb. If the thumb upload fails,
-  // roll back the large so storage never ends up with a large file and no
-  // matching thumb (I-129 — see spec for why this isn't a DB column).
-  const { error: thumbError } = await admin.storage
+  // Atomic-ish: large uploads first, then medium/small. If either smaller
+  // upload fails, roll back everything uploaded so far so storage never ends
+  // up with a large file and missing medium/small siblings (I-129 — see spec
+  // for why this isn't a DB column).
+  const { error: mediumError } = await admin.storage
     .from(bucket)
-    .upload(thumbPath, thumbBuffer, { contentType: "image/jpeg", upsert: true, cacheControl: "2592000" });
-  if (thumbError) {
+    .upload(mediumPath, mediumBuffer, { contentType: "image/webp", upsert: true, cacheControl: "2592000" });
+  if (mediumError) {
     await admin.storage.from(bucket).remove([path]);
-    return { error: thumbError.message };
+    return { error: mediumError.message };
+  }
+
+  const { error: smallError } = await admin.storage
+    .from(bucket)
+    .upload(smallPath, smallBuffer, { contentType: "image/webp", upsert: true, cacheControl: "2592000" });
+  if (smallError) {
+    await admin.storage.from(bucket).remove([path, mediumPath]);
+    return { error: smallError.message };
   }
 
   const { data: { publicUrl } } = admin.storage.from(bucket).getPublicUrl(path);
