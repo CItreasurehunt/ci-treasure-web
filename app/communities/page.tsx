@@ -15,7 +15,11 @@ export default async function CommunitiesPage() {
     await getCommunities();
 
   return (
-    <Suspense>
+    // Same fix as venues/page.tsx and the original homepage CLS bug (I-136): Suspense is
+    // required for useSearchParams(), not data, but a bare fallback lets the real content pop
+    // in all at once and shove the footer down. min-h-screen matches the real content's own
+    // base height.
+    <Suspense fallback={<div className="min-h-screen" />}>
       <CommunitiesClient
         initialCommunities={communities}
         initialCountries={countries}

@@ -310,6 +310,7 @@ export function CommunitiesClient({
           <div className={`flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 md:pt-4 ${filtersOpen ? "flex" : "hidden"} lg:flex`}>
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <select
+                aria-label="Filter by country"
                 value={selectedCountry}
                 onChange={(e) => setSelectedCountry(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 sm:w-44"
@@ -331,6 +332,7 @@ export function CommunitiesClient({
               </select>
 
               <select
+                aria-label="Filter by community type"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 sm:w-44"
