@@ -186,7 +186,7 @@ export function CommunitiesClient({
   // Error state
   if (initialError) {
     return (
-      <div className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
+      <main className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50 p-6">
             <h1 className="mb-2 font-serif text-2xl text-amber-900">
@@ -198,12 +198,12 @@ export function CommunitiesClient({
             Please try again later or contact us if the problem persists.
           </p>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
+    <main className="min-h-screen overflow-x-hidden bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <header className="mb-8">
@@ -470,7 +470,7 @@ export function CommunitiesClient({
           </div>
         </section>
       </div>
-    </div>
+    </main>
   );
 }
 

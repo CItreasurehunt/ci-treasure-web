@@ -98,7 +98,7 @@ export function VenuesClient({
 
   if (initialError) {
     return (
-      <div className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
+      <main className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50 p-6">
             <h1 className="mb-2 font-serif text-2xl text-amber-900">Unable to load venues</h1>
@@ -108,12 +108,12 @@ export function VenuesClient({
             Please try again later or contact us if the problem persists.
           </p>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
+    <main className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-7xl">
         <header className="mb-8">
           <h1 className="mb-3 font-serif text-3xl text-slate-900 md:text-5xl">
@@ -248,7 +248,7 @@ export function VenuesClient({
           </a>
         </section>
       </div>
-    </div>
+    </main>
   );
 }
 
