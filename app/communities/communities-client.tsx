@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,6 +11,7 @@ import { TELEGRAM_URL } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import { CONTINENT_COUNTRIES, CONTINENT_LABELS } from "@/lib/continents";
 import { PLATFORM_ICON_CLASS, TelegramIcon, WhatsAppIcon, SignalIcon } from "@/components/platform-icons";
+import { BackToTopButton } from "@/components/back-to-top-button";
 
 const WORLDWIDE_VALUE = "__worldwide";
 
@@ -137,6 +138,22 @@ export function CommunitiesClient({
     });
   }, [initialCommunities, searchQuery, selectedCountry, selectedType]);
 
+  // Rendering all ~140 filtered communities into the DOM on mount was the same TBT problem
+  // found and fixed on the events page (see I-136) — same fix here. The map still gets every
+  // community for its markers, only the card list itself is paginated.
+  const COMMUNITIES_PAGE_SIZE = 20;
+  const [visibleCommunityCount, setVisibleCommunityCount] = useState(COMMUNITIES_PAGE_SIZE);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCommunityCount(COMMUNITIES_PAGE_SIZE);
+  }, [filteredCommunities]);
+
+  const visibleCommunities = useMemo(
+    () => filteredCommunities.slice(0, visibleCommunityCount),
+    [filteredCommunities, visibleCommunityCount]
+  );
+
   const handleShowOnMap = useCallback((communityId: string) => {
     setHighlightedCommunityId(communityId);
     // Switch to map view on mobile
@@ -146,13 +163,25 @@ export function CommunitiesClient({
   }, []);
 
   const handleMarkerClick = useCallback((communityId: string) => {
+    // The map plots every filtered community regardless of how many cards are loaded in the
+    // list, so a clicked marker's card may not exist in the DOM yet. Expand the loaded page
+    // (rounded up to a full page) to cover it — the actual scroll happens in the effect below,
+    // once React has committed the newly-revealed card.
+    setVisibleCommunityCount((current) => {
+      const index = filteredCommunities.findIndex((c) => c.id === communityId);
+      if (index >= current) {
+        return Math.ceil((index + 1) / COMMUNITIES_PAGE_SIZE) * COMMUNITIES_PAGE_SIZE;
+      }
+      return current;
+    });
     setHighlightedCommunityId(communityId);
-    // Scroll to card
-    const cardElement = document.getElementById(`community-card-${communityId}`);
-    if (cardElement) {
-      cardElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  }, []);
+  }, [filteredCommunities]);
+
+  useEffect(() => {
+    if (!highlightedCommunityId) return;
+    const cardElement = document.getElementById(`community-card-${highlightedCommunityId}`);
+    cardElement?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [highlightedCommunityId, visibleCommunityCount]);
 
   // Error state
   if (initialError) {
@@ -333,43 +362,60 @@ export function CommunitiesClient({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-320px)] min-h-[500px]">
           {/* List Column */}
           <div
-            className={`lg:col-span-4 h-full overflow-y-auto pr-1 space-y-3 ${
+            className={`relative lg:col-span-4 h-full min-h-0 ${
               mobileView === "list" ? "block" : "hidden lg:block"
             }`}
           >
-            {filteredCommunities.length > 0 ? (
-              filteredCommunities.map((community) => (
-                <div
-                  key={community.id}
-                  id={`community-card-${community.id}`}
-                  className={`transition rounded-2xl ${
-                    highlightedCommunityId === community.id
-                      ? "ring-2 ring-violet-500 ring-offset-2 scale-[0.99] shadow-sm"
-                      : ""
-                  }`}
-                >
-                  <CommunityCard
-                    community={community}
-                    onShowOnMap={() => handleShowOnMap(community.id)}
-                  />
+            <div ref={listScrollRef} className="h-full overflow-y-auto pr-1 space-y-3">
+              {visibleCommunities.length > 0 ? (
+                <>
+                  {visibleCommunities.map((community) => (
+                    <div
+                      key={community.id}
+                      id={`community-card-${community.id}`}
+                      className={`transition rounded-2xl ${
+                        highlightedCommunityId === community.id
+                          ? "ring-2 ring-violet-500 ring-offset-2 scale-[0.99] shadow-sm"
+                          : ""
+                      }`}
+                    >
+                      <CommunityCard
+                        community={community}
+                        onShowOnMap={() => handleShowOnMap(community.id)}
+                      />
+                    </div>
+                  ))}
+                  {visibleCommunityCount < filteredCommunities.length && (
+                    <div className="flex justify-center pt-2 pb-4">
+                      <Button
+                        onClick={() => setVisibleCommunityCount((c) => c + COMMUNITIES_PAGE_SIZE)}
+                        variant="outline"
+                        size="sm"
+                        className="border-violet-200 text-violet-600 hover:bg-violet-50"
+                      >
+                        Load more ({filteredCommunities.length - visibleCommunityCount} remaining)
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/75 px-6 py-16 text-center">
+                  <p className="font-serif text-xl text-slate-900 font-medium">No communities found.</p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Try widening your parameters or clearing the search box.
+                  </p>
+                  <Button
+                    onClick={resetFilters}
+                    variant="outline"
+                    size="sm"
+                    className="mt-4 border-violet-200 text-violet-600 hover:bg-violet-50"
+                  >
+                    Reset Filters
+                  </Button>
                 </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/75 px-6 py-16 text-center">
-                <p className="font-serif text-xl text-slate-900 font-medium">No communities found.</p>
-                <p className="mt-2 text-sm text-slate-500">
-                  Try widening your parameters or clearing the search box.
-                </p>
-                <Button
-                  onClick={resetFilters}
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 border-violet-200 text-violet-600 hover:bg-violet-50"
-                >
-                  Reset Filters
-                </Button>
-              </div>
-            )}
+              )}
+            </div>
+            <BackToTopButton containerRef={listScrollRef} />
           </div>
 
           {/* Map Column */}

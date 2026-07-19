@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Search, Map, List, X, Filter } from "lucide-react";
 
 import { EventCard } from "./event-card";
+import { BackToTopButton } from "./back-to-top-button";
 import { Button } from "./ui/button";
 import { disciplineLabel, getCountryLabel, getTypeLabel, type EventListItem } from "@/lib/events";
 import { TELEGRAM_URL } from "@/lib/site";
@@ -108,6 +109,15 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
   useEffect(() => {
     if (mobileView === "map") setShouldRenderMap(true);
   }, [mobileView]);
+
+  // Rendering all ~140 filtered events into the DOM on mount was the dominant contributor to
+  // Total Blocking Time (confirmed via a CDP CPU profile, see I-136) — the map still gets every
+  // event for its markers, only the card list itself is paginated. Resets to the first page
+  // whenever the filtered set changes, so a new filter/search doesn't leave the count stranded
+  // partway through the old result set.
+  const EVENTS_PAGE_SIZE = 20;
+  const [visibleEventCount, setVisibleEventCount] = useState(EVENTS_PAGE_SIZE);
+  const listScrollRef = useRef<HTMLDivElement>(null);
 
   const activeFilterCount = [selectedCountry, selectedType, selectedMonth, soonOnly ? "1" : ""].filter(Boolean).length;
 
@@ -240,15 +250,32 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
     });
   }, [events, searchQuery, selectedCountry, selectedType, selectedMonth, soonOnly, selectedDisciplines, showAllDisciplines]);
 
+  useEffect(() => {
+    setVisibleEventCount(EVENTS_PAGE_SIZE);
+  }, [filteredEvents]);
+
+  const visibleEvents = useMemo(
+    () => filteredEvents.slice(0, visibleEventCount),
+    [filteredEvents, visibleEventCount]
+  );
+
   const handleMarkerClick = (eventId: string) => {
-    setHighlightedEventId(eventId);
-    
-    // Find the card element and scroll to it in the sidebar
-    const cardElement = document.getElementById(`event-card-${eventId}`);
-    if (cardElement) {
-      cardElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // The map plots every filtered event regardless of how many cards are currently loaded in
+    // the list, so a clicked marker's card may not exist in the DOM yet. Expand the loaded page
+    // (rounded up to a full page) to cover it before highlighting — the scroll itself happens in
+    // the effect below, once React has actually committed the newly-revealed card.
+    const index = filteredEvents.findIndex((e) => e.id === eventId);
+    if (index >= visibleEventCount) {
+      setVisibleEventCount(Math.ceil((index + 1) / EVENTS_PAGE_SIZE) * EVENTS_PAGE_SIZE);
     }
+    setHighlightedEventId(eventId);
   };
+
+  useEffect(() => {
+    if (!highlightedEventId) return;
+    const cardElement = document.getElementById(`event-card-${highlightedEventId}`);
+    cardElement?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [highlightedEventId, visibleEventCount]);
 
   return (
     <div className="space-y-6">
@@ -441,40 +468,57 @@ export function EventsDashboard({ events }: EventsDashboardProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-270px)] min-h-[500px]">
         {/* Event List (Left side on desktop - Col 5) */}
         <div
-          className={`lg:col-span-4 h-full overflow-y-auto pr-1 space-y-3 ${
+          className={`relative lg:col-span-4 h-full min-h-0 ${
             mobileView === "list" ? "block" : "hidden lg:block"
           }`}
         >
-          {filteredEvents.length > 0 ? (
-            filteredEvents.map((event) => (
-              <div
-                key={event.id}
-                id={`event-card-${event.id}`}
-                className={`transition rounded-lg ${
-                  highlightedEventId === event.id
-                    ? "ring-2 ring-violet-500 ring-offset-2 scale-[0.99] shadow-sm"
-                    : ""
-                }`}
-              >
-                <EventCard event={event} compact />
+          <div ref={listScrollRef} className="h-full overflow-y-auto pr-1 space-y-3">
+            {visibleEvents.length > 0 ? (
+              <>
+                {visibleEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    id={`event-card-${event.id}`}
+                    className={`transition rounded-lg ${
+                      highlightedEventId === event.id
+                        ? "ring-2 ring-violet-500 ring-offset-2 scale-[0.99] shadow-sm"
+                        : ""
+                    }`}
+                  >
+                    <EventCard event={event} compact />
+                  </div>
+                ))}
+                {visibleEventCount < filteredEvents.length && (
+                  <div className="flex justify-center pt-2 pb-4">
+                    <Button
+                      onClick={() => setVisibleEventCount((c) => c + EVENTS_PAGE_SIZE)}
+                      variant="outline"
+                      size="sm"
+                      className="border-violet-200 text-violet-600 hover:bg-violet-50"
+                    >
+                      Load more ({filteredEvents.length - visibleEventCount} remaining)
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/75 px-6 py-16 text-center">
+                <p className="font-serif text-xl text-slate-900 font-medium">No gatherings found matching filters.</p>
+                <p className="mt-2 text-sm text-slate-500">
+                  Try widening your parameters or clearing the search box.
+                </p>
+                <Button
+                  onClick={resetFilters}
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 border-violet-200 text-violet-600 hover:bg-violet-50"
+                >
+                  Reset Filters
+                </Button>
               </div>
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/75 px-6 py-16 text-center">
-              <p className="font-serif text-xl text-slate-900 font-medium">No gatherings found matching filters.</p>
-              <p className="mt-2 text-sm text-slate-500">
-                Try widening your parameters or clearing the search box.
-              </p>
-              <Button
-                onClick={resetFilters}
-                variant="outline"
-                size="sm"
-                className="mt-4 border-violet-200 text-violet-600 hover:bg-violet-50"
-              >
-                Reset Filters
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
+          <BackToTopButton containerRef={listScrollRef} />
         </div>
 
         {/* Map Panel (Right side on desktop - Col 7) */}
