@@ -16,9 +16,12 @@ Deno.serve(async (req) => {
 
   const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
+  // event_channel rows (the public TG channel, I-138) are a permanent feed, not the ephemeral
+  // festival-thread announcements this cleanup exists for — never auto-delete those.
   const { data: rows, error } = await supabase
     .from('tg_announcements')
     .select('id, chat_id, message_id')
+    .neq('entity_type', 'event_channel')
     .lt('sent_at', cutoff)
     .is('deleted_at', null)
 
