@@ -1,12 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { submitEventClaim } from "./actions";
 
 export function ClaimEventForm({ eventId }: { eventId: string }) {
-  const router = useRouter();
   const [role, setRole] = useState<"organizer" | "teacher">("organizer");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +17,6 @@ export function ClaimEventForm({ eventId }: { eventId: string }) {
     setSubmitting(false);
     if (result.success) {
       setDone(true);
-      router.refresh();
     } else {
       setError(result.error ?? "Could not submit claim.");
     }

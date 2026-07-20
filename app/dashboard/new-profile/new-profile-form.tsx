@@ -25,7 +25,6 @@ export function NewProfileForm() {
       const result = await createProfile({ name, website, isOrganizer, isTeacher, isMusician });
       if (result.success) {
         router.push("/dashboard");
-        router.refresh();
       } else {
         setError(result.error ?? "Could not create profile.");
       }
