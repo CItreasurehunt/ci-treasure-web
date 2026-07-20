@@ -66,6 +66,15 @@ export function SiteHeader() {
           )}
         </nav>
 
+        <div className="hidden sm:flex items-center">
+          <Link
+            href="/auth?next=/dashboard"
+            className="rounded-full border border-(--color-sand-strong) px-4 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-(--color-pine) hover:text-(--color-pine)"
+          >
+            Sign in
+          </Link>
+        </div>
+
         {/* Mobile hamburger */}
         <button
           className="sm:hidden p-2 text-slate-700 hover:text-(--color-pine)"
@@ -104,6 +113,13 @@ export function SiteHeader() {
               </Link>
             )
           )}
+          <Link
+            href="/auth?next=/dashboard"
+            className="flex items-center gap-1.5 transition hover:text-(--color-pine)"
+            onClick={() => setOpen(false)}
+          >
+            Sign in
+          </Link>
         </nav>
       )}
     </header>

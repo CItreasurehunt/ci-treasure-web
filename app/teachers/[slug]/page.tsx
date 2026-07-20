@@ -10,6 +10,7 @@ import {
   Youtube,
 } from "lucide-react";
 
+import Link from "next/link";
 import {
   getTeacherBySlug,
   getTeacherEvents,
@@ -258,12 +259,8 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
           </div>
         </section>
         <div className="text-center text-sm text-slate-400">
-          Is this your profile?{" "}
-          <a href="mailto:hello@citreasurehunt.com" className="underline hover:text-slate-600">
-            Get in touch
-          </a>{" "}
-          to update it.{" "}
-          ·{" "}
+          <ClaimCta teacher={teacher} />
+          {teacher.user_id ? null : <>{" "}·{" "}</>}
           <ReportButton
             entity_type="profile"
             entity_id={teacher.id}
@@ -273,6 +270,26 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
         </div>
       </div>
     </main>
+  );
+}
+
+// Three states (not two) — mirrors submit_profile_claim's own rules so the UI never
+// lets someone hit the RPC's "already pending" rejection.
+function ClaimCta({ teacher }: { teacher: { id: string; user_id: string | null; claim_pending_user_id: string | null } }) {
+  if (teacher.user_id) {
+    return null;
+  }
+  if (teacher.claim_pending_user_id) {
+    return <span>Claim pending review</span>;
+  }
+  const next = `/dashboard/claim?profile=${teacher.id}`;
+  return (
+    <span>
+      Is this your profile?{" "}
+      <Link href={`/auth?next=${encodeURIComponent(next)}`} className="font-semibold text-(--color-pine) underline">
+        Claim this profile
+      </Link>
+    </span>
   );
 }
 

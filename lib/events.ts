@@ -59,6 +59,7 @@ type SupabaseProfileJoinFlat = {
   name?: string | null;
   slug?: string | null;
   visibility?: string | null;
+  is_claimed?: boolean | null;
 };
 
 export type LinkItem = {
@@ -97,6 +98,9 @@ export type EventDetail = EventListItem & {
   imageCredit: string | null;
   // True for archived (past) events — the page renders an "event has ended" state.
   isPast: boolean;
+  // True when at least one organizer on this event has no linked auth user yet —
+  // drives the event-level "claim your event" CTA (I-118).
+  hasUnclaimedOrganizer: boolean;
 };
 
 function hasSupabaseEnv() {
@@ -425,6 +429,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     segments: normalizeSegments(eventRow.segments),
     teachers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "teacher")),
     organizers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "organizer")),
+    hasUnclaimedOrganizer: creditedPeople.some((p) => p.kind === "organizer" && !p.is_claimed),
     venueName: venueData?.name ?? eventRow.address?.venue_name ?? null,
     venueAddress: venueData?.address ?? null,
     venueSlug: venueData?.visibility === "public" ? (venueData.slug ?? null) : null,

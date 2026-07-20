@@ -321,6 +321,19 @@ export default async function EventPage({ params }: EventPageProps) {
                   ) : null}
                 </div>
               ) : null}
+
+              {event.hasUnclaimedOrganizer ? (
+                <div className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) px-4 py-3 text-sm text-slate-700">
+                  Are you an organizer of this event?{" "}
+                  <Link
+                    href="/auth?next=/dashboard/claim"
+                    className="font-semibold text-(--color-pine) underline"
+                  >
+                    Claim it
+                  </Link>{" "}
+                  to edit it yourself.
+                </div>
+              ) : null}
             </div>
 
             <aside className="space-y-6">

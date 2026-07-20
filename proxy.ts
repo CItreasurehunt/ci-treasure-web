@@ -67,7 +67,9 @@ export async function proxy(request: NextRequest) {
   // any signed-in user may manage their own claimed events.
   if (!user) {
     const loginUrl = new URL("/auth", request.url);
-    loginUrl.searchParams.set("next", pathname);
+    // Include the search string, not just pathname — /dashboard/claim?profile=<id>
+    // (I-118's deep-link claim CTA) must survive the sign-in round trip.
+    loginUrl.searchParams.set("next", pathname + request.nextUrl.search);
     return NextResponse.redirect(loginUrl);
   }
 

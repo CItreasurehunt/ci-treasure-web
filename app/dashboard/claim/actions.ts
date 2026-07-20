@@ -50,6 +50,36 @@ export async function searchProfiles(query: string): Promise<ClaimableProfile[]>
   }));
 }
 
+// Backs the /dashboard/claim?profile=<id> deep link (CTA #3, per-profile "Claim this
+// profile" button) — same admin-client/unclaimed-only reasoning as searchProfiles, just
+// looked up by id instead of name so the confirm view can skip straight to one profile.
+export async function getClaimableProfileById(profileId: string): Promise<ClaimableProfile | null> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("profiles")
+    .select("id, name, bio, visibility, is_organizer, is_teacher, is_musician")
+    .eq("id", profileId)
+    .is("user_id", null)
+    .is("claim_pending_user_id", null)
+    .maybeSingle();
+
+  if (!data) return null;
+
+  return {
+    id: data.id as string,
+    name: data.name as string,
+    bioSnippet: data.bio ? String(data.bio).slice(0, 120) : null,
+    roles: [
+      data.is_organizer ? "Organizer" : null,
+      data.is_teacher ? "Teacher" : null,
+      data.is_musician ? "Musician" : null,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    visibility: data.visibility as string,
+  };
+}
+
 export async function submitClaim(profileId: string): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
   const {
