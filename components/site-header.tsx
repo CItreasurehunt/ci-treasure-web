@@ -40,33 +40,32 @@ export function SiteHeader() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-5 text-sm font-medium text-slate-700">
-          {NAV_LINKS.map((link) =>
-            link.external ? (
-              <a
-                key={link.label}
-                href={link.href}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 transition hover:text-(--color-pine)"
-              >
-                {link.label}
-                {link.isNew && <NewBadge />}
-              </a>
-            ) : (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="flex items-center gap-1.5 transition hover:text-(--color-pine)"
-              >
-                {link.label}
-                {link.isNew && <NewBadge />}
-              </Link>
-            )
-          )}
-        </nav>
-
-        <div className="hidden sm:flex items-center">
+        <div className="hidden sm:flex items-center gap-6">
+          <nav className="flex items-center gap-5 text-sm font-medium text-slate-700">
+            {NAV_LINKS.map((link) =>
+              link.external ? (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 transition hover:text-(--color-pine)"
+                >
+                  {link.label}
+                  {link.isNew && <NewBadge />}
+                </a>
+              ) : (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="flex items-center gap-1.5 transition hover:text-(--color-pine)"
+                >
+                  {link.label}
+                  {link.isNew && <NewBadge />}
+                </Link>
+              )
+            )}
+          </nav>
           <Link
             href="/auth?next=/dashboard"
             className="rounded-full border border-(--color-sand-strong) px-4 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-(--color-pine) hover:text-(--color-pine)"

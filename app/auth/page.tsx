@@ -62,11 +62,12 @@ export default async function AuthPage({
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-10 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-2xl rounded-[1.75rem] border border-white/80 bg-white/90 p-8 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
-        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">Organizer sign in</p>
-        <h1 className="mt-3 font-serif text-4xl text-slate-950">Manage your events</h1>
+        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">Sign in</p>
+        <h1 className="mt-3 font-serif text-4xl text-slate-950">Manage your profile and events</h1>
         <p className="mt-4 text-base leading-7 text-slate-700">
           Enter your email and we&apos;ll send you a magic link. Open it to sign in — no password needed. Once
-          you&apos;re in, you can claim your profile, edit your listed events, and submit new ones.
+          you&apos;re in, you can claim your profile (update your bio, photo, and links), edit your listed
+          events, and submit new ones.
         </p>
         {sentEmail ? (
           <p className="mt-4 text-sm text-emerald-700">
