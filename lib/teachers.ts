@@ -33,6 +33,8 @@ export type TeacherProfile = {
   image_credit: string | null;
   image_status: string;
   event_count?: number;
+  user_id: string | null;
+  claim_pending_user_id: string | null;
 };
 
 export async function getAllPublicTeachers(): Promise<TeacherProfile[]> {

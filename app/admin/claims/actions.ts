@@ -109,3 +109,123 @@ export async function rejectClaim(profileId: string): Promise<{ success: boolean
   revalidatePath("/admin/claims");
   return { success: true };
 }
+
+export type PendingEventClaim = {
+  claimId: string;
+  eventId: string;
+  eventTitle: string;
+  eventShortId: string;
+  profileId: string;
+  profileName: string;
+  role: string;
+  claimerEmail: string;
+  createdAt: string;
+};
+
+export async function getPendingEventClaims(): Promise<PendingEventClaim[]> {
+  await requireAdminUser();
+  const admin = createAdminClient();
+
+  const { data: claims } = await admin
+    .from("event_claims")
+    .select("id, event_id, profile_id, role, user_id, created_at, events(title, short_id), profiles(name)")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  const result: PendingEventClaim[] = [];
+  for (const c of claims ?? []) {
+    const { data: userData } = await admin.auth.admin.getUserById(c.user_id as string);
+    const event = c.events as unknown as { title: string; short_id: string } | null;
+    const profile = c.profiles as unknown as { name: string } | null;
+    result.push({
+      claimId: c.id as string,
+      eventId: c.event_id as string,
+      eventTitle: event?.title ?? "(unknown event)",
+      eventShortId: event?.short_id ?? "",
+      profileId: c.profile_id as string,
+      profileName: profile?.name ?? "(unknown profile)",
+      role: c.role as string,
+      claimerEmail: userData?.user?.email ?? "(unknown email)",
+      createdAt: c.created_at as string,
+    });
+  }
+  return result;
+}
+
+export async function approveEventClaim(claimId: string): Promise<{ success: boolean; error?: string }> {
+  await requireAdminUser();
+  const admin = createAdminClient();
+
+  const { data: claim, error: readError } = await admin
+    .from("event_claims")
+    .select("event_id, profile_id, role, user_id, status")
+    .eq("id", claimId)
+    .maybeSingle();
+  if (readError || !claim || claim.status !== "pending") {
+    return { success: false, error: "Claim not found or already resolved." };
+  }
+
+  // Lead is the only organizer role self-service grants — co-organizer is abolished
+  // (see docs/issue-backlog.md), teacher is the plain default (not musician/assistant/etc,
+  // which stay admin-assigned distinctions).
+  const insertError =
+    claim.role === "organizer"
+      ? (
+          await admin
+            .from("event_organizers")
+            .insert({ event_id: claim.event_id, organizer_id: claim.profile_id, role: "lead" })
+        ).error
+      : (
+          await admin
+            .from("event_teachers")
+            .insert({ event_id: claim.event_id, teacher_id: claim.profile_id, role: "teacher" })
+        ).error;
+  if (insertError) {
+    return { success: false, error: insertError.message };
+  }
+
+  await admin
+    .from("event_claims")
+    .update({ status: "approved", reviewed_at: new Date().toISOString() })
+    .eq("id", claimId);
+
+  const { data: userData } = await admin.auth.admin.getUserById(claim.user_id);
+  const email = userData?.user?.email;
+  if (email) {
+    const { data: event } = await admin.from("events").select("title").eq("id", claim.event_id).maybeSingle();
+    const result = await sendEmail({
+      to: email,
+      subject: "Your CI Treasure Hunt event claim was approved",
+      text: [
+        `Your claim as ${claim.role} on "${event?.title ?? "the event"}" has been approved.`,
+        "You can now manage it from your dashboard: https://citreasurehunt.com/dashboard",
+        "",
+        "— CI Treasure Hunt",
+      ].join("\n"),
+    });
+    if (!result.ok) {
+      console.error("event claim approval email failed:", result.error);
+    }
+  }
+
+  revalidatePath("/admin/claims");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function rejectEventClaim(claimId: string): Promise<{ success: boolean; error?: string }> {
+  await requireAdminUser();
+  const admin = createAdminClient();
+
+  const { error } = await admin
+    .from("event_claims")
+    .update({ status: "rejected", reviewed_at: new Date().toISOString() })
+    .eq("id", claimId)
+    .eq("status", "pending");
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath("/admin/claims");
+  return { success: true };
+}

@@ -65,6 +65,14 @@ export default async function DashboardPage() {
     .eq("claim_pending_user_id", user.id)
     .maybeSingle();
 
+  // Same middle state for event claims (I-118) — profiles has one pending-claim column to
+  // check, event_claims is a separate table since a user can have several pending at once.
+  const { data: pendingEventClaims } = await supabase
+    .from("event_claims")
+    .select("role, events(title)")
+    .eq("user_id", user.id)
+    .eq("status", "pending");
+
   // Scope explicitly to events this user submitted or is linked to.
   let organizeEvents: DashboardEvent[] = [];
   let teachEvents: DashboardEvent[] = [];
@@ -185,6 +193,22 @@ export default async function DashboardPage() {
           </section>
         ) : (
           <div className="flex flex-col gap-6">
+            {pendingEventClaims && pendingEventClaims.length > 0 ? (
+              <section className="rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6">
+                <h2 className="font-serif text-xl text-slate-950">Event claims pending review</h2>
+                <ul className="mt-3 space-y-1 text-sm text-slate-700">
+                  {pendingEventClaims.map((claim, i) => {
+                    const event = claim.events as unknown as { title: string } | null;
+                    return (
+                      <li key={i}>
+                        {event?.title ?? "(event)"} — as <span className="capitalize">{claim.role}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ) : null}
+
             <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="font-serif text-2xl text-slate-950">Events you organise</h2>

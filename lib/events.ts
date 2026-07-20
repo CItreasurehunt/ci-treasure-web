@@ -59,6 +59,7 @@ type SupabaseProfileJoinFlat = {
   name?: string | null;
   slug?: string | null;
   visibility?: string | null;
+  is_claimed?: boolean | null;
 };
 
 export type LinkItem = {
@@ -97,6 +98,14 @@ export type EventDetail = EventListItem & {
   imageCredit: string | null;
   // True for archived (past) events — the page renders an "event has ended" state.
   isPast: boolean;
+  // True when at least one organizer on this event has no linked auth user yet, OR no
+  // organizer is credited at all (82 events as of 2026-07-20) — either way there's a real
+  // person who could self-serve into ownership. Drives the "claim your event" CTA (I-118).
+  hasUnclaimedOrganizer: boolean;
+  // Distinguishes the two hasUnclaimedOrganizer cases so the CTA copy can be accurate —
+  // "claim it" implies an existing organizer credit to take over, which isn't true when
+  // there's nothing credited yet.
+  hasNoOrganizer: boolean;
 };
 
 function hasSupabaseEnv() {
@@ -425,6 +434,10 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
     segments: normalizeSegments(eventRow.segments),
     teachers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "teacher")),
     organizers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "organizer")),
+    hasUnclaimedOrganizer:
+      creditedPeople.filter((p) => p.kind === "organizer").length === 0 ||
+      creditedPeople.some((p) => p.kind === "organizer" && !p.is_claimed),
+    hasNoOrganizer: creditedPeople.filter((p) => p.kind === "organizer").length === 0,
     venueName: venueData?.name ?? eventRow.address?.venue_name ?? null,
     venueAddress: venueData?.address ?? null,
     venueSlug: venueData?.visibility === "public" ? (venueData.slug ?? null) : null,

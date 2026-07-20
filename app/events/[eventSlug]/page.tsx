@@ -321,6 +321,42 @@ export default async function EventPage({ params }: EventPageProps) {
                   ) : null}
                 </div>
               ) : null}
+
+              {event.hasNoOrganizer ? (
+                <div className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) px-4 py-3 text-sm text-slate-700">
+                  No organizer is listed for this event yet. Were you involved as an organizer or
+                  teacher?{" "}
+                  <Link
+                    href={`/auth?next=${encodeURIComponent(`/dashboard/claim-event?event=${event.id}`)}`}
+                    className="font-semibold text-(--color-pine) underline"
+                  >
+                    Claim it
+                  </Link>{" "}
+                  — an admin reviews every claim before it&apos;s linked.
+                </div>
+              ) : event.hasUnclaimedOrganizer ? (
+                <div className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) px-4 py-3 text-sm text-slate-700">
+                  Are you an organizer of this event?{" "}
+                  <Link
+                    href="/auth?next=/dashboard/claim"
+                    className="font-semibold text-(--color-pine) underline"
+                  >
+                    Claim it
+                  </Link>{" "}
+                  to edit it yourself.
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400">
+                  Were you also involved in this event?{" "}
+                  <Link
+                    href={`/auth?next=${encodeURIComponent(`/dashboard/claim-event?event=${event.id}`)}`}
+                    className="underline hover:text-slate-600"
+                  >
+                    Let us know
+                  </Link>
+                  .
+                </p>
+              )}
             </div>
 
             <aside className="space-y-6">
