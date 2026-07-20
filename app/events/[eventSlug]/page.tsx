@@ -345,7 +345,18 @@ export default async function EventPage({ params }: EventPageProps) {
                   </Link>{" "}
                   to edit it yourself.
                 </div>
-              ) : null}
+              ) : (
+                <p className="text-sm text-slate-400">
+                  Were you also involved in this event?{" "}
+                  <Link
+                    href={`/auth?next=${encodeURIComponent(`/dashboard/claim-event?event=${event.id}`)}`}
+                    className="underline hover:text-slate-600"
+                  >
+                    Let us know
+                  </Link>
+                  .
+                </p>
+              )}
             </div>
 
             <aside className="space-y-6">
