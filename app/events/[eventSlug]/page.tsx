@@ -324,16 +324,15 @@ export default async function EventPage({ params }: EventPageProps) {
 
               {event.hasNoOrganizer ? (
                 <div className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) px-4 py-3 text-sm text-slate-700">
-                  No organizer is listed for this event yet. If it&apos;s yours,{" "}
-                  <a
-                    href={`mailto:hello@citreasurehunt.com?subject=${encodeURIComponent(
-                      `I'm the organizer of "${event.title}"`,
-                    )}&body=${encodeURIComponent(`${SITE_URL}/events/${event.slug}`)}`}
+                  No organizer is listed for this event yet. Were you involved as an organizer or
+                  teacher?{" "}
+                  <Link
+                    href={`/auth?next=${encodeURIComponent(`/dashboard/claim-event?event=${event.id}`)}`}
                     className="font-semibold text-(--color-pine) underline"
                   >
-                    let us know
-                  </a>{" "}
-                  and we&apos;ll link your profile so you can manage it yourself.
+                    Claim it
+                  </Link>{" "}
+                  — an admin reviews every claim before it&apos;s linked.
                 </div>
               ) : event.hasUnclaimedOrganizer ? (
                 <div className="rounded-2xl border border-(--color-sand-strong) bg-(--color-mist) px-4 py-3 text-sm text-slate-700">

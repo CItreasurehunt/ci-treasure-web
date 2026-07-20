@@ -1,0 +1,48 @@
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
+
+const CLAIM_THREAD_ID = Number(process.env.TELEGRAM_CLAIM_THREAD_ID ?? 683);
+
+// Same no-names-in-Telegram reasoning as dashboard/claim/actions.ts's notifyAdminClaim —
+// just a nudge to go review the queue, not a record of who claimed what.
+async function notifyAdminEventClaim() {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+  if (!token || !chatId) return;
+
+  const text = ["🔔 New event claim submitted.", "Review: https://citreasurehunt.com/admin/claims"].join("\n");
+
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      message_thread_id: CLAIM_THREAD_ID,
+      text,
+      link_preview_options: { is_disabled: true },
+    }),
+  });
+}
+
+export async function submitEventClaim(
+  eventId: string,
+  role: "organizer" | "teacher",
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { success: false, error: "You are not signed in." };
+  }
+
+  const { error } = await supabase.rpc("submit_event_claim", { p_event_id: eventId, p_role: role });
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  notifyAdminEventClaim().catch(() => {});
+
+  return { success: true };
+}
