@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 
 import { createEvent, updateEvent } from "@/app/events/actions";
 import { disciplineLabel } from "@/lib/event-display";
-import { COUNTRIES } from "@/lib/countries";
+import { CountryPicker } from "@/components/shared/country-picker";
 import { VenuePicker } from "@/components/shared/venue-picker";
 import {
   EVENT_TYPE_OPTIONS,
@@ -194,14 +194,7 @@ export function OrganizerEventForm({
             <input value={form.city} onChange={(e) => set("city", e.target.value)} className={inputClassName} />
           </Field>
           <Field label="Country *">
-            <select value={form.country} onChange={(e) => set("country", e.target.value)} className={inputClassName}>
-              <option value="">Select a country…</option>
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <CountryPicker value={form.country} onChange={(code) => set("country", code)} inputClassName={inputClassName} />
           </Field>
           <div className="md:col-span-2">
             <Field label="Venue">

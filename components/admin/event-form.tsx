@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Upload, X } from "lucide-react";
 
 import { uploadEventImage } from "@/lib/upload-action";
-import { COUNTRIES } from "@/lib/countries";
+import { CountryPicker } from "@/components/shared/country-picker";
 import { VenuePicker } from "@/components/shared/venue-picker";
 import {
   EVENT_STATUS_OPTIONS,
@@ -152,18 +152,11 @@ export function EventForm({
                 <input value={form.city} onChange={(event) => setForm({ ...form, city: event.target.value })} className={inputClassName} />
               </Field>
               <Field label="Country">
-                <select
+                <CountryPicker
                   value={form.country}
-                  onChange={(event) => setForm({ ...form, country: event.target.value })}
-                  className={inputClassName}
-                >
-                  <option value="">Select a country…</option>
-                  {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(code) => setForm({ ...form, country: code })}
+                  inputClassName={inputClassName}
+                />
               </Field>
               <div className="md:col-span-2">
                 <Field label="Venue">
