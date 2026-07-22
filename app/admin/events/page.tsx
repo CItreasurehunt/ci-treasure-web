@@ -3,9 +3,11 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdminUser } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { slugify } from "@/lib/slug";
 
 type AdminEventRow = {
   id: string;
+  short_id: string;
   title: string;
   type: string;
   start_date: string;
@@ -15,6 +17,9 @@ type AdminEventRow = {
 };
 
 const STATUS_OPTIONS = ["draft", "pending", "published", "archived", "rejected"] as const;
+// Archived/rejected events are done with — reviewing them isn't part of the normal
+// workflow, so they'd otherwise just pad out every default view of this list.
+const DEFAULT_STATUSES = ["draft", "pending", "published"] as const;
 
 async function toggleStatus(formData: FormData) {
   "use server";
@@ -68,14 +73,14 @@ export default async function AdminEventsPage({
 
   const { status } = await searchParams;
   const requestedStatuses = status === undefined ? [] : Array.isArray(status) ? status : [status];
-  const selectedStatuses = requestedStatuses.length > 0 ? requestedStatuses : [...STATUS_OPTIONS];
+  const selectedStatuses = requestedStatuses.length > 0 ? requestedStatuses : [...DEFAULT_STATUSES];
 
   const supabase = createAdminClient();
   const [{ data: events, error: eventsError }, { data: teacherLinks, error: teacherError }, { data: organizerLinks, error: organizerError }] =
     await Promise.all([
       supabase
         .from("events")
-        .select("id, title, type, start_date, country, status, hide")
+        .select("id, short_id, title, type, start_date, country, status, hide")
         .in("status", selectedStatuses)
         .order("start_date", { ascending: true }),
       supabase.from("event_teachers").select("event_id"),
@@ -134,11 +139,12 @@ export default async function AdminEventsPage({
         >
           Apply
         </button>
-        {requestedStatuses.length > 0 ? (
-          <Link href="/admin/events" className="text-xs text-slate-500 underline">
-            Reset (show all)
-          </Link>
-        ) : null}
+        <Link
+          href={`/admin/events?${STATUS_OPTIONS.map((s) => `status=${s}`).join("&")}`}
+          className="text-xs text-slate-500 underline"
+        >
+          Show all (incl. archived/rejected)
+        </Link>
       </form>
 
       <div className="mt-6 overflow-x-auto pb-2">
@@ -185,6 +191,15 @@ export default async function AdminEventsPage({
                   <Link href={`/admin/events/${event.id}/edit`} className="rounded-full border border-(--color-sand-strong) px-3 py-2 text-xs font-semibold">
                     Edit
                   </Link>
+                  {event.status === "published" ? (
+                    <Link
+                      href={`https://citreasurehunt.com/events/${event.short_id}-${slugify(event.title)}`}
+                      target="_blank"
+                      className="rounded-full border border-(--color-sand-strong) px-3 py-2 text-xs font-semibold"
+                    >
+                      View live
+                    </Link>
+                  ) : null}
                   <form action={toggleStatus}>
                     <input type="hidden" name="eventId" value={event.id} />
                     <input type="hidden" name="currentStatus" value={event.status} />
