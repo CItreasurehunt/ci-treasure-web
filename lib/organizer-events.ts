@@ -1,12 +1,21 @@
 // Shared types + pure helpers for the organizer-facing event form (/events/new,
 // /events/[slug]/edit). Reuses the admin item shapes but is intentionally a smaller
-// field set — no status/hide/cancelled/people controls (those stay admin-only).
+// field set — no status/hide/cancelled/organizer-linking controls (those stay admin-only).
+// Teacher-linking is the one exception: create mode collects it locally (see
+// OrganizerTeacherItem) since organizers otherwise had no way to add a teacher until after
+// their event already existed (found live 2026-07-22).
 
 import type { AdminLinkItem, AdminPriceItem } from "./admin-events";
 import { COUNTRIES } from "./countries";
 
-export { EVENT_TYPE_OPTIONS, LINK_TYPE_OPTIONS } from "./admin-events";
+export { EVENT_TYPE_OPTIONS, LINK_TYPE_OPTIONS, TEACHER_ROLE_OPTIONS } from "./admin-events";
 export type { AdminLinkItem, AdminPriceItem };
+
+export type OrganizerTeacherItem = {
+  profileId: string;
+  name: string;
+  role: string;
+};
 
 // Level is a free-text column. Canonical set (unified 2026-07-03): "all_levels" is the
 // single "everyone welcome" value; open_level/mixed/intermediate_plus were migrated away.
@@ -93,6 +102,10 @@ export type OrganizerEventFormData = {
   cancelledText: string;
   priceItems: AdminPriceItem[];
   linkItems: AdminLinkItem[];
+  // Create mode only — edit mode manages this live via TeacherManager, which needs a real
+  // event id that doesn't exist yet at this point. Always empty when hydrated from an
+  // existing event (see eventRowToFormData); createEvent is the only consumer.
+  teachers: OrganizerTeacherItem[];
 };
 
 export function createEmptyOrganizerEventFormData(): OrganizerEventFormData {
@@ -113,6 +126,7 @@ export function createEmptyOrganizerEventFormData(): OrganizerEventFormData {
     level: "",
     languages: "",
     features: "",
+    teachers: [],
     discipline: ["contact_improvisation"],
     cancelled: false,
     cancelledText: "",
@@ -215,6 +229,9 @@ export function eventRowToFormData(row: EventRowForForm): OrganizerEventFormData
       type: l.type ?? "website",
       url: l.url ?? "",
     })),
+    // Edit mode manages teachers live via TeacherManager, not this field — see its comment
+    // on OrganizerEventFormData.
+    teachers: [],
   };
 }
 

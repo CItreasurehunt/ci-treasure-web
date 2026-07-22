@@ -114,6 +114,20 @@ export async function createEvent(data: OrganizerEventFormData): Promise<ActionR
     console.error("event_organizers link failed:", linkError.message);
   }
 
+  // Teachers picked in the create form (InlineTeacherPicker) — can only be written now,
+  // since event_teachers needs the real id this insert just produced. Non-fatal for the
+  // same reason as the organizer link above: the event already exists either way.
+  let teacherWarning: string | undefined;
+  if (data.teachers?.length) {
+    const { error: teacherError } = await supabase.from("event_teachers").insert(
+      data.teachers.map((t) => ({ event_id: inserted.id, teacher_id: t.profileId, role: t.role })),
+    );
+    if (teacherError) {
+      console.error("event_teachers link failed:", teacherError.message);
+      teacherWarning = "Event created, but teachers couldn't be linked — add them from the edit page.";
+    }
+  }
+
   // Trusted organizers auto-publish. The announce Edge Function fires on the
   // pending→published UPDATE (not on INSERT), so publish via a follow-up update.
   if (profile.is_trusted) {
@@ -125,7 +139,7 @@ export async function createEvent(data: OrganizerEventFormData): Promise<ActionR
   }
 
   revalidatePath("/dashboard");
-  return { success: true, slug: buildEventSlug(inserted.short_id, inserted.title), warning };
+  return { success: true, slug: buildEventSlug(inserted.short_id, inserted.title), warning: teacherWarning ?? warning };
 }
 
 export async function updateEvent(

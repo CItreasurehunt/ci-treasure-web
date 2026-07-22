@@ -84,6 +84,31 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
+    // Found live 2026-07-22: the create form already shows a Teachers/Organizers picker and
+    // keeps selections in local state, but this route never persisted them — an admin who
+    // added a teacher before their first save would have it silently discarded on submit
+    // (the redirect to /admin/events/[id]/edit reloads teachers fresh from the DB, which had
+    // nothing). Mirrors the PUT route's insert logic (no delete needed — this is a new row).
+    const teacherRows = (payload.teachers ?? []).map((item: { profileId: string; role: string }) => ({
+      event_id: data.id,
+      teacher_id: item.profileId,
+      role: item.role,
+    }));
+    if (teacherRows.length) {
+      const { error: teachersError } = await supabase.from("event_teachers").insert(teacherRows);
+      if (teachersError) throw teachersError;
+    }
+
+    const organizerRows = (payload.organizers ?? []).map((item: { profileId: string; role: string }) => ({
+      event_id: data.id,
+      organizer_id: item.profileId,
+      role: item.role,
+    }));
+    if (organizerRows.length) {
+      const { error: organizersError } = await supabase.from("event_organizers").insert(organizerRows);
+      if (organizersError) throw organizersError;
+    }
+
     return NextResponse.json({ id: data.id });
   } catch (error) {
     return NextResponse.json(

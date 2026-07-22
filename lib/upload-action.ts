@@ -4,11 +4,12 @@ import sharp from "sharp";
 
 import { requireAdminUser } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getMediumUrl, getSmallUrl } from "@/lib/image-url";
 
-// Only reachable from the admin event form (components/admin/event-form.tsx), but a
-// server action is an independently callable endpoint regardless of which UI renders
-// it — requireAdminUser() is the real gate, not the component that happens to use this.
+// Reachable from both the admin event form and the organizer event form — each exported
+// function below has its own auth gate (requireAdminUser vs. signed-in-with-a-profile), since
+// a server action is an independently callable endpoint regardless of which UI renders it.
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/webp"];
 // Same conventions as lib/rehost-image.ts / photo-actions.ts (I-122/I-129): this path
@@ -25,11 +26,11 @@ const MEDIUM_QUALITY = 75;
 const SMALL_LONG_EDGE = 120;
 const SMALL_QUALITY = 70;
 
-export async function uploadEventImage(formData: FormData) {
-  await requireAdminUser();
-
-  const file = formData.get("file") as File;
-  if (!file) throw new Error("No file provided");
+// Storage writes always go through the admin (service-role) client, same as
+// lib/rehost-image.ts — storage.objects has RLS enabled with no policies defined for
+// event-images, so the plain session client has no INSERT grant here. Callers still gate
+// on the session client for who's allowed to call this at all.
+async function resizeAndUploadEventImage(file: File): Promise<string> {
   if (file.size > MAX_UPLOAD_BYTES) throw new Error("File too large (max 8MB)");
   if (!ALLOWED_TYPES.includes(file.type)) throw new Error("File must be JPEG or WEBP");
 
@@ -58,8 +59,7 @@ export async function uploadEventImage(formData: FormData) {
     throw new Error("Could not process image");
   }
 
-  const supabase = await createClient();
-
+  const supabase = createAdminClient();
   const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.jpg`;
   const filePath = fileName;
   const mediumPath = getMediumUrl(filePath);
@@ -102,4 +102,34 @@ export async function uploadEventImage(formData: FormData) {
     .getPublicUrl(filePath);
 
   return publicUrl;
+}
+
+export async function uploadEventImage(formData: FormData) {
+  await requireAdminUser();
+  const file = formData.get("file") as File;
+  if (!file) throw new Error("No file provided");
+  return resizeAndUploadEventImage(file);
+}
+
+// Found live 2026-07-22: the organizer event form only had a paste-a-URL field, no direct file
+// upload — the admin form got this dropzone but organizers never did. Same processing, gated by
+// "signed in with a claimed profile" (the same requirement createEvent already enforces) instead
+// of admin-only.
+export async function uploadOrganizerEventImage(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!profile) throw new Error("Claim or create your profile before uploading images");
+
+  const file = formData.get("file") as File;
+  if (!file) throw new Error("No file provided");
+  return resizeAndUploadEventImage(file);
 }

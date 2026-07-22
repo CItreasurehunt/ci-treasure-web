@@ -6,6 +6,7 @@ import { Upload, X } from "lucide-react";
 
 import { uploadEventImage } from "@/lib/upload-action";
 import { CountryPicker } from "@/components/shared/country-picker";
+import { CurrencyPicker } from "@/components/shared/currency-picker";
 import { VenuePicker } from "@/components/shared/venue-picker";
 import {
   EVENT_STATUS_OPTIONS,
@@ -312,11 +313,10 @@ export function EventForm({
               className={inputClassName}
               placeholder="320"
             />
-            <input
+            <CurrencyPicker
               value={item.currency}
-              onChange={(event) => updateArrayItem(form.priceItems, index, { currency: event.target.value }, (priceItems) => setForm({ ...form, priceItems }))}
-              className={inputClassName}
-              placeholder="EUR"
+              onChange={(code) => updateArrayItem(form.priceItems, index, { currency: code }, (priceItems) => setForm({ ...form, priceItems }))}
+              inputClassName={inputClassName}
             />
             <input
               value={item.description}

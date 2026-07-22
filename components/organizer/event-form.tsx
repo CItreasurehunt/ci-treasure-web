@@ -5,8 +5,11 @@ import { useState, useTransition } from "react";
 
 import { createEvent, updateEvent } from "@/app/events/actions";
 import { disciplineLabel } from "@/lib/event-display";
+import { uploadOrganizerEventImage } from "@/lib/upload-action";
 import { CountryPicker } from "@/components/shared/country-picker";
+import { CurrencyPicker } from "@/components/shared/currency-picker";
 import { VenuePicker } from "@/components/shared/venue-picker";
+import { InlineTeacherPicker } from "@/components/organizer/inline-teacher-picker";
 import {
   EVENT_TYPE_OPTIONS,
   LEVEL_OPTIONS,
@@ -64,6 +67,7 @@ export function OrganizerEventForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [isSaving, startSaving] = useTransition();
 
   function set<K extends keyof OrganizerEventFormData>(key: K, value: OrganizerEventFormData[K]) {
@@ -238,8 +242,41 @@ export function OrganizerEventForm({
               placeholder="hello@yourevent.com"
             />
           </Field>
-          <Field label="Image URL">
-            <input value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} className={inputClassName} placeholder="https://…" />
+          <Field label="Image">
+            <div className="flex flex-col gap-3">
+              <div className="relative group">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setImageUploadError(null);
+                    try {
+                      const uploadData = new FormData();
+                      uploadData.append("file", file);
+                      const url = await uploadOrganizerEventImage(uploadData);
+                      set("imageUrl", url);
+                    } catch (err) {
+                      setImageUploadError(err instanceof Error ? err.message : "Failed to upload image.");
+                    }
+                  }}
+                />
+                <div className="flex h-32 w-full items-center justify-center rounded-2xl border-2 border-dashed border-(--color-sand-strong) bg-(--color-mist) transition group-hover:border-(--color-pine)">
+                  <div className="flex flex-col items-center gap-2 text-slate-500">
+                    <span className="text-sm font-medium">Click or drag to upload</span>
+                  </div>
+                </div>
+              </div>
+              {imageUploadError ? <p className="text-sm text-rose-700">{imageUploadError}</p> : null}
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1 bg-(--color-sand-strong)" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">or use URL</span>
+                <div className="h-px flex-1 bg-(--color-sand-strong)" />
+              </div>
+              <input value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} className={inputClassName} placeholder="https://…" />
+            </div>
           </Field>
           {form.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -287,7 +324,11 @@ export function OrganizerEventForm({
         render={(item, i) => (
           <div className="grid gap-3 md:grid-cols-[1fr_1fr_2fr]">
             <input value={item.amount} onChange={(e) => set("priceItems", patch(form.priceItems, i, { amount: e.target.value }))} className={inputClassName} placeholder="150" />
-            <input value={item.currency} onChange={(e) => set("priceItems", patch(form.priceItems, i, { currency: e.target.value }))} className={inputClassName} placeholder="EUR" />
+            <CurrencyPicker
+              value={item.currency}
+              onChange={(code) => set("priceItems", patch(form.priceItems, i, { currency: code }))}
+              inputClassName={inputClassName}
+            />
             <input value={item.description} onChange={(e) => set("priceItems", patch(form.priceItems, i, { description: e.target.value }))} className={inputClassName} placeholder="Standard" />
           </div>
         )}
@@ -315,6 +356,10 @@ export function OrganizerEventForm({
           </div>
         )}
       />
+
+      {mode === "create" ? (
+        <InlineTeacherPicker items={form.teachers} onChange={(teachers) => set("teachers", teachers)} />
+      ) : null}
 
       <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
         {error ? <p className="text-sm text-rose-700">{error}</p> : null}
