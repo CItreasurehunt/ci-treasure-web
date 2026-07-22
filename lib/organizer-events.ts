@@ -3,6 +3,7 @@
 // field set — no status/hide/cancelled/people controls (those stay admin-only).
 
 import type { AdminLinkItem, AdminPriceItem } from "./admin-events";
+import { COUNTRIES } from "./countries";
 
 export { EVENT_TYPE_OPTIONS, LINK_TYPE_OPTIONS } from "./admin-events";
 export type { AdminLinkItem, AdminPriceItem };
@@ -236,8 +237,12 @@ export function validateOrganizerEvent(
   }
   if (!data.city.trim()) return "City is required.";
   if (!data.country.trim()) return "Country is required.";
-  if (!/^[A-Za-z]{2}$/.test(data.country.trim())) {
-    return "Country must be a 2-letter ISO code (e.g. DE, GB, US).";
+  // Found live 2026-07-22: the old free-text "2-letter code" field let "UK" (not a real ISO
+  // code — "GB" is) straight through, since it happens to match the length check. The form
+  // now uses a country-name dropdown, but validate against the real list here too in case the
+  // API route is ever hit directly.
+  if (!COUNTRIES.some((c) => c.code === data.country.trim().toUpperCase())) {
+    return "Select a valid country from the list.";
   }
   if (!data.timezone.trim()) return "Timezone is required.";
   if (!data.discipline || data.discipline.length === 0) {
