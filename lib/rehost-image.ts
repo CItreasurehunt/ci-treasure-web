@@ -17,6 +17,16 @@ const MEDIUM_QUALITY = 75;
 const SMALL_LONG_EDGE = 120;
 const SMALL_QUALITY = 70;
 
+// Real magic-byte check, independent of whatever Content-Type the source claims.
+function hasValidImageSignature(buf: Buffer): boolean {
+  if (buf.length < 12) return false;
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return true; // JPEG
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return true; // PNG
+  if (buf.subarray(0, 4).toString("ascii") === "RIFF" && buf.subarray(8, 12).toString("ascii") === "WEBP") return true; // WebP
+  if (buf.subarray(0, 3).toString("ascii") === "GIF") return true; // GIF
+  return false;
+}
+
 function isOwnBucketUrl(url: string): boolean {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
   return Boolean(base) && url.startsWith(`${base}/storage/`);
@@ -101,7 +111,20 @@ export async function rehostExternalImage(
 
   let response: Response;
   try {
-    response = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+    // A bare Node fetch with no User-Agent/Accept reads as an obvious bot to most
+    // anti-scraping CDNs — found live 2026-07-22: Eventbrite's CDN returned a
+    // Content-Type: image/jpeg response with corrupted bytes (not a clean 4xx/HTML block
+    // page) specifically to a server-side fetch, while the identical URL fetched normally
+    // was fine. A real browser UA/Accept header is the standard, low-risk mitigation for
+    // this — it's a publicly embeddable image, not a real access-control bypass.
+    response = await fetch(url, {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+      },
+    });
   } catch {
     return { error: "Could not fetch image URL" };
   }
@@ -129,6 +152,15 @@ export async function rehostExternalImage(
     chunks.push(value);
   }
   const inputBuffer = Buffer.concat(chunks.map((c) => Buffer.from(c)));
+
+  // Don't trust the Content-Type header alone — found live 2026-07-22: a source CDN
+  // returned Content-Type: image/jpeg with corrupted bytes instead of a clean error,
+  // which sharp then "successfully" processed into a corrupted-but-plausible-looking
+  // output file (silently broken on the live site instead of a clear failure at
+  // submission time). Check the real magic bytes before handing anything to sharp.
+  if (!hasValidImageSignature(inputBuffer)) {
+    return { error: "URL did not return valid image data (the source may be blocking automated requests)" };
+  }
 
   let largeBuffer: Buffer;
   let mediumBuffer: Buffer;
