@@ -95,10 +95,20 @@ const MAX_SUFFIX_LEN = 40
 
 // minimumFractionDigits: 0 drops the ".00" on whole amounts (found live: "$420.00–$560.00" reads
 // worse than "$420–$560") while still showing real cents when a price genuinely has them.
+//
+// Intl.NumberFormat throws on a non-ISO-4217 currency string — found live 2026-07-22:
+// "Pound"/"pounds" from the self-service form's free-text currency field crashed this whole
+// announce function (both announce-event's workshop path and announce-event-channel, since
+// both call headlinePrice), silently dropping the announcement entirely. Fall back to a
+// plain "123 CODE" label instead of throwing.
 function fmtMoney(amountMinor: number, currency: string): string {
-  return new Intl.NumberFormat('en', {
-    style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 2,
-  }).format(amountMinor / 100)
+  try {
+    return new Intl.NumberFormat('en', {
+      style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 2,
+    }).format(amountMinor / 100)
+  } catch {
+    return `${amountMinor / 100} ${currency}`
+  }
 }
 
 // Truncate defensively regardless of how well the parsing above worked — free-text descriptions

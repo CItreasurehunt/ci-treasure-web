@@ -243,6 +243,17 @@ export function validateOrganizerEvent(
   if (!data.discipline || data.discipline.length === 0) {
     return "Select at least one practice.";
   }
+  // Found live 2026-07-22: "Pound"/"pounds" typed into the free-text currency field crashed
+  // both the event page and the announce Edge Functions (Intl.NumberFormat throws on a
+  // non-ISO-4217 string) — catch it here instead, before it reaches the database.
+  for (const item of data.priceItems ?? []) {
+    if (!item.currency.trim()) continue;
+    try {
+      new Intl.NumberFormat("en", { style: "currency", currency: item.currency.trim() });
+    } catch {
+      return `"${item.currency}" isn't a valid currency code — use the 3-letter ISO code instead (e.g. GBP, EUR, USD).`;
+    }
+  }
   return null;
 }
 

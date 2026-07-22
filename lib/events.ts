@@ -572,11 +572,19 @@ export function formatPriceLabel(item: PriceItem) {
   }
 
   const normalizedAmount = item.amount / 100;
-  return new Intl.NumberFormat("en", {
-    style: "currency",
-    currency: item.currency,
-    maximumFractionDigits: normalizedAmount % 1 === 0 ? 0 : 2,
-  }).format(normalizedAmount);
+  // Intl.NumberFormat throws on a non-ISO-4217 currency string (found live: "Pound",
+  // "pounds" from the self-service form's free-text field, which crashed the whole event
+  // page's render, not just the price line) — fall back to a plain "123 CODE" label rather
+  // than letting one bad event take down its page.
+  try {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: item.currency,
+      maximumFractionDigits: normalizedAmount % 1 === 0 ? 0 : 2,
+    }).format(normalizedAmount);
+  } catch {
+    return `${normalizedAmount} ${item.currency}`;
+  }
 }
 
 export function getOgImageStyle(type: string) {
