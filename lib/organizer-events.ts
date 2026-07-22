@@ -75,6 +75,10 @@ export type OrganizerEventFormData = {
   timezone: string;
   city: string;
   country: string;
+  venueId: string | null;
+  venueLabel: string;
+  venueName: string;
+  contactEmail: string;
   description: string;
   imageUrl: string;
   level: string;
@@ -99,6 +103,10 @@ export function createEmptyOrganizerEventFormData(): OrganizerEventFormData {
     timezone: "Europe/Berlin",
     city: "",
     country: "",
+    venueId: null,
+    venueLabel: "",
+    venueName: "",
+    contactEmail: "",
     description: "",
     imageUrl: "",
     level: "",
@@ -157,6 +165,10 @@ type EventRowForForm = {
   timezone: string | null;
   city: string | null;
   country: string | null;
+  address: { venue_name?: string } | null;
+  contact_email: string | null;
+  venue_id: string | null;
+  venues: { id: string; name: string; city: string; country: string } | null;
   description: string | null;
   image_url: string | null;
   level: string | null;
@@ -178,6 +190,10 @@ export function eventRowToFormData(row: EventRowForForm): OrganizerEventFormData
     timezone: row.timezone ?? "Europe/Berlin",
     city: row.city ?? "",
     country: row.country ?? "",
+    venueId: row.venue_id ?? null,
+    venueLabel: row.venues ? `${row.venues.name} — ${row.venues.city}, ${row.venues.country}` : "",
+    venueName: row.address?.venue_name ?? "",
+    contactEmail: row.contact_email ?? "",
     description: row.description ?? "",
     imageUrl: row.image_url ?? "",
     level: row.level ?? "",

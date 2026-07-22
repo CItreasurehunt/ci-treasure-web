@@ -20,7 +20,12 @@ export const EVENT_TYPE_OPTIONS = [
 // 'archived' deliberately excluded -- it's set only by the daily pg_cron job
 // (published -> archived once end_date passes), never manually by an admin.
 export const EVENT_STATUS_OPTIONS = ["draft", "published"] as const;
-export const LINK_TYPE_OPTIONS = ["registration", "website", "info", "facebook", "instagram", "telegram", "whatsapp", "video", "youtube", "program", "other"] as const;
+// Canonical list per docs/enrichment/LINK_TYPES.md (2026-07-06) — keep in sync. Deprecated
+// values found live 2026-07-22 (facebook/info/program from a stale copy of this list): a
+// self-submitted event picked "facebook" for its FB event link because facebook_event
+// wasn't offered. `facebook_page`/`facebook_group` deliberately excluded here — those
+// belong on the teacher/organizer profile, never the event, per LINK_TYPES.md.
+export const LINK_TYPE_OPTIONS = ["website", "registration", "info_pack", "schedule", "facebook_event", "video", "telegram", "whatsapp", "instagram", "youtube", "other"] as const;
 export const TEACHER_ROLE_OPTIONS = ["teacher", "assistant", "guest", "musician", "intensive"] as const;
 export const ORGANIZER_ROLE_OPTIONS = ["lead", "co-organizer", "hosting_venue"] as const;
 
@@ -51,7 +56,10 @@ export type AdminEventFormData = {
   timezone: string;
   city: string;
   country: string;
+  venueId: string | null;
+  venueLabel: string;
   venueName: string;
+  contactEmail: string;
   description: string;
   imageUrl: string;
   cancelled: boolean;
@@ -74,7 +82,10 @@ export function createEmptyEventFormData(): AdminEventFormData {
     timezone: "Europe/Berlin",
     city: "",
     country: "",
+    venueId: null,
+    venueLabel: "",
     venueName: "",
+    contactEmail: "",
     description: "",
     imageUrl: "",
     cancelled: false,

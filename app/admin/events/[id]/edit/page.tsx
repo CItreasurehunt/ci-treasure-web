@@ -19,7 +19,7 @@ export default async function AdminEditEventPage({
     await Promise.all([
       supabase
         .from("events")
-        .select("id, title, type, status, start_date, end_date, timezone, city, country, address, description, image_url, cancelled, cancelled_text, hide, price, links")
+        .select("id, title, type, status, start_date, end_date, timezone, city, country, address, contact_email, venue_id, venues(id, name, city, country), description, image_url, cancelled, cancelled_text, hide, price, links")
         .eq("id", id)
         .single(),
       supabase
@@ -43,6 +43,7 @@ export default async function AdminEditEventPage({
   }
 
   const address = typeof event.address === "object" && event.address ? (event.address as { venue_name?: string }) : null;
+  const venue = Array.isArray(event.venues) ? event.venues[0] ?? null : (event.venues as { id: string; name: string; city: string; country: string } | null);
   const teacherRows = (teachers ?? []) as Array<{
     teacher_id: string;
     role: string;
@@ -80,7 +81,10 @@ export default async function AdminEditEventPage({
     timezone: event.timezone,
     city: event.city,
     country: event.country,
+    venueId: event.venue_id ?? null,
+    venueLabel: venue ? `${venue.name} — ${venue.city}, ${venue.country}` : "",
     venueName: address?.venue_name ?? "",
+    contactEmail: event.contact_email ?? "",
     description: event.description ?? "",
     imageUrl: event.image_url ?? "",
     cancelled: event.cancelled,

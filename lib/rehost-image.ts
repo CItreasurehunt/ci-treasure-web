@@ -1,3 +1,5 @@
+import { promises as dns } from "dns";
+import { isIP } from "net";
 import sharp from "sharp";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getMediumUrl, getSmallUrl } from "@/lib/image-url";
@@ -20,6 +22,61 @@ function isOwnBucketUrl(url: string): boolean {
   return Boolean(base) && url.startsWith(`${base}/storage/`);
 }
 
+// SSRF guard (2026-07-22): this function fetches a URL an organizer or admin pastes into a
+// form, server-side, with no allowlist — before this, an attacker-controlled URL like
+// http://169.254.169.254/latest/meta-data/ or http://localhost:<internal-port>/... would be
+// fetched by our server exactly like any other image link. Blocks loopback/private/
+// link-local ranges by IP, checked both on a literal IP in the URL and on the hostname's
+// resolved DNS result (a plain hostname can point at an internal address just as easily).
+// Not a complete fix for DNS-rebinding (the IP is re-resolved by fetch() itself, not pinned
+// to the address checked here) — acceptable for this app's threat model, but worth knowing
+// if this ever needs to be airtight.
+function isPrivateIp(ip: string): boolean {
+  const version = isIP(ip);
+  if (version === 4) {
+    const [a, b] = ip.split(".").map(Number);
+    if (a === 127) return true; // loopback
+    if (a === 10) return true; // private
+    if (a === 172 && b >= 16 && b <= 31) return true; // private
+    if (a === 192 && b === 168) return true; // private
+    if (a === 169 && b === 254) return true; // link-local, incl. cloud metadata (169.254.169.254)
+    if (a === 0) return true;
+    return false;
+  }
+  if (version === 6) {
+    const lower = ip.toLowerCase();
+    if (lower === "::1") return true; // loopback
+    if (lower.startsWith("fe80:") || lower.startsWith("fc") || lower.startsWith("fd")) return true; // link-local / unique-local
+    return false;
+  }
+  return false;
+}
+
+async function assertPublicUrl(rawUrl: string): Promise<{ error: string } | null> {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    return { error: "Invalid URL" };
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return { error: "Only http/https URLs are allowed" };
+  }
+  const hostname = parsed.hostname;
+  if (hostname === "localhost" || isPrivateIp(hostname)) {
+    return { error: "URL not allowed" };
+  }
+  try {
+    const { address } = await dns.lookup(hostname);
+    if (isPrivateIp(address)) {
+      return { error: "URL not allowed" };
+    }
+  } catch {
+    return { error: "Could not resolve URL" };
+  }
+  return null;
+}
+
 /**
  * Fetches an external image URL, validates/normalizes it, and stores our own copy —
  * closes the "organizer-pasted external URL rots/expires" risk (I-126). Skips entirely if
@@ -35,6 +92,11 @@ export async function rehostExternalImage(
   }
   if (isOwnBucketUrl(url)) {
     return { url };
+  }
+
+  const blocked = await assertPublicUrl(url);
+  if (blocked) {
+    return blocked;
   }
 
   let response: Response;
@@ -129,4 +191,31 @@ export async function rehostExternalImage(
 
   const { data: { publicUrl } } = admin.storage.from(bucket).getPublicUrl(path);
   return { url: publicUrl };
+}
+
+/**
+ * Shared entry point for every "organizer/admin pastes an image URL into an event form"
+ * path (I-126, and the admin-form gap found 2026-07-22 where the PUT/POST routes were
+ * saving the pasted URL raw instead of calling rehostExternalImage at all). Non-fatal on
+ * failure: caller should save the event without an image and surface the warning, not
+ * block the save.
+ */
+export async function resolveExternalEventImage(
+  rawUrl: string,
+  bucket = "event-images",
+): Promise<{ imageUrl: string | null; warning?: string }> {
+  const trimmed = rawUrl.trim();
+  if (!trimmed) {
+    return { imageUrl: null };
+  }
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+  const result = await rehostExternalImage(trimmed, bucket, path);
+  if ("error" in result) {
+    console.error("Event image rehost failed:", result.error);
+    return {
+      imageUrl: null,
+      warning: "We couldn't process that image link — the event was saved without an image.",
+    };
+  }
+  return { imageUrl: result.url };
 }

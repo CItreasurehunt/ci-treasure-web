@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildEventSlug } from "@/lib/events";
-import { rehostExternalImage } from "@/lib/rehost-image";
+import { resolveExternalEventImage } from "@/lib/rehost-image";
+import { resolveVenueLocation } from "@/lib/geocode";
 import {
   normalizeCountry,
   normalizeJsonItems,
@@ -20,8 +21,8 @@ type ActionResult = { success: boolean; error?: string; slug?: string; warning?:
 
 // Columns written from the organizer form. Status is handled separately so an
 // organizer can never set it directly. imageUrl is resolved separately (see
-// resolveEventImage, I-126) rather than read straight off data.imageUrl, since a pasted
-// external URL needs to be rehosted first.
+// resolveExternalEventImage, I-126) rather than read straight off data.imageUrl, since a
+// pasted external URL needs to be rehosted first.
 function eventColumns(data: OrganizerEventFormData, imageUrl: string | null) {
   return {
     title: data.title.trim(),
@@ -43,28 +44,11 @@ function eventColumns(data: OrganizerEventFormData, imageUrl: string | null) {
     cancelled_text: data.cancelled ? data.cancelledText.trim() || "" : null,
     price: normalizeJsonItems(parsePriceItems(data.priceItems ?? [])),
     links: normalizeJsonItems(parseLinkItems(data.linkItems ?? [])),
+    contact_email: data.contactEmail.trim() || null,
+    // venue_id/address/lat/lng are resolved by the caller (createEvent/updateEvent) — a
+    // linked venue takes its coordinates from the venues table and skips both the free-text
+    // address and a redundant geocode.
   };
-}
-
-// I-126: organizers paste a URL, not upload a file — this intercepts it server-side and
-// stores our own copy instead of leaving events.image_url pointing at an organizer-pasted
-// external link that can rot/expire. Non-fatal on failure: the event still saves, just
-// without an image, surfaced as a warning rather than blocking the submission.
-async function resolveEventImage(rawUrl: string): Promise<{ imageUrl: string | null; warning?: string }> {
-  const trimmed = rawUrl.trim();
-  if (!trimmed) {
-    return { imageUrl: null };
-  }
-  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-  const result = await rehostExternalImage(trimmed, "event-images", path);
-  if ("error" in result) {
-    console.error("Event image rehost failed:", result.error);
-    return {
-      imageUrl: null,
-      warning: "We couldn't process that image link — your event was saved without an image. You can add one from the edit page.",
-    };
-  }
-  return { imageUrl: result.url };
 }
 
 export async function createEvent(data: OrganizerEventFormData): Promise<ActionResult> {
@@ -91,13 +75,23 @@ export async function createEvent(data: OrganizerEventFormData): Promise<ActionR
     return { success: false, error: "Claim or create your profile before submitting events." };
   }
 
-  const { imageUrl, warning } = await resolveEventImage(data.imageUrl);
+  const { imageUrl, warning } = await resolveExternalEventImage(data.imageUrl);
+  const { venue_id, address, lat, lng } = await resolveVenueLocation(
+    supabase,
+    data.venueId,
+    data.venueName,
+    data.city,
+    data.country,
+  );
 
   // Insert as pending. short_id is filled by the generate_short_id() DB trigger.
   const { data: inserted, error: insertError } = await supabase
     .from("events")
     .insert({
       ...eventColumns(data, imageUrl),
+      venue_id,
+      address,
+      ...(lat != null && lng != null ? { lat, lng } : {}),
       status: "pending",
       source: "self_submitted",
       user_id: user.id,
@@ -151,13 +145,33 @@ export async function updateEvent(
     return { success: false, error: "You are not signed in." };
   }
 
-  const { imageUrl, warning } = await resolveEventImage(data.imageUrl);
+  const { imageUrl, warning } = await resolveExternalEventImage(data.imageUrl);
+
+  const { data: current } = await supabase
+    .from("events")
+    .select("lat, lng, venue_id")
+    .eq("id", eventId)
+    .maybeSingle();
+  const { venue_id, address, lat, lng } = await resolveVenueLocation(
+    supabase,
+    data.venueId,
+    data.venueName,
+    data.city,
+    data.country,
+    current,
+  );
 
   // RLS (events_update) enforces that the user owns or is linked to this event.
   // Status is intentionally not touched — published stays published.
   const { data: updated, error } = await supabase
     .from("events")
-    .update({ ...eventColumns(data, imageUrl), updated_by: user.id })
+    .update({
+      ...eventColumns(data, imageUrl),
+      venue_id,
+      address,
+      ...(lat != null && lng != null ? { lat, lng } : {}),
+      updated_by: user.id,
+    })
     .eq("id", eventId)
     .select("id, short_id, title")
     .maybeSingle();

@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { requireAdminRequestUser } from "@/lib/admin-api";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveExternalEventImage } from "@/lib/rehost-image";
+import { resolveVenueLocation } from "@/lib/geocode";
 
 function normalizeJsonItems<T>(items: T[]) {
   return items.length ? { items } : null;
@@ -35,6 +37,20 @@ export async function POST(request: NextRequest) {
     const payload = await request.json();
     const supabase = createAdminClient();
 
+    let imageUrl: string | null = payload.imageUrl || null;
+    if (imageUrl) {
+      const resolved = await resolveExternalEventImage(imageUrl);
+      imageUrl = resolved.imageUrl;
+    }
+
+    const { venue_id, address, lat, lng } = await resolveVenueLocation(
+      supabase,
+      payload.venueId ?? null,
+      payload.venueName ?? "",
+      payload.city ?? "",
+      payload.country ?? "",
+    );
+
     const { data, error } = await supabase
       .from("events")
       .insert({
@@ -47,11 +63,14 @@ export async function POST(request: NextRequest) {
         city: payload.city,
         country: payload.country,
         description: payload.description || null,
-        image_url: payload.imageUrl || null,
+        image_url: imageUrl,
         cancelled: Boolean(payload.cancelled),
         cancelled_text: payload.cancelled ? payload.cancelledText || "" : null,
         hide: Boolean(payload.hide),
-        address: payload.venueName ? { venue_name: payload.venueName } : null,
+        venue_id,
+        address,
+        contact_email: payload.contactEmail || null,
+        ...(lat != null && lng != null ? { lat, lng } : {}),
         price: normalizeJsonItems(parsePriceItems(payload.priceItems ?? [])),
         links: normalizeJsonItems(parseLinkItems(payload.linkItems ?? [])),
         source: "manual",

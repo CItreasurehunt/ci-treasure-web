@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Upload, X } from "lucide-react";
 
 import { uploadEventImage } from "@/lib/upload-action";
+import { VenuePicker } from "@/components/shared/venue-picker";
 import {
   EVENT_STATUS_OPTIONS,
   EVENT_TYPE_OPTIONS,
@@ -153,10 +154,39 @@ export function EventForm({
                 <input value={form.country} onChange={(event) => setForm({ ...form, country: event.target.value })} className={inputClassName} />
               </Field>
               <div className="md:col-span-2">
-                <Field label="Venue name">
-                  <input value={form.venueName} onChange={(event) => setForm({ ...form, venueName: event.target.value })} className={inputClassName} />
+                <Field label="Venue">
+                  <VenuePicker
+                    venueId={form.venueId}
+                    venueLabel={form.venueLabel}
+                    freeText={form.venueName}
+                    onSelect={(venue) =>
+                      setForm({
+                        ...form,
+                        venueId: venue?.id ?? null,
+                        venueLabel: venue ? `${venue.name} — ${venue.city}, ${venue.country}` : "",
+                      })
+                    }
+                    onFreeTextChange={(value) => setForm({ ...form, venueName: value })}
+                    city={form.city}
+                    country={form.country}
+                    allowCreate
+                    inputClassName={inputClassName}
+                  />
                 </Field>
+                <p className="mt-1 text-xs text-slate-500">
+                  Pick an existing venue, create a new one inline, or type a plain address if
+                  there&apos;s no venue name.
+                </p>
               </div>
+              <Field label="Contact email (shown publicly on the event page)">
+                <input
+                  type="email"
+                  value={form.contactEmail}
+                  onChange={(event) => setForm({ ...form, contactEmail: event.target.value })}
+                  className={inputClassName}
+                  placeholder="hello@event.com"
+                />
+              </Field>
             </div>
           </div>
 
@@ -306,6 +336,9 @@ export function EventForm({
               onChange={(event) => updateArrayItem(form.linkItems, index, { type: event.target.value }, (linkItems) => setForm({ ...form, linkItems }))}
               className={inputClassName}
             >
+              {/* Keep an existing-but-uncommon type (e.g. facebook_page) selectable rather
+                  than silently reassigning it to the first option on save. */}
+              {(LINK_TYPE_OPTIONS as readonly string[]).includes(item.type) ? null : <option value={item.type}>{item.type}</option>}
               {LINK_TYPE_OPTIONS.map((option) => (
                 <option key={option} value={option}>
                   {option}

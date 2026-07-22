@@ -3,6 +3,8 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdminRequestUser } from "@/lib/admin-api";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveExternalEventImage } from "@/lib/rehost-image";
+import { resolveVenueLocation } from "@/lib/geocode";
 
 function normalizeJsonItems<T>(items: T[]) {
   return items.length ? { items } : null;
@@ -40,6 +42,31 @@ export async function PUT(
     const payload = await request.json();
     const supabase = createAdminClient();
 
+    // A pasted image URL must go through the same rehost pipeline as the organizer form
+    // and the file-upload widget above — otherwise it's saved raw and (a) rots when the
+    // source expires (Facebook CDN links included) and (b) never gets the medium/small
+    // siblings other pages expect (I-129). Skips (no-op) for URLs already in our own bucket,
+    // so re-saving a form that already has an uploaded/rehosted image is cheap.
+    let imageUrl: string | null = payload.imageUrl || null;
+    if (imageUrl) {
+      const resolved = await resolveExternalEventImage(imageUrl);
+      imageUrl = resolved.imageUrl;
+    }
+
+    const { data: current } = await supabase
+      .from("events")
+      .select("lat, lng, venue_id")
+      .eq("id", id)
+      .maybeSingle();
+    const { venue_id, address, lat, lng } = await resolveVenueLocation(
+      supabase,
+      payload.venueId ?? null,
+      payload.venueName ?? "",
+      payload.city ?? "",
+      payload.country ?? "",
+      current,
+    );
+
     const { error: updateError } = await supabase
       .from("events")
       .update({
@@ -52,11 +79,14 @@ export async function PUT(
         city: payload.city,
         country: payload.country,
         description: payload.description || null,
-        image_url: payload.imageUrl || null,
+        image_url: imageUrl,
         cancelled: Boolean(payload.cancelled),
         cancelled_text: payload.cancelled ? payload.cancelledText || "" : null,
         hide: Boolean(payload.hide),
-        address: payload.venueName ? { venue_name: payload.venueName } : null,
+        venue_id,
+        address,
+        contact_email: payload.contactEmail || null,
+        ...(lat != null && lng != null ? { lat, lng } : {}),
         price: normalizeJsonItems(parsePriceItems(payload.priceItems ?? [])),
         links: normalizeJsonItems(parseLinkItems(payload.linkItems ?? [])),
         updated_by: user.id,

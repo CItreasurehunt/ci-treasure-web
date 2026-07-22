@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 
 import { createEvent, updateEvent } from "@/app/events/actions";
 import { disciplineLabel } from "@/lib/event-display";
+import { VenuePicker } from "@/components/shared/venue-picker";
 import {
   EVENT_TYPE_OPTIONS,
   LEVEL_OPTIONS,
@@ -194,6 +195,30 @@ export function OrganizerEventForm({
           <Field label="Country * (ISO code, e.g. DE)">
             <input value={form.country} onChange={(e) => set("country", e.target.value)} className={inputClassName} placeholder="DE" />
           </Field>
+          <div className="md:col-span-2">
+            <Field label="Venue">
+              <VenuePicker
+                venueId={form.venueId}
+                venueLabel={form.venueLabel}
+                freeText={form.venueName}
+                onSelect={(venue) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    venueId: venue?.id ?? null,
+                    venueLabel: venue ? `${venue.name} — ${venue.city}, ${venue.country}` : "",
+                  }))
+                }
+                onFreeTextChange={(value) => set("venueName", value)}
+                city={form.city}
+                country={form.country}
+                inputClassName={inputClassName}
+              />
+            </Field>
+            <p className="mt-1 text-xs text-slate-500">
+              Pick an existing venue if it's already listed, or type a name/address — used to
+              place the event on the map.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -202,6 +227,15 @@ export function OrganizerEventForm({
         <div className="mt-4 space-y-4">
           <Field label="Description (Markdown supported)">
             <textarea value={form.description} onChange={(e) => set("description", e.target.value)} className={`${inputClassName} min-h-40`} />
+          </Field>
+          <Field label="Contact email (shown publicly on the event page)">
+            <input
+              type="email"
+              value={form.contactEmail}
+              onChange={(e) => set("contactEmail", e.target.value)}
+              className={inputClassName}
+              placeholder="hello@yourevent.com"
+            />
           </Field>
           <Field label="Image URL">
             <input value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} className={inputClassName} placeholder="https://…" />
@@ -267,6 +301,9 @@ export function OrganizerEventForm({
         render={(item, i) => (
           <div className="grid gap-3 md:grid-cols-[1fr_3fr]">
             <select value={item.type} onChange={(e) => set("linkItems", patch(form.linkItems, i, { type: e.target.value }))} className={inputClassName}>
+              {/* Keep an existing-but-uncommon type (e.g. facebook_page) selectable rather
+                  than silently reassigning it to the first option on save. */}
+              {(LINK_TYPE_OPTIONS as readonly string[]).includes(item.type) ? null : <option value={item.type}>{item.type}</option>}
               {LINK_TYPE_OPTIONS.map((o) => (
                 <option key={o} value={o}>
                   {o}
