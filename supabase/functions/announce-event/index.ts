@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { buildRichCaption, TEACHER_ROLES } from '../_shared/announce-format.ts'
 
 const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')!
 const CHAT_ID   = Deno.env.get('TELEGRAM_PUBLIC_CHAT_ID')!
@@ -99,42 +100,84 @@ Deno.serve(async (req) => {
       location = venue.announce_name ?? venue.name
     }
   }
-  location = escapeMarkdown(location)
 
-  // Build message — same format as announce.py
-  const title = escapeMarkdown(event.title)
-  const url   = `https://citreasurehunt.com/events/${event.short_id}`
-
-  // Non-CI events still announce (decided 2026-07-04: mark, don't skip) — a lowercase
-  // bracketed tag naming the discipline(s), so a CI-only reader can decide to skip at a
-  // glance. Any event that includes Contact Improvisation gets no tag, even if it also
-  // lists other disciplines (2026-07-14: an event tagged CI + something else was wrongly
-  // getting a tag before).
-  const disciplines: string[] = event.discipline ?? []
-  const isCi = disciplines.includes('contact_improvisation')
-  const disciplineTag = !isCi && disciplines.length ? `[${disciplines.join(', ')}] ` : ''
-
-  const text  = `New: ${disciplineTag}${toFlag(event.country)} ${formatDates(event.start_date, event.end_date)} — [${title}](${url}), ${location}`
-
-  // 4+ days -> festival topic. Fewer -> regional workshop topic by event.country; falls back
-  // to the festival topic if the country isn't in any region bucket (unmapped code) so an
-  // event never silently fails to announce.
+  // 4+ days -> festival topic, short one-liner. Fewer -> regional workshop topic by
+  // event.country; falls back to the festival topic if the country isn't in any region
+  // bucket (unmapped code) so an event never silently fails to announce.
   const days = daySpan(event.start_date, event.end_date)
-  const threadId = days >= 4
+  const isFestival = days >= 4
+  const threadId = isFestival
     ? FESTIVAL_THREAD_ID
     : WORKSHOP_THREAD_IDS[regionFor(event.country) ?? ''] ?? FESTIVAL_THREAD_ID
 
-  const tgRes  = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: CHAT_ID,
-      message_thread_id: threadId,
-      text,
-      parse_mode: 'Markdown',
-      link_preview_options: { is_disabled: true },
-    }),
-  })
+  let tgRes: Response
+
+  if (isFestival) {
+    // Unchanged short one-liner — festivals already have a de facto "list" (this topic
+    // itself reads as a running index), so a terse pointer is enough.
+    const title = escapeMarkdown(event.title)
+    const url   = `https://citreasurehunt.com/events/${event.short_id}`
+    const disciplines: string[] = event.discipline ?? []
+    const isCi = disciplines.includes('contact_improvisation')
+    const disciplineTag = !isCi && disciplines.length ? `[${disciplines.join(', ')}] ` : ''
+    const text = `New: ${disciplineTag}${toFlag(event.country)} ${formatDates(event.start_date, event.end_date)} — [${title}](${url}), ${escapeMarkdown(location)}`
+
+    tgRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        message_thread_id: threadId,
+        text,
+        parse_mode: 'Markdown',
+        link_preview_options: { is_disabled: true },
+      }),
+    })
+  } else {
+    // 2026-07-22: 2-3 day workshops have no equivalent "list" anywhere else to fall back
+    // on, so they get the same rich photo-card format as the public channel instead of a
+    // terse line — see docs/issues/i-085-organizer-outreach.md discussion. Falls back to a
+    // text-only sendMessage with the same caption when there's no image, rather than
+    // skipping outright (unlike the channel's photo-first design) — a workshop with no
+    // photo still deserves a real announcement, since this topic is its only visibility.
+    const { data: teacherRows } = await supabase
+      .from('event_teachers')
+      .select('role, profiles(name)')
+      .eq('event_id', event.id)
+    const teacherNames = [...new Set(
+      (teacherRows ?? [])
+        .filter((row: { role: string }) => TEACHER_ROLES.has(row.role))
+        // deno-lint-ignore no-explicit-any
+        .map((row: any) => row.profiles?.name)
+        .filter(Boolean),
+    )]
+    const caption = buildRichCaption(event, teacherNames, location)
+
+    tgRes = event.image_url
+      ? await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: CHAT_ID,
+            message_thread_id: threadId,
+            photo: event.image_url,
+            caption,
+            parse_mode: 'HTML',
+          }),
+        })
+      : await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: CHAT_ID,
+            message_thread_id: threadId,
+            text: caption,
+            parse_mode: 'HTML',
+            link_preview_options: { is_disabled: true },
+          }),
+        })
+  }
+
   const tgData = await tgRes.json()
 
   if (!tgData.ok) {
