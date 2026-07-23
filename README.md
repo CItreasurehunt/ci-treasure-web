@@ -14,7 +14,7 @@ Built with Next.js, Tailwind CSS, and Supabase.
 
 Live at [citreasurehunt.com](https://citreasurehunt.com) — event calendar, community directory, and
 teacher/venue profiles for the international Contact Improvisation scene. Organizers can submit and
-manage their own events; browse by discipline, city, or date.
+manage their own events; filter by discipline, country, or month, and search by city or keyword.
 
 Join the community: [Telegram group](https://t.me/citreasurehunt) ·
 [Telegram announcement channel](https://t.me/citreasurelist)
