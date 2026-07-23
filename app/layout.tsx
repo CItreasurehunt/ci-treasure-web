@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Coffee, Mail } from "lucide-react";
 import { Fraunces, Manrope } from "next/font/google";
@@ -7,6 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "./globals.css";
 import NavigationTracker from "@/components/navigation-tracker";
+import ServiceWorkerRegistration from "@/components/service-worker-registration";
 import { SiteHeader } from "@/components/site-header";
 import {
   FACEBOOK_URL,
@@ -29,6 +30,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "CI Treasure Hunt",
   description: "A living map of contact improvisation events, communities, teachers & venues worldwide.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "CI Treasure Hunt",
+  },
   openGraph: {
     title: "CI Treasure Hunt",
     description: "A living map of contact improvisation events, communities, teachers & venues worldwide.",
@@ -44,6 +51,10 @@ export const metadata: Metadata = {
     title: "CI Treasure Hunt",
     description: "A living map of contact improvisation events, communities, teachers & venues worldwide.",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#faf8fd",
 };
 
 // Site-wide identity for search engines - who runs this, what to call it, which
@@ -80,6 +91,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }}
         />
         <NavigationTracker />
+        <ServiceWorkerRegistration />
         <div className="min-h-screen">
           <SiteHeader />
           {children}
