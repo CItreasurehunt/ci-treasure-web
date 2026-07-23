@@ -88,7 +88,9 @@ Deno.serve(async (req) => {
   // escaped since they sit inside the link label syntax itself.
   const escapeMarkdown = (s: string) => s.replace(/\[/g, '(').replace(/\]/g, ')').replace(/([_*`])/g, '\\$1')
 
-  // Use announce_name (if set) or venue name for known venues; city otherwise
+  // Use "announce_name (if set) or venue name, City" for known venues; city otherwise —
+  // found live 2026-07-23: a venue-name-only location (e.g. "Community Central Hall" with
+  // no "Glasgow") reads as incomplete on its own, city is always worth keeping alongside it.
   let location: string = event.city
   if (event.venue_id) {
     const { data: venue } = await supabase
@@ -97,7 +99,7 @@ Deno.serve(async (req) => {
       .eq('id', event.venue_id)
       .single()
     if (venue?.show_in_announce) {
-      location = venue.announce_name ?? venue.name
+      location = `${venue.announce_name ?? venue.name}, ${event.city}`
     }
   }
 

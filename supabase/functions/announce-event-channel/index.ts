@@ -46,7 +46,8 @@ Deno.serve(async (req) => {
     return new Response('already announced', { status: 200 })
   }
 
-  // Venue name (if flagged show_in_announce) replaces city, same convention as announce-event.
+  // Venue name (if flagged show_in_announce) is prepended to the city, same convention as
+  // announce-event — found live 2026-07-23: venue-name-only reads as incomplete without it.
   let location: string = event.city
   if (event.venue_id) {
     const { data: venue } = await supabase
@@ -55,7 +56,7 @@ Deno.serve(async (req) => {
       .eq('id', event.venue_id)
       .single()
     if (venue?.show_in_announce) {
-      location = venue.announce_name ?? venue.name
+      location = `${venue.announce_name ?? venue.name}, ${event.city}`
     }
   }
 
