@@ -12,7 +12,9 @@ Built with Next.js, Tailwind CSS, and Supabase.
 - **Community directory** — CI communities with layered access to private chat groups
 - **Teacher & venue profiles** — in progress
 
-Live at [citreasurehunt.com](https://citreasurehunt.com) *(launching soon)*
+Live at [citreasurehunt.com](https://citreasurehunt.com) — event calendar, community directory, and
+teacher/venue profiles for the international Contact Improvisation scene. Organizers can submit and
+manage their own events; browse by discipline, city, or date.
 
 ---
 
