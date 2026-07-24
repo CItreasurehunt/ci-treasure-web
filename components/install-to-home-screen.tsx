@@ -45,51 +45,52 @@ export function InstallToHomeScreen() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 rounded-full border border-(--color-sand-strong) px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-(--color-pine) hover:text-(--color-pine)"
+        className="flex w-full items-center justify-center gap-2 bg-(--color-pine) px-4 py-2 text-sm font-semibold text-white sm:hidden"
       >
-        <Smartphone className="size-3.5" />
+        <Smartphone className="size-4" />
         Add to Home Screen
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add CI Treasure Hunt to your Home Screen</DialogTitle>
-            <DialogDescription>
-              For quick access next time. No app store needed.
+            <DialogTitle>Add to Home Screen</DialogTitle>
+            <DialogDescription className="sr-only">
+              Instructions for adding CI Treasure Hunt to your home screen.
             </DialogDescription>
           </DialogHeader>
           {ios ? (
             <ol className="list-decimal space-y-2 pl-5 text-sm text-slate-700">
-              <li>Open this website in Safari</li>
-              <li className="flex flex-wrap items-center gap-1">
-                Tap the
-                <Share className="size-4 shrink-0" />
-                Share icon in the toolbar
+              <li>
+                <span className="inline-flex flex-wrap items-center gap-1">
+                  Open this website in Safari and tap the
+                  <Share className="size-4 shrink-0" />
+                  Share icon in the toolbar.
+                </span>
               </li>
-              <li>Scroll down and tap &quot;Add to Home Screen&quot;</li>
-              <li>Tap &quot;Add&quot; to confirm</li>
+              <li>Scroll down and tap &quot;Add to Home Screen&quot;.</li>
+              <li>Tap &quot;Add&quot; to confirm.</li>
             </ol>
           ) : (
             <ol className="list-decimal space-y-2 pl-5 text-sm text-slate-700">
-              <li>Open this website in Chrome</li>
-              <li className="flex flex-wrap items-center gap-1">
-                Tap the
-                <MoreVertical className="size-4 shrink-0" />
-                menu icon in the toolbar
+              <li>
+                <span className="inline-flex flex-wrap items-center gap-1">
+                  Open this website in Chrome and tap the
+                  <MoreVertical className="size-4 shrink-0" />
+                  menu icon in the toolbar.
+                </span>
               </li>
-              <li className="flex flex-wrap items-center gap-1">
-                Tap
-                <SquarePlus className="size-4 shrink-0" />
-                &quot;Add to Home Screen&quot; (sometimes shown as
-                &quot;Install app&quot;)
+              <li>
+                <span className="inline-flex flex-wrap items-center gap-1">
+                  Tap
+                  <SquarePlus className="size-4 shrink-0" />
+                  &quot;Add to Home Screen&quot; (sometimes shown as
+                  &quot;Install app&quot;).
+                </span>
               </li>
-              <li>Tap &quot;Add&quot; / &quot;Install&quot; to confirm</li>
+              <li>Tap &quot;Add&quot; / &quot;Install&quot; to confirm.</li>
             </ol>
           )}
-          <p className="text-sm text-slate-500">
-            You&apos;ll get a quick-access icon added to your home screen.
-          </p>
         </DialogContent>
       </Dialog>
     </>

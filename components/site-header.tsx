@@ -29,6 +29,7 @@ export function SiteHeader() {
 
   return (
     <header className="border-b border-(--color-sand-strong) bg-(--color-mist)/90 backdrop-blur">
+      <InstallToHomeScreen />
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8 lg:px-10">
         <Link
           href="/"
@@ -76,17 +77,14 @@ export function SiteHeader() {
           </Link>
         </div>
 
-        {/* Mobile-only controls */}
-        <div className="flex items-center gap-2 sm:hidden">
-          <InstallToHomeScreen />
-          <button
-            className="p-2 text-slate-700 hover:text-(--color-pine)"
-            onClick={() => setOpen((o) => !o)}
-            aria-label={open ? "Close menu" : "Open menu"}
-          >
-            {open ? <X className="size-6" /> : <Menu className="size-6" />}
-          </button>
-        </div>
+        {/* Mobile hamburger */}
+        <button
+          className="sm:hidden p-2 text-slate-700 hover:text-(--color-pine)"
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? "Close menu" : "Open menu"}
+        >
+          {open ? <X className="size-6" /> : <Menu className="size-6" />}
+        </button>
       </div>
 
       {/* Mobile dropdown */}
