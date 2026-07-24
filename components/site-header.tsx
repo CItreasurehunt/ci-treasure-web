@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
+import { InstallToHomeScreen } from "@/components/install-to-home-screen";
+
 
 const NAV_LINKS = [
   { label: "Events", href: "/", external: false },
@@ -74,14 +76,17 @@ export function SiteHeader() {
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          className="sm:hidden p-2 text-slate-700 hover:text-(--color-pine)"
-          onClick={() => setOpen((o) => !o)}
-          aria-label={open ? "Close menu" : "Open menu"}
-        >
-          {open ? <X className="size-6" /> : <Menu className="size-6" />}
-        </button>
+        {/* Mobile-only controls */}
+        <div className="flex items-center gap-2 sm:hidden">
+          <InstallToHomeScreen />
+          <button
+            className="p-2 text-slate-700 hover:text-(--color-pine)"
+            onClick={() => setOpen((o) => !o)}
+            aria-label={open ? "Close menu" : "Open menu"}
+          >
+            {open ? <X className="size-6" /> : <Menu className="size-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile dropdown */}
