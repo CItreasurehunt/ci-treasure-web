@@ -511,17 +511,19 @@ export function getLevelLabel(level: string): string {
   return labels[level] ?? level;
 }
 
-const LANGUAGE_NAMES: Record<string, string> = {
-  en: "English", de: "German", fr: "French", es: "Spanish", it: "Italian",
-  pt: "Portuguese", pl: "Polish", cs: "Czech", nl: "Dutch", he: "Hebrew",
-  no: "Norwegian", sv: "Swedish", da: "Danish", fi: "Finnish", ru: "Russian",
-  ja: "Japanese", zh: "Chinese", ko: "Korean", ar: "Arabic",
-  hu: "Hungarian", sk: "Slovak", uk: "Ukrainian", ca: "Catalan", el: "Greek", lt: "Lithuanian",
-  vi: "Vietnamese",
-};
+// Intl.DisplayNames covers the full ISO 639-1 set natively, so a newly-used language code
+// (e.g. `vi` before this change) never needs a manual map entry again — it only fell back to
+// the raw code before because LANGUAGE_NAMES was hand-maintained and someone has to remember
+// to add each one.
+const languageDisplayNames = new Intl.DisplayNames(["en"], { type: "language" });
 
 export function getLanguageLabel(code: string): string {
-  return LANGUAGE_NAMES[code] ?? code.toUpperCase();
+  try {
+    const name = languageDisplayNames.of(code);
+    return name && name.toLowerCase() !== code.toLowerCase() ? name : code.toUpperCase();
+  } catch {
+    return code.toUpperCase();
+  }
 }
 
 export function getLinkLabel(type: string, label?: string) {
