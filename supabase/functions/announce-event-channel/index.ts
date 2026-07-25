@@ -22,6 +22,12 @@ Deno.serve(async (req) => {
     return new Response('skip: cancelled', { status: 200 })
   }
 
+  // Never announce backfilled/past events — same guard as announce-event (I-018a).
+  const today = new Date().toISOString().slice(0, 10)
+  if (event.start_date < today) {
+    return new Response('skip: past event', { status: 200 })
+  }
+
   // No image, no post — this format is photo-first, unlike the group's text-only message.
   if (!event.image_url) {
     return new Response('skip: no image', { status: 200 })

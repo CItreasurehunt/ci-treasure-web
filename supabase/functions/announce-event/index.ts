@@ -65,6 +65,14 @@ Deno.serve(async (req) => {
     return new Response('skip', { status: 200 })
   }
 
+  // Never announce backfilled/past events — this channel is for genuinely new, upcoming
+  // events. A publish on something that already happened (e.g. a backfilled series module)
+  // would read as "New:" on an event nobody can still attend.
+  const today = new Date().toISOString().slice(0, 10)
+  if (event.start_date < today) {
+    return new Response('skip: past event', { status: 200 })
+  }
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
