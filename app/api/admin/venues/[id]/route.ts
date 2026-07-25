@@ -1,62 +1,66 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 
 import { requireAdminRequestUser } from "@/lib/admin-api";
-import { geocodeAddress } from "@/lib/geocode";
-import { slugify } from "@/lib/slug";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { geocodeAddress } from "@/lib/geocode";
 
-async function createUniqueSlug(baseSlug: string) {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase.from("venues").select("slug").ilike("slug", `${baseSlug}%`);
-  if (error) throw error;
-
-  const existing = new Set((data ?? []).map((row) => String(row.slug).toLowerCase()));
-  if (!existing.has(baseSlug)) return baseSlug;
-
-  let suffix = 2;
-  while (existing.has(`${baseSlug}-${suffix}`)) suffix += 1;
-  return `${baseSlug}-${suffix}`;
-}
-
-// Two callers share this route: (1) the inline quick-add from the event form, which sends
-// only name/city/country/address and deliberately always lands as 'hidden' (see below —
-// that path skips the addvenue skill's research, so it can't make a real visibility-tier
-// call); (2) the full /admin/venues/new form (I-088 admin UI), which sends every field and
-// picks its own visibility/show_in_list. Optional fields all default to the quick-add's
-// original behavior when omitted, so caller (1) is unaffected by this extension.
-export async function POST(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     await requireAdminRequestUser(request);
+    const { id } = await params;
     const payload = await request.json();
+    const supabase = createAdminClient();
+
     const name = String(payload.name ?? "").trim();
     const city = String(payload.city ?? "").trim();
     const country = String(payload.country ?? "").trim();
     const address = String(payload.address ?? "").trim();
-
     if (!name || !city || !country) {
       return NextResponse.json({ error: "Name, city, and country are required." }, { status: 400 });
     }
 
+    // Manual lat/lng always wins if provided (an admin correcting a bad geocode). Otherwise
+    // only re-geocode when the location text actually changed from what's stored — editing
+    // an unrelated field (e.g. fixing a typo in the description) shouldn't silently move the
+    // pin, same protection resolveVenueLocation gives the event form.
     const manualLat = Number.parseFloat(String(payload.lat ?? ""));
     const manualLng = Number.parseFloat(String(payload.lng ?? ""));
     const hasManualCoords = Number.isFinite(manualLat) && Number.isFinite(manualLng);
-    const coords = hasManualCoords
-      ? { lat: manualLat, lng: manualLng }
-      : await geocodeAddress([address || name, city, country].filter(Boolean).join(", "));
 
-    const supabase = createAdminClient();
-    const slug = await createUniqueSlug(slugify(String(payload.slug ?? "").trim() || name) || "venue");
-    const { data, error } = await supabase
+    let lat: number | null = hasManualCoords ? manualLat : null;
+    let lng: number | null = hasManualCoords ? manualLng : null;
+    if (!hasManualCoords) {
+      const { data: current } = await supabase
+        .from("venues")
+        .select("address, city, country, lat, lng")
+        .eq("id", id)
+        .maybeSingle();
+      const locationChanged =
+        !current || current.address !== (address || null) || current.city !== city || current.country !== country;
+      if (locationChanged || current?.lat == null || current?.lng == null) {
+        const coords = await geocodeAddress([address || name, city, country].filter(Boolean).join(", "));
+        lat = coords?.lat ?? current?.lat ?? null;
+        lng = coords?.lng ?? current?.lng ?? null;
+      } else {
+        lat = current.lat;
+        lng = current.lng;
+      }
+    }
+
+    const { error } = await supabase
       .from("venues")
-      .insert({
+      .update({
         name,
-        slug,
         city,
         country,
         region: String(payload.region ?? "").trim() || null,
         address: address || null,
-        lat: coords?.lat ?? null,
-        lng: coords?.lng ?? null,
+        lat,
+        lng,
         description: String(payload.description ?? "").trim() || null,
         website: String(payload.website ?? "").trim() || null,
         email: String(payload.email ?? "").trim() || null,
@@ -71,15 +75,22 @@ export async function POST(request: NextRequest) {
         show_in_list: Boolean(payload.showInList),
         show_in_announce: Boolean(payload.showInAnnounce),
         announce_name: String(payload.announceName ?? "").trim() || null,
+        updated_at: new Date().toISOString(),
       })
-      .select("id, name, city, country, lat, lng")
-      .single();
+      .eq("id", id);
+
     if (error) throw error;
 
-    return NextResponse.json({ venue: data });
+    // Cached ISR pages (the /venues directory, this venue's own detail page, and any event
+    // page linking to it) won't otherwise pick up an admin edit for up to an hour.
+    revalidatePath("/venues");
+    revalidatePath("/venues/[slug]", "page");
+    revalidatePath("/events/[eventSlug]", "page");
+
+    return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not create venue." },
+      { error: error instanceof Error ? error.message : "Could not update venue." },
       { status: 500 },
     );
   }

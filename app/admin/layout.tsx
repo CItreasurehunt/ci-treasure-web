@@ -101,6 +101,9 @@ export default async function AdminLayout({
             <Link href="/admin/events" className="rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
               Events
             </Link>
+            <Link href="/admin/venues" className="rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
+              Venues
+            </Link>
             <Link href="/admin/events/pending" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
               Pending
               <NavBadge count={pendingEvents} />
