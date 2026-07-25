@@ -26,7 +26,12 @@ export async function PUT(
     // Manual lat/lng always wins if provided (an admin correcting a bad geocode). Otherwise
     // only re-geocode when the location text actually changed from what's stored — editing
     // an unrelated field (e.g. fixing a typo in the description) shouldn't silently move the
-    // pin, same protection resolveVenueLocation gives the event form.
+    // pin, same protection resolveVenueLocation gives the event form. Deliberately does NOT
+    // force a geocode attempt just because current coords are null: a handful of venues
+    // (e.g. Leviathan Studio, Rhizome Springs — off-grid islands, no public address) have
+    // null lat/lng on purpose, documented as "confirmed unfillable, don't re-research" in
+    // I-088. Auto-retrying on every unrelated save would silently overwrite that deliberate
+    // null with a misleading city-center approximation.
     const manualLat = Number.parseFloat(String(payload.lat ?? ""));
     const manualLng = Number.parseFloat(String(payload.lng ?? ""));
     const hasManualCoords = Number.isFinite(manualLat) && Number.isFinite(manualLng);
@@ -41,13 +46,13 @@ export async function PUT(
         .maybeSingle();
       const locationChanged =
         !current || current.address !== (address || null) || current.city !== city || current.country !== country;
-      if (locationChanged || current?.lat == null || current?.lng == null) {
+      if (locationChanged) {
         const coords = await geocodeAddress([address || name, city, country].filter(Boolean).join(", "));
         lat = coords?.lat ?? current?.lat ?? null;
         lng = coords?.lng ?? current?.lng ?? null;
       } else {
-        lat = current.lat;
-        lng = current.lng;
+        lat = current?.lat ?? null;
+        lng = current?.lng ?? null;
       }
     }
 

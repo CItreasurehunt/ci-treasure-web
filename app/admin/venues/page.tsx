@@ -74,7 +74,15 @@ export default async function AdminVenuesPage({
     .order("name", { ascending: true });
 
   if (query) {
-    dbQuery = dbQuery.or(`name.ilike.%${query}%,city.ilike.%${query}%`);
+    // PostgREST's .or() filter string uses `,` to separate conditions and `()` to group —
+    // a search value containing those (e.g. "Smith, John's Studio") would otherwise break
+    // out of the intended two-column filter. Strip them rather than trying to escape, since
+    // this is a free-text name/city search box, not a place where that punctuation carries
+    // meaning worth preserving.
+    const safeQuery = query.replace(/[,()]/g, " ").trim();
+    if (safeQuery) {
+      dbQuery = dbQuery.or(`name.ilike.%${safeQuery}%,city.ilike.%${safeQuery}%`);
+    }
   }
 
   const { data: venues, error } = await dbQuery;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { CountryPicker } from "@/components/shared/country-picker";
@@ -9,6 +9,8 @@ import {
   createEmptyVenueFormData,
   type AdminVenueFormData,
 } from "@/lib/admin-venues";
+
+type DedupMatch = { id: string; name: string; city: string; country: string };
 
 export function VenueForm({
   initialVenue,
@@ -22,6 +24,37 @@ export function VenueForm({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [isSaving, startSaveTransition] = useTransition();
+  const [dedupMatches, setDedupMatches] = useState<DedupMatch[]>([]);
+  const dedupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Dedup check, create mode only — every other venue-creation path in this project
+  // (the addvenue skill, VenuePicker's inline quick-add) requires searching for an
+  // existing match first. This full-page form is the one path that previously had no
+  // such check at all, letting an admin accidentally create a duplicate venue.
+  useEffect(() => {
+    if (mode !== "create") return;
+    if (dedupTimer.current) clearTimeout(dedupTimer.current);
+
+    const name = form.name.trim();
+    if (name.length < 3) {
+      setDedupMatches([]);
+      return;
+    }
+
+    dedupTimer.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/venues/search?q=${encodeURIComponent(name)}`);
+        const payload = await response.json().catch(() => ({}));
+        setDedupMatches(response.ok ? (payload.results ?? []) : []);
+      } catch {
+        setDedupMatches([]);
+      }
+    }, 400);
+
+    return () => {
+      if (dedupTimer.current) clearTimeout(dedupTimer.current);
+    };
+  }, [mode, form.name]);
 
   const endpoint = mode === "create" ? "/api/admin/venues" : `/api/admin/venues/${form.id}`;
 
@@ -76,6 +109,18 @@ export function VenueForm({
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Name">
                 <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className={inputClassName} />
+                {dedupMatches.length > 0 ? (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                    <p className="font-semibold">Possible existing match — check before creating a duplicate:</p>
+                    <ul className="mt-1 space-y-0.5">
+                      {dedupMatches.map((match) => (
+                        <li key={match.id}>
+                          {match.name} — {match.city}, {match.country}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </Field>
               <Field label="Visibility">
                 <select value={form.visibility} onChange={(event) => setForm({ ...form, visibility: event.target.value })} className={inputClassName}>
