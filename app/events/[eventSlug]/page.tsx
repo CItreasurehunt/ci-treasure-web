@@ -7,7 +7,7 @@ import { ReportButton } from "@/components/report-button";
 import { SegmentsSection } from "@/components/segments-section";
 import { RevealEmail } from "@/components/reveal-email";
 import BackButton from "@/components/back-button";
-import { PracticeBadge, eventPracticesToShow } from "@/components/shared/practice-badge";
+import { PracticeBadge, practicesToDisplay } from "@/components/shared/practice-badge";
 import {
   type SeriesSibling,
   formatPriceLabel,
@@ -200,9 +200,9 @@ export default async function EventPage({ params }: EventPageProps) {
                     site-wide; the type pill stays distinguished by its solid-white fill, not its size.
                     Lone CI is suppressed, so most events show only the type pill regardless of order. */}
                 <div className="space-y-3">
-                  {eventPracticesToShow(event.discipline).length ? (
+                  {practicesToDisplay(event.discipline).length ? (
                     <div className="flex flex-wrap gap-2">
-                      {eventPracticesToShow(event.discipline).map((d) => (
+                      {practicesToDisplay(event.discipline).map((d) => (
                         <PracticeBadge key={d} discipline={d} href={`/?discipline=${d}`} />
                       ))}
                     </div>

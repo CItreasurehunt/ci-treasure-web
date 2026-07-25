@@ -24,7 +24,7 @@ import { EntityEventCard } from "@/components/entity-event-card";
 import { EntityImage } from "@/components/entity-image";
 import { getLinkLabel, linkSortKey } from "@/lib/events";
 import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
-import { PracticeBadge } from "@/components/shared/practice-badge";
+import { PracticeBadge, practicesToDisplay } from "@/components/shared/practice-badge";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 
@@ -149,26 +149,23 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
         <section className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_25px_90px_rgba(105,73,22,0.12)]">
           <div className={`flex min-h-52 flex-col justify-end border-b border-(--color-sand-strong) ${GENERIC_ACCENT_GRADIENT} px-6 py-8 sm:px-8`}>
             <div className="max-w-3xl space-y-3">
+              {/* Same grammar as the event header (2026-07-25): frosted practice pills first
+                  (scope/modality), then the solid "identity" pill(s) — here the role, the teacher's
+                  type-equivalent (what kind of profile this is). Lone CI is suppressed via
+                  practicesToDisplay (same rule as events), so a plain CI teacher shows just the solid
+                  role pill(s); only a distinctive practice (BMC, Axis) surfaces as a frosted pill. */}
+              {practicesToDisplay(teacher.discipline).length ? (
+                <div className="flex flex-wrap gap-2">
+                  {practicesToDisplay(teacher.discipline).map((d) => (
+                    <PracticeBadge key={d} discipline={d} />
+                  ))}
+                </div>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 {derivedIsTeacher && <RoleBadge>Teacher</RoleBadge>}
                 {derivedIsOrganizer && <RoleBadge>Organizer</RoleBadge>}
                 {derivedIsMusician && <RoleBadge>Musician</RoleBadge>}
               </div>
-              {/* Practice tags (I-135), on their own row below the role badges. Roles and practices
-                  share the same frosted-pill treatment (both are secondary facets of the person —
-                  the H1 name is the primary identity here, so there's no solid "primary" pill like
-                  the event header's type pill). They sit on separate flex rows but read as one pill
-                  cluster; that's intentional, not a bug. Whether practices should be visually
-                  distinguished from roles here is a real design call flagged for Jan. Unlike events,
-                  CI is NOT suppressed: a CI teacher's page showing "Contact Improvisation" is the
-                  point (and what a future /teachers modality filter keys off). */}
-              {teacher.discipline && teacher.discipline.length ? (
-                <div className="flex flex-wrap gap-2">
-                  {teacher.discipline.map((d) => (
-                    <PracticeBadge key={d} discipline={d} />
-                  ))}
-                </div>
-              ) : null}
               <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 {teacher.name}
               </h1>
@@ -309,9 +306,12 @@ function ClaimCta({ teacher }: { teacher: { id: string; user_id: string | null; 
   );
 }
 
+// Solid-white "identity" pill — the teacher's role is the type-equivalent (what kind of profile
+// this is), so it gets the same solid treatment as the event header's type pill, distinguishing it
+// from the frosted practice pills above it. Same sizing as PracticeBadge so all header pills match.
 function RoleBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm border border-white/30">
+    <span className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-3 py-1 text-xs font-bold uppercase tracking-wider text-(--color-pine)">
       {children}
     </span>
   );

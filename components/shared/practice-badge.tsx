@@ -42,20 +42,20 @@ export function PracticeBadge({ discipline, href }: { discipline: string; href?:
 }
 
 /**
- * Which practices to actually show on an *event* detail header.
+ * Which practices to actually render as badges — shared by the event and teacher headers.
  *
  * Suppresses a lone `contact_improvisation`: this is a CI-by-default site, so a solitary
- * "Contact Improvisation" badge on ~99% of event pages is noise, not information — the same
- * reasoning the listing filter (I-073) and the Telegram announce marker already apply, where CI
- * is the assumed default and only the *distinctive* practices get surfaced. Any non-CI or
- * multi-practice event shows all of its tags (CI included, so a CI+BMC mix is visible).
+ * "Contact Improvisation" badge is noise, not information — the same reasoning the listing filter
+ * (I-073) and the Telegram announce marker already apply, where CI is the assumed default and only
+ * the *distinctive* practices get surfaced. Any non-CI or multi-practice entity shows all its tags
+ * (CI included, so a CI+BMC mix stays visible).
  *
- * Teacher pages deliberately do NOT use this filter — there, showing "Contact Improvisation"
- * explicitly is the point (it's what a future modality filter on /teachers keys off, and what
- * distinguishes a CI teacher from a BMC/Axis one). Same badge component, different show-rule,
- * because the two entities have genuinely different defaults-contexts.
+ * Applies to teachers too (decided 2026-07-25, correcting the earlier "teachers show all" choice):
+ * a CI teacher showing "Contact Improvisation" is the same redundancy as on an event. The future
+ * `/teachers` modality filter keys off the `discipline` *column*, which keeps CI regardless of what
+ * the badge renders — so suppressing the badge costs the filter nothing.
  */
-export function eventPracticesToShow(discipline: string[] | null | undefined): string[] {
+export function practicesToDisplay(discipline: string[] | null | undefined): string[] {
   const list = (discipline ?? []).filter(Boolean);
   if (list.length === 1 && list[0] === "contact_improvisation") return [];
   return list;
