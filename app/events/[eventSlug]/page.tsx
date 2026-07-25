@@ -193,10 +193,13 @@ export default async function EventPage({ params }: EventPageProps) {
           <div className={`border-b border-(--color-sand-strong) ${getOgImageStyle(event.type)}`}>
             <div className="px-6 py-10 sm:px-8">
               <div className="max-w-3xl space-y-5">
+                {/* Practice first, then type — matches the listing filter's own hierarchy, where
+                    discipline is "scope-defining" (prominent chip strip, shown first) and type is a
+                    secondary narrowing dropdown below it. The type pill is sized to match the practice
+                    badges (and the teacher header's role badges) so all header pills are uniform
+                    site-wide; the type pill stays distinguished by its solid-white fill, not its size.
+                    Lone CI is suppressed, so most events show only the type pill regardless of order. */}
                 <div className="space-y-3">
-                  <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-4 py-1 text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">
-                    {getTypeLabel(event.type)}
-                  </p>
                   {eventPracticesToShow(event.discipline).length ? (
                     <div className="flex flex-wrap gap-2">
                       {eventPracticesToShow(event.discipline).map((d) => (
@@ -204,6 +207,9 @@ export default async function EventPage({ params }: EventPageProps) {
                       ))}
                     </div>
                   ) : null}
+                  <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-3 py-1 text-xs font-bold uppercase tracking-wider text-(--color-pine)">
+                    {getTypeLabel(event.type)}
+                  </p>
                 </div>
                 <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                   {event.title}
