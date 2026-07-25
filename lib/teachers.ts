@@ -104,6 +104,24 @@ export async function getTeacherBySlug(slug: string): Promise<TeacherProfile | n
   return data as TeacherProfile;
 }
 
+// I-117: called only when getTeacherBySlug misses on the exact slug — looks up whether it's a
+// superseded one (tracked via the profiles_track_slug_history trigger) and returns the current
+// slug to redirect to. Mirrors the events short_id redirect in app/events/[eventSlug]/page.tsx.
+export async function resolveTeacherSlugRedirect(slug: string): Promise<string | null> {
+  if (!hasSupabaseEnv()) {
+    return null;
+  }
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("slug")
+    .contains("previous_slugs", [slug])
+    .eq("visibility", "public")
+    .maybeSingle();
+
+  return data?.slug ?? null;
+}
+
 type TeacherEventItem = EventListItem & { teacher_id?: string; organizer_id?: string; role?: string };
 
 export async function getTeacherEvents(profileId: string): Promise<{

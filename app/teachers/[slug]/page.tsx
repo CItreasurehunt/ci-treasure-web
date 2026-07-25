@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import {
   Facebook,
   Globe,
@@ -14,7 +14,8 @@ import Link from "next/link";
 import {
   getTeacherBySlug,
   getTeacherEvents,
-  getAllPublicTeacherSlugs
+  getAllPublicTeacherSlugs,
+  resolveTeacherSlugRedirect
 } from "@/lib/teachers";
 import { ReportButton } from "@/components/report-button";
 import BackButton from "@/components/back-button";
@@ -80,6 +81,12 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
   const teacher = await getTeacherBySlug(slug);
 
   if (!teacher) {
+    // I-117: the slug may be a superseded one (e.g. a name correction) — redirect to the
+    // current slug rather than 404ing on what used to be a valid, possibly externally-linked URL.
+    const currentSlug = await resolveTeacherSlugRedirect(slug);
+    if (currentSlug) {
+      permanentRedirect(`/teachers/${currentSlug}`);
+    }
     notFound();
   }
 
