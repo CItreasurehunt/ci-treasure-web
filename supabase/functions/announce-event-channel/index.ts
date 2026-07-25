@@ -52,6 +52,28 @@ Deno.serve(async (req) => {
     return new Response('already announced', { status: 200 })
   }
 
+  // Series de-dup: same guard as announce-event — see that file for the full reasoning. Once any
+  // sibling in the same series has been announced (on this channel), later siblings stay silent.
+  if (event.series_id) {
+    const { data: siblings } = await supabase
+      .from('events')
+      .select('id')
+      .eq('series_id', event.series_id)
+      .neq('id', event.id)
+    const siblingIds = (siblings ?? []).map((s) => s.id)
+    if (siblingIds.length) {
+      const { data: siblingAnnounced } = await supabase
+        .from('tg_announcements')
+        .select('id')
+        .eq('entity_type', 'event_channel')
+        .in('entity_id', siblingIds)
+        .limit(1)
+      if (siblingAnnounced?.length) {
+        return new Response('skip: series sibling already announced', { status: 200 })
+      }
+    }
+  }
+
   // Venue name (if flagged show_in_announce) is prepended to the city, same convention as
   // announce-event — found live 2026-07-23: venue-name-only reads as incomplete without it.
   let location: string = event.city

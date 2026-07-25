@@ -90,6 +90,33 @@ Deno.serve(async (req) => {
     return new Response('already announced', { status: 200 })
   }
 
+  // Series de-dup: once any sibling in the same series has been announced, later siblings stay
+  // silent here. Prevents a repeating-format series (e.g. a retreat run bimonthly under one
+  // series_id) from posting one near-identical "New:" per date — found live 2026-07-25 adding
+  // an 8-date Deep Contact retreat series. Simple and blanket: it also silences later modules of
+  // a *distinct-content* series (different teacher/theme per module, e.g. Wallin Works) — an
+  // acceptable tradeoff for now since that case hasn't caused a complaint yet; revisit with a
+  // smarter per-module check if it does.
+  if (event.series_id) {
+    const { data: siblings } = await supabase
+      .from('events')
+      .select('id')
+      .eq('series_id', event.series_id)
+      .neq('id', event.id)
+    const siblingIds = (siblings ?? []).map((s) => s.id)
+    if (siblingIds.length) {
+      const { data: siblingAnnounced } = await supabase
+        .from('tg_announcements')
+        .select('id')
+        .eq('entity_type', 'event')
+        .in('entity_id', siblingIds)
+        .limit(1)
+      if (siblingAnnounced?.length) {
+        return new Response('skip: series sibling already announced', { status: 200 })
+      }
+    }
+  }
+
   // Legacy Telegram Markdown treats _ * ` [ as formatting characters — an unescaped one
   // in organizer-controlled text (title, venue name) can break message parsing (send
   // fails) or bleed formatting into surrounding text. [ ] are replaced rather than
