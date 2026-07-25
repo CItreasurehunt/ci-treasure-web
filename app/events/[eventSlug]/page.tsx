@@ -203,13 +203,18 @@ export default async function EventPage({ params }: EventPageProps) {
                   {eventPracticesToShow(event.discipline).length ? (
                     <div className="flex flex-wrap gap-2">
                       {eventPracticesToShow(event.discipline).map((d) => (
-                        <PracticeBadge key={d} discipline={d} />
+                        <PracticeBadge key={d} discipline={d} href={`/?discipline=${d}`} />
                       ))}
                     </div>
                   ) : null}
-                  <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-3 py-1 text-xs font-bold uppercase tracking-wider text-(--color-pine)">
+                  {/* Clickable → the listing filtered to this type. Practice pills above link to
+                      /?discipline=; both reuse the homepage filter's existing URL params. */}
+                  <Link
+                    href={`/?type=${event.type}`}
+                    className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-3 py-1 text-xs font-bold uppercase tracking-wider text-(--color-pine) transition hover:bg-white"
+                  >
                     {getTypeLabel(event.type)}
-                  </p>
+                  </Link>
                 </div>
                 <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                   {event.title}
