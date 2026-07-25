@@ -24,6 +24,7 @@ import { EntityEventCard } from "@/components/entity-event-card";
 import { EntityImage } from "@/components/entity-image";
 import { getLinkLabel, linkSortKey } from "@/lib/events";
 import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
+import { PracticeBadge } from "@/components/shared/practice-badge";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 
@@ -153,6 +154,21 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                 {derivedIsOrganizer && <RoleBadge>Organizer</RoleBadge>}
                 {derivedIsMusician && <RoleBadge>Musician</RoleBadge>}
               </div>
+              {/* Practice tags (I-135), on their own row below the role badges. Roles and practices
+                  share the same frosted-pill treatment (both are secondary facets of the person —
+                  the H1 name is the primary identity here, so there's no solid "primary" pill like
+                  the event header's type pill). They sit on separate flex rows but read as one pill
+                  cluster; that's intentional, not a bug. Whether practices should be visually
+                  distinguished from roles here is a real design call flagged for Jan. Unlike events,
+                  CI is NOT suppressed: a CI teacher's page showing "Contact Improvisation" is the
+                  point (and what a future /teachers modality filter keys off). */}
+              {teacher.discipline && teacher.discipline.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {teacher.discipline.map((d) => (
+                    <PracticeBadge key={d} discipline={d} />
+                  ))}
+                </div>
+              ) : null}
               <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 {teacher.name}
               </h1>

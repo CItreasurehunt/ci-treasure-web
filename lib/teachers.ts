@@ -27,6 +27,9 @@ export type TeacherProfile = {
   significant_teachers: string | null;
   year_starting_practice: number | null;
   year_starting_teaching: number | null;
+  // I-135: teacher's own practice(s), same vocabulary as events.discipline. UI label "Practice".
+  // Fetched via getTeacherBySlug's select("*"); NULL until backfilled (I-098 pattern).
+  discipline: string[] | null;
   visibility: string;
   show_in_list: boolean;
   image_url: string | null;

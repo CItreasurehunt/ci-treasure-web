@@ -7,6 +7,7 @@ import { ReportButton } from "@/components/report-button";
 import { SegmentsSection } from "@/components/segments-section";
 import { RevealEmail } from "@/components/reveal-email";
 import BackButton from "@/components/back-button";
+import { PracticeBadge, eventPracticesToShow } from "@/components/shared/practice-badge";
 import {
   type SeriesSibling,
   formatPriceLabel,
@@ -192,9 +193,18 @@ export default async function EventPage({ params }: EventPageProps) {
           <div className={`border-b border-(--color-sand-strong) ${getOgImageStyle(event.type)}`}>
             <div className="px-6 py-10 sm:px-8">
               <div className="max-w-3xl space-y-5">
-                <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-4 py-1 text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">
-                  {getTypeLabel(event.type)}
-                </p>
+                <div className="space-y-3">
+                  <p className="inline-flex items-center rounded-full border border-white/80 bg-white/75 px-4 py-1 text-sm font-semibold uppercase tracking-[0.28em] text-(--color-pine)">
+                    {getTypeLabel(event.type)}
+                  </p>
+                  {eventPracticesToShow(event.discipline).length ? (
+                    <div className="flex flex-wrap gap-2">
+                      {eventPracticesToShow(event.discipline).map((d) => (
+                        <PracticeBadge key={d} discipline={d} />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
                 <h1 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                   {event.title}
                 </h1>

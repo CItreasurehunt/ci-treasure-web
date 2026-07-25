@@ -362,7 +362,7 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
   }
 
   const columns =
-    "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, image_credit, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, level, language, event_series(title)";
+    "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, image_credit, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, level, language, discipline, event_series(title)";
 
   // events_select_public RLS covers both 'published' and 'archived' (I-112) -- archived
   // (past) events stay publicly readable so their pages keep working for SEO + history,
