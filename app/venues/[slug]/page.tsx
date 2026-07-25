@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import {
   ExternalLink,
   Facebook,
@@ -18,7 +18,7 @@ import { EntityEventCard } from "@/components/entity-event-card";
 import { EntityImage } from "@/components/entity-image";
 import { getLinkLabel, linkSortKey } from "@/lib/events";
 import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
-import { getAllVenueSlugs, getVenueBySlug, getVenueEvents } from "@/lib/venues";
+import { getAllVenueSlugs, getVenueBySlug, getVenueEvents, resolveVenueSlugRedirect } from "@/lib/venues";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 import { ReportButton } from "@/components/report-button";
@@ -68,6 +68,10 @@ export default async function VenuePage({ params }: VenuePageProps) {
   const venue = await getVenueBySlug(slug);
 
   if (!venue) {
+    const currentSlug = await resolveVenueSlugRedirect(slug);
+    if (currentSlug) {
+      permanentRedirect(`/venues/${currentSlug}`);
+    }
     notFound();
   }
 

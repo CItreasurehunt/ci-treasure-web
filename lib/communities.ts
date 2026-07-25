@@ -390,6 +390,23 @@ export async function getAllCommunitySlugs(): Promise<string[]> {
   return data.map((v) => v.slug);
 }
 
+// I-117 follow-up: called only when getCommunityBySlug misses on the exact slug — looks up
+// whether it's a superseded one (tracked via the communities_track_slug_history trigger) and
+// returns the current slug to redirect to. Mirrors the teacher/venue/event slug-redirect pattern.
+export async function resolveCommunitySlugRedirect(slug: string): Promise<string | null> {
+  if (!hasSupabaseEnv()) return null;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("communities")
+    .select("slug")
+    .contains("previous_slugs", [slug])
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  return data?.slug ?? null;
+}
+
 export async function getCommunityEventsByCountry(countryIso: string | null) {
   if (!hasSupabaseEnv() || !countryIso) return [];
 

@@ -277,3 +277,20 @@ export async function getAllVenueSlugs(): Promise<string[]> {
   if (error || !data) return [];
   return data.map((v) => v.slug);
 }
+
+// I-117 follow-up: called only when getVenueBySlug misses on the exact slug — looks up whether
+// it's a superseded one (tracked via the venues_track_slug_history trigger) and returns the
+// current slug to redirect to. Mirrors the teacher/event slug-redirect pattern.
+export async function resolveVenueSlugRedirect(slug: string): Promise<string | null> {
+  if (!hasSupabaseEnv()) return null;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("venues")
+    .select("slug")
+    .contains("previous_slugs", [slug])
+    .eq("visibility", "public")
+    .maybeSingle();
+
+  return data?.slug ?? null;
+}

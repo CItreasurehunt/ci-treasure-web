@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import {
   ArrowLeft,
   CalendarDays,
@@ -36,6 +36,7 @@ import {
   isLineUrl,
   isMessengerUrl,
   isPrivateGroupInvite,
+  resolveCommunitySlugRedirect,
 } from "@/lib/communities";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL } from "@/lib/site";
@@ -79,6 +80,10 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   const community = await getCommunityBySlug(slug);
 
   if (!community) {
+    const currentSlug = await resolveCommunitySlugRedirect(slug);
+    if (currentSlug) {
+      permanentRedirect(`/communities/${currentSlug}`);
+    }
     notFound();
   }
 
