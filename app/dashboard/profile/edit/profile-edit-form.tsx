@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { updateProfile, setProfileDeactivated, requestProfileDeletion, type ProfileUpdateData } from "./actions";
 import { uploadProfilePhoto } from "./photo-actions";
 import { CONTINENT_COUNTRIES } from "@/lib/continents";
-import { getCountryLabel } from "@/lib/event-display";
+import { getCountryLabel, disciplineLabel } from "@/lib/event-display";
+import { SELF_SELECTABLE_PRACTICES } from "@/lib/practices";
 
 const inputClassName =
   "w-full rounded-2xl border border-(--color-sand-strong) bg-white px-4 py-3 text-sm text-slate-950 outline-none ring-0 transition focus:border-(--color-pine)";
@@ -32,6 +33,7 @@ type ProfileRow = {
   is_organizer: boolean;
   is_teacher: boolean;
   is_musician: boolean;
+  discipline: string[] | null;
 };
 
 type LockedRoles = {
@@ -71,6 +73,7 @@ export function ProfileEditForm({
     is_organizer: profile.is_organizer || lockedRoles.organizer,
     is_teacher: profile.is_teacher || lockedRoles.teacher,
     is_musician: profile.is_musician || lockedRoles.musician,
+    discipline: profile.discipline ?? [],
   });
 
   const allCountries = Object.values(CONTINENT_COUNTRIES).flat().sort((a, b) =>
@@ -132,6 +135,17 @@ export function ProfileEditForm({
 
   function handleRoleToggle(role: "is_organizer" | "is_teacher" | "is_musician") {
     setForm(prev => ({ ...prev, [role]: !prev[role] }));
+    setSuccess(false);
+    setError(null);
+  }
+
+  function handlePracticeToggle(value: string) {
+    setForm(prev => ({
+      ...prev,
+      discipline: prev.discipline.includes(value)
+        ? prev.discipline.filter((d) => d !== value)
+        : [...prev.discipline, value],
+    }));
     setSuccess(false);
     setError(null);
   }
@@ -261,6 +275,41 @@ export function ProfileEditForm({
           )}
         </div>
       </section>
+
+      {/* Practice self-select (I-135) — teachers only, since practices are what you teach.
+          Controlled vocabulary from SELF_SELECTABLE_PRACTICES; the server re-validates against
+          the same list, so a teacher can only ever store an approved practice (no free text). */}
+      {form.is_teacher && (
+        <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Practice</h3>
+          <p className="mt-1 text-sm text-slate-600">
+            Which practice(s) do you teach? This helps people find you by what you actually
+            offer. Missing one? Email us at{" "}
+            <a href="mailto:hello@citreasurehunt.com" className="underline">hello@citreasurehunt.com</a>{" "}
+            and we&apos;ll consider adding it.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {SELF_SELECTABLE_PRACTICES.map((p) => (
+              <label
+                key={p}
+                className={`flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
+                  form.discipline.includes(p)
+                    ? "border-(--color-pine) bg-(--color-pine)/10 text-(--color-pine)"
+                    : "border-(--color-sand-strong) text-slate-700 hover:border-(--color-pine)"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.discipline.includes(p)}
+                  onChange={() => handlePracticeToggle(p)}
+                  className="sr-only"
+                />
+                {disciplineLabel(p)}
+              </label>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Contact & Social</h3>

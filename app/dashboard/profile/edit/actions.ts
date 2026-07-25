@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { SELF_SELECTABLE_PRACTICES } from "@/lib/practices";
 
 export type ProfileUpdateData = {
   bio: string;
@@ -18,6 +19,7 @@ export type ProfileUpdateData = {
   is_organizer: boolean;
   is_teacher: boolean;
   is_musician: boolean;
+  discipline: string[];
 };
 
 function normalizeInstagram(value: string): string {
@@ -44,7 +46,7 @@ export async function updateProfile(data: ProfileUpdateData) {
 
   const { data: ownProfile } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, discipline")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -66,6 +68,21 @@ export async function updateProfile(data: ProfileUpdateData) {
   // Convert empty strings to null for optional fields so DB stays clean
   const nullIfEmpty = (v: string) => v.trim() === "" ? null : v.trim();
 
+  // Practice (I-135): re-validate against the controlled vocabulary server-side, so a
+  // hand-crafted request can't store an arbitrary/free-text practice — the picker is the
+  // only intended writer, but the server is the actual guarantee. The allow-list is the
+  // self-selectable set PLUS whatever is already stored on the profile, so a curated
+  // non-picker practice (e.g. an admin-backfilled `yoga`) survives a self-edit — the user
+  // still can't ADD anything outside the picker. Dedup, and store NULL (not []) when empty.
+  // Uses effective teacher status (a locked teacher can't be un-teachered by a crafted call);
+  // for a genuine non-teacher, leave whatever's stored untouched rather than wiping it.
+  const storedDiscipline = ((ownProfile.discipline as string[] | null) ?? []);
+  const isTeacherEffective = data.is_teacher || lockedTeacher;
+  const allowedPractices = new Set<string>([...SELF_SELECTABLE_PRACTICES, ...storedDiscipline]);
+  const validatedDiscipline = isTeacherEffective
+    ? Array.from(new Set((data.discipline ?? []).filter((d) => allowedPractices.has(d))))
+    : storedDiscipline;
+
   // Belt-and-suspenders alongside the DB check constraint: never send a populated city/country
   // alongside is_nomadic=true, regardless of what the client sent.
   const normalizedData = {
@@ -83,6 +100,7 @@ export async function updateProfile(data: ProfileUpdateData) {
     is_organizer: data.is_organizer || lockedOrganizer,
     is_teacher:   data.is_teacher || lockedTeacher,
     is_musician:  data.is_musician || lockedMusician,
+    discipline:   validatedDiscipline.length ? validatedDiscipline : null,
     updated_at:   new Date().toISOString(),
   };
 
