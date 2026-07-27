@@ -135,6 +135,11 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
         .select("id, name, slug, city, description, image_url, lat, lng")
         .eq("country", summary.iso)
         .eq("visibility", "public")
+        // Matches lib/venues.ts's getVenues() curation gate — without it this query pulled in
+        // venues that are public but deliberately excluded from the curated /venues list
+        // (show_in_list=false), which is how un-enriched, image-less venues were leaking onto
+        // the country page.
+        .eq("show_in_list", true)
         .order("name"),
     ]);
 

@@ -106,7 +106,11 @@ export default async function CountryPage({ params }: CountryPageProps) {
             </p>
           </div>
           {mapMarkers.length > 0 && (
-            <div className="h-80 lg:h-full lg:min-h-105">
+            // Fixed height, not h-full/min-h against an unstretched grid track (the header
+            // uses lg:items-start so siblings don't stretch to match each other's height) —
+            // that combination left the map's actual height ambiguous and it was rendering
+            // far taller than intended. A firm height caps it consistently at every breakpoint.
+            <div className="h-96">
               <CountryCombinedMap markers={mapMarkers} />
             </div>
           )}
