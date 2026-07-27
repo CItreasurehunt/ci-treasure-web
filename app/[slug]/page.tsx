@@ -97,19 +97,38 @@ export default async function CountryPage({ params }: CountryPageProps) {
           </h1>
 
           {/* Stat strip: bold counts + small labels, not a plain inline text row — gives
-              search snippets and quick scanners something concrete to grab onto. */}
+              search snippets and quick scanners something concrete to grab onto. Each stat links
+              down to its own section (matching anchor id) when that section actually renders;
+              a stat reading 0 has nothing to jump to, so it stays a plain box instead of a dead link. */}
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              ["communities", communities.length + nationalCommunities.length],
-              ["teachers", teachers.length],
-              ["upcoming events", events.length],
-              ["venues", venues.length],
-            ].map(([labelText, count]) => (
-              <div key={labelText} className="rounded-xl border border-(--color-sand-strong) bg-white px-4 py-2.5 text-center">
-                <p className="font-serif text-xl text-slate-900">{count}</p>
-                <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">{labelText}</p>
-              </div>
-            ))}
+            {(
+              [
+                ["communities", communities.length + nationalCommunities.length, "communities"],
+                ["teachers", teachers.length, "teachers"],
+                ["upcoming events", events.length, "events"],
+                ["venues", venues.length, "venues"],
+              ] as const
+            ).map(([labelText, count, anchorId]) => {
+              const content = (
+                <>
+                  <p className="font-serif text-xl text-slate-900">{count}</p>
+                  <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">{labelText}</p>
+                </>
+              );
+              return count > 0 ? (
+                <a
+                  key={labelText}
+                  href={`#${anchorId}`}
+                  className="rounded-xl border border-(--color-sand-strong) bg-white px-4 py-2.5 text-center transition hover:border-(--color-pine) hover:shadow-sm"
+                >
+                  {content}
+                </a>
+              ) : (
+                <div key={labelText} className="rounded-xl border border-(--color-sand-strong) bg-white px-4 py-2.5 text-center">
+                  {content}
+                </div>
+              );
+            })}
           </div>
 
           {/* Map fixed-size and floated top-right, text flows around/below it — deliberately
@@ -135,49 +154,57 @@ export default async function CountryPage({ params }: CountryPageProps) {
           </div>
         </header>
 
-        {nationalCommunities.length > 0 && (
-          <section className="mb-8">
-            <h2 className="mb-3 font-serif text-xl text-slate-900">National community</h2>
-            <div className="space-y-2">
-              {nationalCommunities.map((c) => (
-                <CompactCommunityRow key={c.id} community={c} />
-              ))}
-            </div>
-          </section>
-        )}
+        {(nationalCommunities.length > 0 || communities.length > 0) && (
+          // Single anchor wraps both the national-spotlight and general communities blocks —
+          // the stat strip's "communities" count is their combined total, so it should jump to
+          // wherever the first of the two actually renders, not just one or the other.
+          <div id="communities" className="scroll-mt-6">
+            {nationalCommunities.length > 0 && (
+              <section className="mb-8">
+                <h2 className="mb-3 font-serif text-xl text-slate-900">National community</h2>
+                <div className="space-y-2">
+                  {nationalCommunities.map((c) => (
+                    <CompactCommunityRow key={c.id} community={c} />
+                  ))}
+                </div>
+              </section>
+            )}
 
-        {/* Communities and Teachers are stacked full-width, not paired side by side — a 5-row
-            list next to a 13-row list (Sweden today) or a 25-row list next to a 39-row list
-            (Germany-scale, eventually) reads as broken when compared at equal column width, but
-            not when each is just its own list, the same way /communities or /venues already read
-            as normal long lists. Each row is a plain table-style line (name / city / link) rather
-            than a bordered card — a dense country's teacher list is meant to scan fast, not to be
-            browsed tile by tile. ExpandableList caps the initial render and expands in place,
-            deliberately not linking out to a "view all" page since /teachers isn't a real
-            filterable directory yet (I-132 shipped ahead of it). */}
-        {communities.length > 0 && (
-          <section className="mb-8">
-            <h2 className="mb-3 font-serif text-xl text-slate-900">Communities</h2>
-            <div className="divide-y divide-(--color-sand-strong) overflow-hidden rounded-xl border border-(--color-sand-strong) bg-white">
-              <ExpandableList
-                itemLabel="communities"
-                initialCount={7}
-                items={communities.map((c) => (
-                  <CompactCommunityRow key={c.id} community={c} />
-                ))}
-              />
-            </div>
-            <p className="mt-3 text-sm text-slate-500">
-              Know a community in {label} we&apos;re missing?{" "}
-              <a href={COMMUNITY_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-(--color-pine) hover:underline">
-                Suggest it →
-              </a>
-            </p>
-          </section>
+            {/* Communities and Teachers are stacked full-width, not paired side by side — a
+                5-row list next to a 13-row list (Sweden today) or a 25-row list next to a 39-row
+                list (Germany-scale, eventually) reads as broken when compared at equal column
+                width, but not when each is just its own list, the same way /communities or
+                /venues already read as normal long lists. Each row is a plain table-style line
+                (name / city / link) rather than a bordered card — a dense country's teacher list
+                is meant to scan fast, not to be browsed tile by tile. ExpandableList caps the
+                initial render and expands in place, deliberately not linking out to a "view all"
+                page since /teachers isn't a real filterable directory yet (I-132 shipped ahead
+                of it). */}
+            {communities.length > 0 && (
+              <section className="mb-8">
+                <h2 className="mb-3 font-serif text-xl text-slate-900">Communities</h2>
+                <div className="divide-y divide-(--color-sand-strong) overflow-hidden rounded-xl border border-(--color-sand-strong) bg-white">
+                  <ExpandableList
+                    itemLabel="communities"
+                    initialCount={7}
+                    items={communities.map((c) => (
+                      <CompactCommunityRow key={c.id} community={c} />
+                    ))}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-slate-500">
+                  Know a community in {label} we&apos;re missing?{" "}
+                  <a href={COMMUNITY_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-(--color-pine) hover:underline">
+                    Suggest it →
+                  </a>
+                </p>
+              </section>
+            )}
+          </div>
         )}
 
         {teachers.length > 0 && (
-          <section className="mb-8">
+          <section id="teachers" className="mb-8 scroll-mt-6">
             <h2 className="mb-3 font-serif text-xl text-slate-900">Teachers</h2>
             <div className="divide-y divide-(--color-sand-strong) overflow-hidden rounded-xl border border-(--color-sand-strong) bg-white">
               <ExpandableList
@@ -198,7 +225,7 @@ export default async function CountryPage({ params }: CountryPageProps) {
         )}
 
         {events.length > 0 && (
-          <section className="mb-8">
+          <section id="events" className="mb-8 scroll-mt-6">
             <h2 className="mb-3 font-serif text-xl text-slate-900">Upcoming events</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {events.map((event) => (
@@ -215,7 +242,7 @@ export default async function CountryPage({ params }: CountryPageProps) {
         )}
 
         {venues.length > 0 && (
-          <section className="mb-8">
+          <section id="venues" className="mb-8 scroll-mt-6">
             <h2 className="mb-3 font-serif text-xl text-slate-900">Venues</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {venues.map((v) => (
