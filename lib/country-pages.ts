@@ -1,6 +1,7 @@
 import { createClient as createStaticClient } from "@/lib/supabase/static";
 import { getCountryLabel, type EventListItem } from "@/lib/event-display";
 import { mapEventRow, slugify, type SupabaseEventRow } from "@/lib/events";
+import { getCommunities, type Community } from "@/lib/communities";
 
 function hasSupabaseEnv() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -11,16 +12,6 @@ export type CountrySummary = {
   slug: string;
   label: string;
   summaryText: string;
-};
-
-export type CountryCommunity = {
-  id: string;
-  name: string;
-  slug: string;
-  city: string | null;
-  website: string | null;
-  lat: number | null;
-  lng: number | null;
 };
 
 export type CountryTeacher = {
@@ -61,8 +52,8 @@ export type CountryPageData = {
   slug: string;
   label: string;
   summaryText: string;
-  nationalCommunities: CountryCommunity[];
-  communities: CountryCommunity[];
+  nationalCommunities: Community[];
+  communities: Community[];
   teachers: CountryTeacher[];
   events: EventListItem[];
   venues: CountryVenue[];
@@ -108,14 +99,12 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
   const EVENT_COLS =
     "id, short_id, title, description, type, start_date, end_date, city, country, image_url, lat, lng, discipline, cancelled";
 
-  const [{ data: communityRows }, { data: teacherRows }, { data: eventRows }, { data: venueRows }] =
+  const [{ communities: allSiteCommunities }, { data: teacherRows }, { data: eventRows }, { data: venueRows }] =
     await Promise.all([
-      supabase
-        .from("communities")
-        .select("id, name, slug, city, website, lat, lng")
-        .eq("country", summary.iso)
-        .is("deleted_at", null)
-        .order("name"),
+      // Reuses the same fully-normalized Community shape (and CommunityCard UI) as /communities,
+      // instead of a stripped-down id/name/slug/city/website select — one fetch of all
+      // communities, filtered in-memory by country below, rather than a duplicate query.
+      getCommunities(),
       supabase
         .from("profiles")
         .select("id, name, slug, city, bio, image_url")
@@ -143,22 +132,14 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
         .order("name"),
     ]);
 
-  const allCommunities = (communityRows ?? []).map((c) => ({
-    id: c.id,
-    name: c.name,
-    slug: c.slug,
-    city: c.city,
-    website: c.website,
-    lat: c.lat,
-    lng: c.lng,
-  }));
+  const allCommunities = allSiteCommunities.filter((c) => c.countryIso === summary.iso);
 
   // National community spotlight: communities with a website on file are shown separately,
   // above the general list — see I-132 spec's "Canada/Switzerland/Dutch communities have
   // their own site" case. Not always populated (e.g. Sweden currently has none), in which
   // case this section is simply omitted by the page.
-  const nationalCommunities = allCommunities.filter((c) => c.website);
-  const communities = allCommunities.filter((c) => !c.website);
+  const nationalCommunities = allCommunities.filter((c) => c.websiteUrl);
+  const communities = allCommunities.filter((c) => !c.websiteUrl);
 
   const teachers = (teacherRows ?? []).map((t) => ({
     id: t.id,
@@ -190,8 +171,8 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
       .filter((v): v is typeof v & { lat: number; lng: number } => typeof v.lat === "number" && typeof v.lng === "number")
       .map((v) => ({ id: v.id, type: "venue" as const, title: v.name, href: `/venues/${v.slug}`, lat: v.lat, lng: v.lng })),
     ...allCommunities
-      .filter((c): c is typeof c & { lat: number; lng: number } => typeof c.lat === "number" && typeof c.lng === "number")
-      .map((c) => ({ id: c.id, type: "community" as const, title: c.name, href: `/communities/${c.slug}`, lat: c.lat, lng: c.lng })),
+      .filter((c): c is typeof c & { latitude: number; longitude: number } => typeof c.latitude === "number" && typeof c.longitude === "number")
+      .map((c) => ({ id: c.id, type: "community" as const, title: c.name, href: `/communities/${c.slug}`, lat: c.latitude, lng: c.longitude })),
   ];
 
   return {

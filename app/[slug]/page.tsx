@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Globe, MapPin } from "lucide-react";
 
 import { CountryCombinedMap } from "@/components/country-combined-map";
+import { CommunityCard } from "@/app/communities/communities-client";
 import { EventCard } from "@/components/event-card";
 import { GENERIC_ACCENT_GRADIENT } from "@/lib/event-display";
 import { COMMUNITY_SUBMIT_URL } from "@/lib/communities";
@@ -90,31 +90,45 @@ export default async function CountryPage({ params }: CountryPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }}
       />
       <div className="mx-auto max-w-5xl">
-        <header className="mb-12 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
-          <div>
-            <h1 className="mb-4 font-serif text-3xl text-slate-900 md:text-5xl">
-              {flag ? `${flag} ` : ""}Contact Improvisation in {label}
-            </h1>
-            <div className="mb-6 flex flex-wrap gap-x-6 gap-y-1 text-sm font-medium text-slate-700">
-              <span>{communities.length + nationalCommunities.length} communities</span>
-              <span>{teachers.length} teachers</span>
-              <span>{events.length} upcoming events</span>
-              <span>{venues.length} venues</span>
-            </div>
-            <h2 className="mb-2 font-serif text-xl text-slate-900">Overview</h2>
-            <p className="max-w-3xl text-lg leading-8 whitespace-pre-line text-slate-700">
-              {summaryText}
-            </p>
+        <header className="mb-12">
+          <h1 className="mb-4 font-serif text-3xl text-slate-900 md:text-5xl">
+            {flag ? `${flag} ` : ""}Contact Improvisation in {label}
+          </h1>
+
+          {/* Stat strip: bold counts + small labels, not a plain inline text row — gives
+              search snippets and quick scanners something concrete to grab onto. */}
+          <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              ["communities", communities.length + nationalCommunities.length],
+              ["teachers", teachers.length],
+              ["upcoming events", events.length],
+              ["venues", venues.length],
+            ].map(([labelText, count]) => (
+              <div key={labelText} className="rounded-xl border border-(--color-sand-strong) bg-white px-4 py-3 text-center">
+                <p className="font-serif text-2xl text-slate-900">{count}</p>
+                <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">{labelText}</p>
+              </div>
+            ))}
           </div>
-          {mapMarkers.length > 0 && (
-            // Fixed height, not h-full/min-h against an unstretched grid track (the header
-            // uses lg:items-start so siblings don't stretch to match each other's height) —
-            // that combination left the map's actual height ambiguous and it was rendering
-            // far taller than intended. A firm height caps it consistently at every breakpoint.
-            <div className="h-96">
-              <CountryCombinedMap markers={mapMarkers} />
+
+          {/* Map given more visual weight than the text (5/7 split) — it's the fastest way to
+              answer "where does this scene physically happen," ahead of reading prose. */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
+            <div className="lg:col-span-5">
+              <h2 className="mb-2 font-serif text-xl text-slate-900">Overview</h2>
+              <p className="text-lg leading-8 whitespace-pre-line text-slate-700">
+                {summaryText}
+              </p>
             </div>
-          )}
+            {mapMarkers.length > 0 && (
+              // Fixed height at every breakpoint — h-full/min-h against an unstretched grid
+              // track (lg:items-start) previously left the map's actual height ambiguous and
+              // it rendered far taller than intended.
+              <div className="h-96 lg:col-span-7">
+                <CountryCombinedMap markers={mapMarkers} />
+              </div>
+            )}
+          </div>
         </header>
 
         {nationalCommunities.length > 0 && (
@@ -122,7 +136,7 @@ export default async function CountryPage({ params }: CountryPageProps) {
             <h2 className="mb-4 font-serif text-2xl text-slate-900">National community</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {nationalCommunities.map((c) => (
-                <CommunityCard key={c.id} community={c} />
+                <CommunityCard key={c.id} community={c} onShowOnMap={undefined} />
               ))}
             </div>
           </section>
@@ -133,7 +147,7 @@ export default async function CountryPage({ params }: CountryPageProps) {
             <h2 className="mb-4 font-serif text-2xl text-slate-900">Communities</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {communities.map((c) => (
-                <CommunityCard key={c.id} community={c} />
+                <CommunityCard key={c.id} community={c} onShowOnMap={undefined} />
               ))}
             </div>
             <p className="mt-3 text-sm text-slate-500">
@@ -148,11 +162,23 @@ export default async function CountryPage({ params }: CountryPageProps) {
         {teachers.length > 0 && (
           <section className="mb-12">
             <h2 className="mb-4 font-serif text-2xl text-slate-900">Teachers</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {teachers.map((t) => (
-                <TeacherCard key={t.id} teacher={t} />
-              ))}
-            </div>
+            {teachers.some((t) => t.imageUrl) ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {teachers.map((t) => (
+                  <TeacherCard key={t.id} teacher={t} />
+                ))}
+              </div>
+            ) : (
+              // No teacher in this country has a profile photo yet (common — teacher image
+              // outreach is still early sitewide). A grid of empty gradient blocks would just
+              // be visual weight with nothing behind it, so a plain compact list runs more
+              // teachers per screen instead.
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {teachers.map((t) => (
+                  <CompactTeacherRow key={t.id} teacher={t} />
+                ))}
+              </div>
+            )}
             <p className="mt-3 text-sm text-slate-500">
               Know a teacher, organizer, or musician who should be listed?{" "}
               <Link href="/auth" className="font-medium text-(--color-pine) hover:underline">
@@ -200,26 +226,15 @@ export default async function CountryPage({ params }: CountryPageProps) {
   );
 }
 
-function CommunityCard({ community }: { community: { name: string; slug: string; city: string | null; website: string | null } }) {
+function CompactTeacherRow({ teacher }: { teacher: { name: string; slug: string; city: string | null; bio: string | null } }) {
   return (
-    <Link
-      href={`/communities/${community.slug}`}
-      className="block rounded-2xl border border-(--color-sand-strong) bg-white p-4 shadow-sm transition hover:shadow-lg"
-    >
-      <h3 className="font-serif text-lg text-slate-900">{community.name}</h3>
-      {community.city && (
-        <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
-          <MapPin className="size-3 shrink-0 text-slate-400" />
-          {community.city}
-        </p>
-      )}
-      {community.website && (
-        <p className="mt-2 flex items-center gap-1 text-sm text-(--color-pine)">
-          <Globe className="size-3.5" />
-          {community.website.replace(/^https?:\/\//, "")}
-        </p>
-      )}
-    </Link>
+    <div className="rounded-xl border border-(--color-sand-strong) bg-white p-3">
+      <h3 className="font-serif text-base text-slate-900">
+        <Link href={`/teachers/${teacher.slug}`} className="hover:underline">{teacher.name}</Link>
+      </h3>
+      {teacher.city && <p className="text-xs text-slate-500">{teacher.city}</p>}
+      {teacher.bio && <p className="mt-1 line-clamp-2 text-sm text-slate-600">{teacher.bio}</p>}
+    </div>
   );
 }
 

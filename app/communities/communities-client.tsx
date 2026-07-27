@@ -481,9 +481,12 @@ type CommunityCardProps = {
   onShowOnMap?: () => void;
 };
 
-function CommunityCard({ community, onShowOnMap }: CommunityCardProps) {
+export function CommunityCard({ community, onShowOnMap }: CommunityCardProps) {
   const linkIconClass = PLATFORM_ICON_CLASS;
-  const hasCoords = community.latitude !== null && community.longitude !== null;
+  // Requires onShowOnMap, not just coordinates — callers without a map-highlight
+  // interaction (e.g. the country page) simply don't get this button rather than
+  // rendering one that does nothing on click.
+  const hasCoords = community.latitude !== null && community.longitude !== null && Boolean(onShowOnMap);
 
   return (
     <div className="relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white p-4 transition hover:shadow-lg">
