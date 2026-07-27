@@ -19,6 +19,8 @@ export type CountryCommunity = {
   slug: string;
   city: string | null;
   website: string | null;
+  lat: number | null;
+  lng: number | null;
 };
 
 export type CountryTeacher = {
@@ -37,6 +39,21 @@ export type CountryVenue = {
   city: string;
   description: string | null;
   imageUrl: string | null;
+  lat: number | null;
+  lng: number | null;
+};
+
+// Unified shape for the combined map — events/venues/communities are all place-like (you can
+// go there, join it, attend it), unlike teachers, which is why the map stays a three-type
+// layer and doesn't try to plot individual people. See docs/issues/i-132-country-pages.md for
+// the reasoning on why teacher coordinates were deliberately not added.
+export type CountryMapMarker = {
+  id: string;
+  type: "event" | "venue" | "community";
+  title: string;
+  href: string;
+  lat: number;
+  lng: number;
 };
 
 export type CountryPageData = {
@@ -49,6 +66,7 @@ export type CountryPageData = {
   teachers: CountryTeacher[];
   events: EventListItem[];
   venues: CountryVenue[];
+  mapMarkers: CountryMapMarker[];
 };
 
 // Every country page requires a row here — this is the "minimum entity threshold before
@@ -94,7 +112,7 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
     await Promise.all([
       supabase
         .from("communities")
-        .select("id, name, slug, city, website")
+        .select("id, name, slug, city, website, lat, lng")
         .eq("country", summary.iso)
         .is("deleted_at", null)
         .order("name"),
@@ -114,7 +132,7 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
         .order("start_date", { ascending: true }),
       supabase
         .from("venues")
-        .select("id, name, slug, city, description, image_url")
+        .select("id, name, slug, city, description, image_url, lat, lng")
         .eq("country", summary.iso)
         .eq("visibility", "public")
         .order("name"),
@@ -126,6 +144,8 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
     slug: c.slug,
     city: c.city,
     website: c.website,
+    lat: c.lat,
+    lng: c.lng,
   }));
 
   // National community spotlight: communities with a website on file are shown separately,
@@ -153,7 +173,21 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
     city: v.city,
     description: v.description,
     imageUrl: v.image_url,
+    lat: v.lat,
+    lng: v.lng,
   }));
+
+  const mapMarkers: CountryMapMarker[] = [
+    ...events
+      .filter((e): e is typeof e & { lat: number; lng: number } => typeof e.lat === "number" && typeof e.lng === "number")
+      .map((e) => ({ id: e.id, type: "event" as const, title: e.title, href: `/events/${e.slug}`, lat: e.lat, lng: e.lng })),
+    ...venues
+      .filter((v): v is typeof v & { lat: number; lng: number } => typeof v.lat === "number" && typeof v.lng === "number")
+      .map((v) => ({ id: v.id, type: "venue" as const, title: v.name, href: `/venues/${v.slug}`, lat: v.lat, lng: v.lng })),
+    ...allCommunities
+      .filter((c): c is typeof c & { lat: number; lng: number } => typeof c.lat === "number" && typeof c.lng === "number")
+      .map((c) => ({ id: c.id, type: "community" as const, title: c.name, href: `/communities/${c.slug}`, lat: c.lat, lng: c.lng })),
+  ];
 
   return {
     iso: summary.iso,
@@ -165,5 +199,6 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
     teachers,
     events,
     venues,
+    mapMarkers,
   };
 }

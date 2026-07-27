@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Globe, MapPin } from "lucide-react";
+import { ExternalLink, Globe, MapPin } from "lucide-react";
 
-import { CountryEventMap } from "@/components/country-event-map";
+import { CountryCombinedMap } from "@/components/country-combined-map";
 import { EventCard } from "@/components/event-card";
 import { GENERIC_ACCENT_GRADIENT } from "@/lib/event-display";
 import { getAllCountrySlugs, getCountryPageData } from "@/lib/country-pages";
@@ -64,26 +64,52 @@ export default async function CountryPage({ params }: CountryPageProps) {
   const country = await getCountryPageData(slug);
   if (!country) notFound();
 
-  const { label, iso, summaryText, nationalCommunities, communities, teachers, events, venues } = country;
+  const { label, iso, summaryText, nationalCommunities, communities, teachers, events, venues, mapMarkers } = country;
   const flag = getCountryFlag(iso);
+
+  // Schema-only breadcrumb (I-132 follow-up, 2026-07-27): describes the page's position in the
+  // site hierarchy independent of any visible trail. Deliberately decoupled from the visible
+  // breadcrumb UI, which stays gated behind Step 2 (linking) — Google reads BreadcrumbList
+  // structured data on its own terms, it doesn't require an on-page element to match it. Has no
+  // practical effect until the page is actually crawled (Step 2 also adds the sitemap entry),
+  // but costs nothing to ship now rather than bundling it with the visible-UI gate.
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: label, item: `${SITE_URL}/${slug}` },
+    ],
+  };
 
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }}
+      />
       <div className="mx-auto max-w-5xl">
-        <header className="mb-10">
-          <h1 className="mb-4 font-serif text-3xl text-slate-900 md:text-5xl">
-            {flag ? `${flag} ` : ""}Contact Improvisation in {label}
-          </h1>
-          <div className="mb-6 flex flex-wrap gap-x-6 gap-y-1 text-sm font-medium text-slate-700">
-            <span>{communities.length + nationalCommunities.length} communities</span>
-            <span>{teachers.length} teachers</span>
-            <span>{events.length} upcoming events</span>
-            <span>{venues.length} venues</span>
+        <header className="mb-12 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
+          <div>
+            <h1 className="mb-4 font-serif text-3xl text-slate-900 md:text-5xl">
+              {flag ? `${flag} ` : ""}Contact Improvisation in {label}
+            </h1>
+            <div className="mb-6 flex flex-wrap gap-x-6 gap-y-1 text-sm font-medium text-slate-700">
+              <span>{communities.length + nationalCommunities.length} communities</span>
+              <span>{teachers.length} teachers</span>
+              <span>{events.length} upcoming events</span>
+              <span>{venues.length} venues</span>
+            </div>
+            <h2 className="mb-2 font-serif text-xl text-slate-900">Overview</h2>
+            <p className="max-w-3xl text-lg leading-8 whitespace-pre-line text-slate-700">
+              {summaryText}
+            </p>
           </div>
-          <h2 className="mb-2 font-serif text-xl text-slate-900">Overview</h2>
-          <p className="max-w-3xl text-lg leading-8 whitespace-pre-line text-slate-700">
-            {summaryText}
-          </p>
+          {mapMarkers.length > 0 && (
+            <div className="h-80 lg:h-full lg:min-h-105">
+              <CountryCombinedMap markers={mapMarkers} />
+            </div>
+          )}
         </header>
 
         {nationalCommunities.length > 0 && (
@@ -141,14 +167,45 @@ export default async function CountryPage({ params }: CountryPageProps) {
           </section>
         )}
 
-        {events.length > 0 && (
-          <section className="mb-12">
-            <h2 className="mb-4 font-serif text-2xl text-slate-900">Map</h2>
-            <div className="h-105">
-              <CountryEventMap events={events} />
+        <section className="mb-12 rounded-2xl bg-(--color-pine) p-8 text-white">
+          <h2 className="mb-6 text-center font-serif text-2xl">Something missing?</h2>
+          <div className="grid grid-cols-1 gap-6 text-center sm:grid-cols-3">
+            <div className="flex flex-col items-center">
+              <p className="mb-4 text-sm leading-6 text-white/75">
+                Know a teacher, organizer, or musician who should be listed?
+              </p>
+              <a
+                href="/auth"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-(--color-pine) transition hover:bg-slate-100"
+              >
+                Create your profile
+              </a>
             </div>
-          </section>
-        )}
+            <div className="flex flex-col items-center">
+              <p className="mb-4 text-sm leading-6 text-white/75">
+                Running an event in {label} that isn&apos;t listed yet?
+              </p>
+              <a
+                href="/events/new"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-(--color-pine) transition hover:bg-slate-100"
+              >
+                Add an event
+              </a>
+            </div>
+            <div className="flex flex-col items-center">
+              <p className="mb-4 text-sm leading-6 text-white/75">
+                Know a venue that should be on this page?
+              </p>
+              <a
+                href="mailto:hello@citreasurehunt.com"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-(--color-pine) transition hover:bg-slate-100"
+              >
+                <ExternalLink className="size-4" />
+                hello@citreasurehunt.com
+              </a>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );
