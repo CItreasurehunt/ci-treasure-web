@@ -18,7 +18,7 @@ export const LEVEL_LABEL: Record<string, string> = {
 
 // Hashtag labels — CamelCase, no spaces (Telegram hashtags break on whitespace/punctuation).
 export const TYPE_HASHTAG: Record<string, string> = {
-  jam: 'Jam', long_jam: 'Jam', workshop: 'Workshop', training: 'Training', festival: 'Festival',
+  jam: 'Jam', long_jam: 'LongJam', workshop: 'Workshop', training: 'Training', festival: 'Festival',
   retreat: 'Retreat', camp: 'Camp', intensive: 'Intensive', residency: 'Residency', class: 'Class',
   lab: 'Lab', underscore: 'Underscore', cdp: 'CDP', performance: 'Performance', lecture: 'Lecture',
 }
