@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ExternalLink, MapPin } from "lucide-react";
 
 import { CountryCombinedMap } from "@/components/country-combined-map";
-import { CommunityCard } from "@/app/communities/communities-client";
 import { EventCard } from "@/components/event-card";
 import { GENERIC_ACCENT_GRADIENT } from "@/lib/event-display";
-import { COMMUNITY_SUBMIT_URL } from "@/lib/communities";
+import { COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, type Community } from "@/lib/communities";
 import { getAllCountrySlugs, getCountryPageData } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
 import { getMediumUrl } from "@/lib/image-url";
@@ -90,109 +90,106 @@ export default async function CountryPage({ params }: CountryPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }}
       />
       <div className="mx-auto max-w-5xl">
-        <header className="mb-12">
+        <header className="mb-10">
           <h1 className="mb-4 font-serif text-3xl text-slate-900 md:text-5xl">
             {flag ? `${flag} ` : ""}Contact Improvisation in {label}
           </h1>
 
           {/* Stat strip: bold counts + small labels, not a plain inline text row — gives
               search snippets and quick scanners something concrete to grab onto. */}
-          <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               ["communities", communities.length + nationalCommunities.length],
               ["teachers", teachers.length],
               ["upcoming events", events.length],
               ["venues", venues.length],
             ].map(([labelText, count]) => (
-              <div key={labelText} className="rounded-xl border border-(--color-sand-strong) bg-white px-4 py-3 text-center">
-                <p className="font-serif text-2xl text-slate-900">{count}</p>
+              <div key={labelText} className="rounded-xl border border-(--color-sand-strong) bg-white px-4 py-2.5 text-center">
+                <p className="font-serif text-xl text-slate-900">{count}</p>
                 <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">{labelText}</p>
               </div>
             ))}
           </div>
 
-          {/* Map given more visual weight than the text (5/7 split) — it's the fastest way to
-              answer "where does this scene physically happen," ahead of reading prose. Both
-              sides now share the same card treatment (white bg, border, padding) — previously
-              the map sat in a bordered box while the text floated bare on the page background,
-              an unbalanced pairing that read as unfinished. Default grid stretch (no
-              items-start) means both columns share one real row height instead of a hardcoded
-              guess, so the map's h-full now has a definite height to fill. */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-            <div className="rounded-2xl border border-(--color-sand-strong) bg-white p-6 lg:col-span-5">
-              <h2 className="mb-2 font-serif text-xl text-slate-900">Overview</h2>
-              <p className="text-lg leading-8 whitespace-pre-line text-slate-700">
-                {summaryText}
-              </p>
-            </div>
+          {/* Map fixed-size and floated top-right, text flows around/below it — deliberately
+              not a grid, so the map's size and the summary text's length are fully decoupled.
+              A grid that stretches both to equal height makes the map inherit however long the
+              text is (bad: a 3-paragraph summary produced a huge, over-zoomed-out map); a grid
+              that fixes the map's height independently leaves an empty gutter under whichever
+              column is shorter. A float has neither failure mode: short text just leaves the
+              map extending a bit further down (normal, reads as an inset illustration, not a
+              layout bug), and long text simply continues at full width once it clears the
+              float's bottom edge. `flow-root` on the wrapper is the modern non-hacky way to
+              stop the section from collapsing its height around the floated child. */}
+          <div className="flow-root">
             {mapMarkers.length > 0 && (
-              <div className="h-80 lg:col-span-7 lg:h-full">
+              <div className="mb-6 h-80 w-full overflow-hidden rounded-2xl border border-(--color-sand-strong) lg:float-right lg:mb-4 lg:ml-8 lg:h-[420px] lg:w-[420px]">
                 <CountryCombinedMap markers={mapMarkers} />
               </div>
             )}
+            <h2 className="mb-2 font-serif text-xl text-slate-900">Overview</h2>
+            <p className="text-lg leading-8 whitespace-pre-line text-slate-700">
+              {summaryText}
+            </p>
           </div>
         </header>
 
         {nationalCommunities.length > 0 && (
-          <section className="mb-12">
-            <h2 className="mb-4 font-serif text-2xl text-slate-900">National community</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <section className="mb-8">
+            <h2 className="mb-3 font-serif text-xl text-slate-900">National community</h2>
+            <div className="space-y-2">
               {nationalCommunities.map((c) => (
-                <CommunityCard key={c.id} community={c} onShowOnMap={undefined} />
+                <CompactCommunityRow key={c.id} community={c} />
               ))}
             </div>
           </section>
         )}
 
-        {communities.length > 0 && (
-          <section className="mb-12">
-            <h2 className="mb-4 font-serif text-2xl text-slate-900">Communities</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {communities.map((c) => (
-                <CommunityCard key={c.id} community={c} onShowOnMap={undefined} />
-              ))}
-            </div>
-            <p className="mt-3 text-sm text-slate-500">
-              Know a community in {label} we&apos;re missing?{" "}
-              <a href={COMMUNITY_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-(--color-pine) hover:underline">
-                Suggest it →
-              </a>
-            </p>
-          </section>
-        )}
-
-        {teachers.length > 0 && (
-          <section className="mb-12">
-            <h2 className="mb-4 font-serif text-2xl text-slate-900">Teachers</h2>
-            {teachers.some((t) => t.imageUrl) ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {teachers.map((t) => (
-                  <TeacherCard key={t.id} teacher={t} />
-                ))}
-              </div>
-            ) : (
-              // No teacher in this country has a profile photo yet (common — teacher image
-              // outreach is still early sitewide). A grid of empty gradient blocks would just
-              // be visual weight with nothing behind it, so a plain compact list runs more
-              // teachers per screen instead.
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {teachers.map((t) => (
-                  <CompactTeacherRow key={t.id} teacher={t} />
-                ))}
+        {/* Communities + Teachers paired side by side — both are the low-visual-weight
+            "who's here" layer (no photos to earn a tile/card treatment, see CompactTeacherRow's
+            note below), distinct from the photo-driven Events/Venues tiles further down. Pairing
+            them also roughly halves the vertical space two full-width stacked sections would take. */}
+        {(communities.length > 0 || teachers.length > 0) && (
+          <section className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {communities.length > 0 && (
+              <div>
+                <h2 className="mb-3 font-serif text-xl text-slate-900">Communities</h2>
+                <div className="space-y-2">
+                  {communities.map((c) => (
+                    <CompactCommunityRow key={c.id} community={c} />
+                  ))}
+                </div>
+                <p className="mt-3 text-sm text-slate-500">
+                  Know a community in {label} we&apos;re missing?{" "}
+                  <a href={COMMUNITY_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-(--color-pine) hover:underline">
+                    Suggest it →
+                  </a>
+                </p>
               </div>
             )}
-            <p className="mt-3 text-sm text-slate-500">
-              Know a teacher, organizer, or musician who should be listed?{" "}
-              <Link href="/auth" className="font-medium text-(--color-pine) hover:underline">
-                Create your profile →
-              </Link>
-            </p>
+
+            {teachers.length > 0 && (
+              <div>
+                <h2 className="mb-3 font-serif text-xl text-slate-900">Teachers</h2>
+                <div className="space-y-2">
+                  {teachers.map((t) => (
+                    <CompactTeacherRow key={t.id} teacher={t} />
+                  ))}
+                </div>
+                <p className="mt-3 text-sm text-slate-500">
+                  Know a teacher, organizer, or musician who should be listed?{" "}
+                  <Link href="/auth" className="font-medium text-(--color-pine) hover:underline">
+                    Create your profile →
+                  </Link>
+                </p>
+              </div>
+            )}
           </section>
         )}
 
         {events.length > 0 && (
-          <section className="mb-12">
-            <h2 className="mb-4 font-serif text-2xl text-slate-900">Upcoming events</h2>
+          <section className="mb-8">
+            <h2 className="mb-3 font-serif text-xl text-slate-900">Upcoming events</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {events.map((event) => (
                 <EventCard key={event.id} event={event} />
@@ -208,8 +205,8 @@ export default async function CountryPage({ params }: CountryPageProps) {
         )}
 
         {venues.length > 0 && (
-          <section className="mb-12">
-            <h2 className="mb-4 font-serif text-2xl text-slate-900">Venues</h2>
+          <section className="mb-8">
+            <h2 className="mb-3 font-serif text-xl text-slate-900">Venues</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {venues.map((v) => (
                 <VenueCard key={v.id} venue={v} />
@@ -223,44 +220,62 @@ export default async function CountryPage({ params }: CountryPageProps) {
             </p>
           </section>
         )}
+
+        <p className="mt-4 border-t border-(--color-sand-strong) pt-6 text-sm text-slate-500">
+          Want to help keep the {label} page accurate — spot missing communities, teachers, or
+          venues before we do?{" "}
+          <a href="mailto:hello@citreasurehunt.com" className="font-medium text-(--color-pine) hover:underline">
+            Get in touch →
+          </a>
+        </p>
       </div>
     </main>
   );
 }
 
-function CompactTeacherRow({ teacher }: { teacher: { name: string; slug: string; city: string | null; bio: string | null } }) {
+function CompactCommunityRow({ community }: { community: Community }) {
+  const joinUrl = getPrimaryJoinUrl(community);
   return (
-    <div className="rounded-xl border border-(--color-sand-strong) bg-white p-3">
-      <h3 className="font-serif text-base text-slate-900">
-        <Link href={`/teachers/${teacher.slug}`} className="hover:underline">{teacher.name}</Link>
-      </h3>
-      {teacher.city && <p className="text-xs text-slate-500">{teacher.city}</p>}
-      {teacher.bio && <p className="mt-1 line-clamp-2 text-sm text-slate-600">{teacher.bio}</p>}
+    <div className="relative flex items-center justify-between gap-3 rounded-xl border border-(--color-sand-strong) bg-white px-4 py-2.5">
+      <Link href={`/communities/${community.slug}`} className="absolute inset-0" aria-label={community.name} />
+      <div className="min-w-0">
+        <p className="truncate font-serif text-base text-slate-900">{community.name}</p>
+        {community.city && (
+          <p className="flex items-center gap-1 text-xs text-slate-500">
+            <MapPin className="size-3 shrink-0 text-slate-400" />
+            {community.city}
+          </p>
+        )}
+      </div>
+      {joinUrl && (
+        <a
+          href={joinUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative z-10 shrink-0 text-slate-400 hover:text-(--color-pine)"
+          aria-label={`Visit ${community.name}`}
+        >
+          <ExternalLink className="size-4" />
+        </a>
+      )}
     </div>
   );
 }
 
-function TeacherCard({ teacher }: { teacher: { name: string; slug: string; city: string | null; bio: string | null; imageUrl: string | null } }) {
+function CompactTeacherRow({ teacher }: { teacher: { name: string; slug: string; city: string | null; bio: string | null; imageUrl?: string | null } }) {
   const imageUrl = teacher.imageUrl?.trim() ?? "";
-  const renderImage = imageUrl.length > 0;
-
-  // Bio deliberately sits outside the <Link>: a screen reader shouldn't announce a
-  // 100+ word bio as one giant clickable link, and search engines shouldn't see a wall of
-  // unrelated prose as this URL's anchor text. Only the name (and image) are the link.
   return (
-    <div className="flex overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white shadow-sm transition hover:shadow-lg">
-      <Link href={`/teachers/${teacher.slug}`} className={`h-24 w-24 shrink-0 border-r border-(--color-sand-strong) ${!renderImage ? GENERIC_ACCENT_GRADIENT : ""}`}>
-        {renderImage && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={getMediumUrl(imageUrl)} alt={teacher.name} className="h-full w-full object-cover" />
-        )}
-      </Link>
-      <div className="min-w-0 flex-1 p-4">
-        <h3 className="font-serif text-lg text-slate-900">
+    <div className="flex items-center gap-3 rounded-xl border border-(--color-sand-strong) bg-white px-4 py-2.5">
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={getMediumUrl(imageUrl)} alt={teacher.name} className="size-9 shrink-0 rounded-full object-cover" />
+      ) : null}
+      <div className="min-w-0 flex-1">
+        <p className="font-serif text-base text-slate-900">
           <Link href={`/teachers/${teacher.slug}`} className="hover:underline">{teacher.name}</Link>
-        </h3>
-        {teacher.city && <p className="text-sm text-slate-500">{teacher.city}</p>}
-        {teacher.bio && <p className="mt-1 line-clamp-2 text-sm text-slate-600">{teacher.bio}</p>}
+        </p>
+        {teacher.city && <p className="text-xs text-slate-500">{teacher.city}</p>}
+        {teacher.bio && <p className="line-clamp-1 text-sm text-slate-600">{teacher.bio}</p>}
       </div>
     </div>
   );
@@ -270,7 +285,8 @@ function VenueCard({ venue }: { venue: { name: string; slug: string; city: strin
   const imageUrl = venue.imageUrl?.trim() ?? "";
   const renderImage = imageUrl.length > 0;
 
-  // Same anchor-text/a11y fix as TeacherCard: description stays outside the <Link>.
+  // Anchor-text/a11y fix (I-132 follow-up): description stays outside the <Link> — only the
+  // name/image are the link, so a screen reader doesn't announce the whole card as one link.
   return (
     <div className="flex overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white shadow-sm transition hover:shadow-lg">
       <Link href={`/venues/${venue.slug}`} className={`h-24 w-24 shrink-0 border-r border-(--color-sand-strong) ${!renderImage ? GENERIC_ACCENT_GRADIENT : ""}`}>
