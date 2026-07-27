@@ -5,6 +5,7 @@ import { ExternalLink, MapPin } from "lucide-react";
 
 import { CountryCombinedMap } from "@/components/country-combined-map";
 import { EventCard } from "@/components/event-card";
+import { ExpandableList } from "@/components/expandable-list";
 import { GENERIC_ACCENT_GRADIENT } from "@/lib/event-display";
 import { COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, type Community } from "@/lib/communities";
 import { getAllCountrySlugs, getCountryPageData } from "@/lib/country-pages";
@@ -145,45 +146,54 @@ export default async function CountryPage({ params }: CountryPageProps) {
           </section>
         )}
 
-        {/* Communities + Teachers paired side by side — both are the low-visual-weight
-            "who's here" layer (no photos to earn a tile/card treatment, see CompactTeacherRow's
-            note below), distinct from the photo-driven Events/Venues tiles further down. Pairing
-            them also roughly halves the vertical space two full-width stacked sections would take. */}
-        {(communities.length > 0 || teachers.length > 0) && (
-          <section className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {communities.length > 0 && (
-              <div>
-                <h2 className="mb-3 font-serif text-xl text-slate-900">Communities</h2>
-                <div className="space-y-2">
-                  {communities.map((c) => (
-                    <CompactCommunityRow key={c.id} community={c} />
-                  ))}
-                </div>
-                <p className="mt-3 text-sm text-slate-500">
-                  Know a community in {label} we&apos;re missing?{" "}
-                  <a href={COMMUNITY_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-(--color-pine) hover:underline">
-                    Suggest it →
-                  </a>
-                </p>
-              </div>
-            )}
+        {/* Communities and Teachers are stacked full-width, not paired side by side — a 5-row
+            list next to a 13-row list (Sweden today) or a 25-row list next to a 39-row list
+            (Germany-scale, eventually) reads as broken when compared at equal column width, but
+            not when each is just its own list, the same way /communities or /venues already read
+            as normal long lists. Each row is a plain table-style line (name / city / link) rather
+            than a bordered card — a dense country's teacher list is meant to scan fast, not to be
+            browsed tile by tile. ExpandableList caps the initial render and expands in place,
+            deliberately not linking out to a "view all" page since /teachers isn't a real
+            filterable directory yet (I-132 shipped ahead of it). */}
+        {communities.length > 0 && (
+          <section className="mb-8">
+            <h2 className="mb-3 font-serif text-xl text-slate-900">Communities</h2>
+            <div className="divide-y divide-(--color-sand-strong) overflow-hidden rounded-xl border border-(--color-sand-strong) bg-white">
+              <ExpandableList
+                itemLabel="communities"
+                initialCount={7}
+                items={communities.map((c) => (
+                  <CompactCommunityRow key={c.id} community={c} />
+                ))}
+              />
+            </div>
+            <p className="mt-3 text-sm text-slate-500">
+              Know a community in {label} we&apos;re missing?{" "}
+              <a href={COMMUNITY_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-(--color-pine) hover:underline">
+                Suggest it →
+              </a>
+            </p>
+          </section>
+        )}
 
-            {teachers.length > 0 && (
-              <div>
-                <h2 className="mb-3 font-serif text-xl text-slate-900">Teachers</h2>
-                <div className="space-y-2">
-                  {teachers.map((t) => (
-                    <CompactTeacherRow key={t.id} teacher={t} />
-                  ))}
-                </div>
-                <p className="mt-3 text-sm text-slate-500">
-                  Know a teacher, organizer, or musician who should be listed?{" "}
-                  <Link href="/auth" className="font-medium text-(--color-pine) hover:underline">
-                    Create your profile →
-                  </Link>
-                </p>
-              </div>
-            )}
+        {teachers.length > 0 && (
+          <section className="mb-8">
+            <h2 className="mb-3 font-serif text-xl text-slate-900">Teachers</h2>
+            <div className="divide-y divide-(--color-sand-strong) overflow-hidden rounded-xl border border-(--color-sand-strong) bg-white">
+              <ExpandableList
+                itemLabel="teachers"
+                initialCount={7}
+                items={teachers.map((t) => (
+                  <CompactTeacherRow key={t.id} teacher={t} />
+                ))}
+              />
+            </div>
+            <p className="mt-3 text-sm text-slate-500">
+              Know a teacher, organizer, or musician who should be listed?{" "}
+              <Link href="/auth" className="font-medium text-(--color-pine) hover:underline">
+                Create your profile →
+              </Link>
+            </p>
           </section>
         )}
 
@@ -233,26 +243,30 @@ export default async function CountryPage({ params }: CountryPageProps) {
   );
 }
 
+// Table-style row: name / city / link as fixed grid columns, not a bordered card — a CSS grid
+// rather than a real <table> so the columns can collapse per-row on narrow screens (name+link on
+// one line, city dropping below) instead of forcing horizontal scroll the way a literal <table>
+// would. Used for both community and teacher lists so a mixed-density country page still reads
+// as one consistent list style.
 function CompactCommunityRow({ community }: { community: Community }) {
   const joinUrl = getPrimaryJoinUrl(community);
   return (
-    <div className="relative flex items-center justify-between gap-3 rounded-xl border border-(--color-sand-strong) bg-white px-4 py-2.5">
-      <Link href={`/communities/${community.slug}`} className="absolute inset-0" aria-label={community.name} />
-      <div className="min-w-0">
-        <p className="truncate font-serif text-base text-slate-900">{community.name}</p>
-        {community.city && (
-          <p className="flex items-center gap-1 text-xs text-slate-500">
-            <MapPin className="size-3 shrink-0 text-slate-400" />
-            {community.city}
-          </p>
-        )}
-      </div>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto_28px] items-center gap-3 px-4 py-2.5 sm:grid-cols-[minmax(0,1fr)_140px_28px]">
+      <Link href={`/communities/${community.slug}`} className="truncate font-serif text-base text-slate-900 hover:underline">
+        {community.name}
+      </Link>
+      {community.city && (
+        <p className="col-start-1 row-start-2 flex items-center gap-1 text-xs text-slate-500 sm:col-start-2 sm:row-start-1 sm:text-sm">
+          <MapPin className="size-3 shrink-0 text-slate-400" />
+          {community.city}
+        </p>
+      )}
       {joinUrl && (
         <a
           href={joinUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="relative z-10 shrink-0 text-slate-400 hover:text-(--color-pine)"
+          className="col-start-3 row-start-1 justify-self-end text-slate-400 hover:text-(--color-pine)"
           aria-label={`Visit ${community.name}`}
         >
           <ExternalLink className="size-4" />
@@ -262,21 +276,35 @@ function CompactCommunityRow({ community }: { community: Community }) {
   );
 }
 
-function CompactTeacherRow({ teacher }: { teacher: { name: string; slug: string; city: string | null; bio: string | null; imageUrl?: string | null } }) {
+function CompactTeacherRow({ teacher }: { teacher: { name: string; slug: string; city: string | null; bio: string | null; imageUrl?: string | null; linkUrl?: string | null } }) {
   const imageUrl = teacher.imageUrl?.trim() ?? "";
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-(--color-sand-strong) bg-white px-4 py-2.5">
-      {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={getMediumUrl(imageUrl)} alt={teacher.name} className="size-9 shrink-0 rounded-full object-cover" />
-      ) : null}
-      <div className="min-w-0 flex-1">
-        <p className="font-serif text-base text-slate-900">
-          <Link href={`/teachers/${teacher.slug}`} className="hover:underline">{teacher.name}</Link>
-        </p>
-        {teacher.city && <p className="text-xs text-slate-500">{teacher.city}</p>}
-        {teacher.bio && <p className="line-clamp-1 text-sm text-slate-600">{teacher.bio}</p>}
+    <div className="grid grid-cols-[minmax(0,1fr)_auto_28px] items-center gap-3 px-4 py-2.5 sm:grid-cols-[minmax(0,1fr)_140px_28px]">
+      <div className="flex min-w-0 items-center gap-2">
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={getMediumUrl(imageUrl)} alt={teacher.name} className="size-7 shrink-0 rounded-full object-cover" />
+        ) : null}
+        <Link href={`/teachers/${teacher.slug}`} className="truncate font-serif text-base text-slate-900 hover:underline">
+          {teacher.name}
+        </Link>
       </div>
+      {teacher.city && (
+        <p className="col-start-1 row-start-2 text-xs text-slate-500 sm:col-start-2 sm:row-start-1 sm:text-sm">
+          {teacher.city}
+        </p>
+      )}
+      {teacher.linkUrl && (
+        <a
+          href={teacher.linkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="col-start-3 row-start-1 justify-self-end text-slate-400 hover:text-(--color-pine)"
+          aria-label={`Visit ${teacher.name}'s website`}
+        >
+          <ExternalLink className="size-4" />
+        </a>
+      )}
     </div>
   );
 }

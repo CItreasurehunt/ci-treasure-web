@@ -21,6 +21,7 @@ export type CountryTeacher = {
   city: string | null;
   bio: string | null;
   imageUrl: string | null;
+  linkUrl: string | null;
 };
 
 export type CountryVenue = {
@@ -107,7 +108,7 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
       getCommunities(),
       supabase
         .from("profiles")
-        .select("id, name, slug, city, bio, image_url")
+        .select("id, name, slug, city, bio, image_url, website, instagram, facebook")
         .eq("country", summary.iso)
         .eq("visibility", "public")
         .eq("is_teacher", true)
@@ -148,6 +149,10 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
     city: t.city,
     bio: t.bio,
     imageUrl: t.image_url,
+    // Table row's "links" column — website preferred, social as fallback. Sparse today (only a
+    // few of Sweden's 13 teachers have one on file) but graceful when absent, same as
+    // getPrimaryJoinUrl() for communities.
+    linkUrl: t.website ?? t.instagram ?? t.facebook ?? null,
   }));
 
   const events = ((eventRows ?? []) as SupabaseEventRow[]).map(mapEventRow);
