@@ -33,17 +33,28 @@ export async function generateMetadata({ params }: CountryPageProps): Promise<Me
   if (!country) return {};
 
   const description = `Contact Improvisation in ${country.label}: communities, teachers, upcoming events, and venues.`;
+  const title = `Contact Improvisation in ${country.label}`;
   return {
-    title: `Contact Improvisation in ${country.label} — CI Treasure Hunt`,
+    title: `${title} — CI Treasure Hunt`,
     description,
     alternates: {
       canonical: `${SITE_URL}/${country.slug}`,
     },
     openGraph: {
-      title: `Contact Improvisation in ${country.label}`,
+      title,
       description,
       url: `${SITE_URL}/${country.slug}`,
       images: [{ url: SITE_OG_IMAGE }],
+    },
+    // Root layout's default twitter: block is worldwide/generic — without this override every
+    // country page's card on X/Twitter would say "CI Treasure Hunt" instead of naming the
+    // country, undermining the one channel (external CI orgs sharing their own country link)
+    // this whole feature is meant to earn.
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [SITE_OG_IMAGE],
     },
   };
 }
@@ -63,6 +74,13 @@ export default async function CountryPage({ params }: CountryPageProps) {
           <h1 className="mb-4 font-serif text-3xl text-slate-900 md:text-5xl">
             {flag ? `${flag} ` : ""}Contact Improvisation in {label}
           </h1>
+          <div className="mb-6 flex flex-wrap gap-x-6 gap-y-1 text-sm font-medium text-slate-700">
+            <span>{communities.length + nationalCommunities.length} communities</span>
+            <span>{teachers.length} teachers</span>
+            <span>{events.length} upcoming events</span>
+            <span>{venues.length} venues</span>
+          </div>
+          <h2 className="mb-2 font-serif text-xl text-slate-900">Overview</h2>
           <p className="max-w-3xl text-lg leading-8 whitespace-pre-line text-slate-700">
             {summaryText}
           </p>
@@ -163,23 +181,25 @@ function TeacherCard({ teacher }: { teacher: { name: string; slug: string; city:
   const imageUrl = teacher.imageUrl?.trim() ?? "";
   const renderImage = imageUrl.length > 0;
 
+  // Bio deliberately sits outside the <Link>: a screen reader shouldn't announce a
+  // 100+ word bio as one giant clickable link, and search engines shouldn't see a wall of
+  // unrelated prose as this URL's anchor text. Only the name (and image) are the link.
   return (
-    <Link
-      href={`/teachers/${teacher.slug}`}
-      className="group flex overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white shadow-sm transition hover:shadow-lg"
-    >
-      <div className={`h-24 w-24 shrink-0 border-r border-(--color-sand-strong) ${!renderImage ? GENERIC_ACCENT_GRADIENT : ""}`}>
+    <div className="flex overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white shadow-sm transition hover:shadow-lg">
+      <Link href={`/teachers/${teacher.slug}`} className={`h-24 w-24 shrink-0 border-r border-(--color-sand-strong) ${!renderImage ? GENERIC_ACCENT_GRADIENT : ""}`}>
         {renderImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={getMediumUrl(imageUrl)} alt={teacher.name} className="h-full w-full object-cover" />
         )}
-      </div>
+      </Link>
       <div className="min-w-0 flex-1 p-4">
-        <h3 className="font-serif text-lg text-slate-900">{teacher.name}</h3>
+        <h3 className="font-serif text-lg text-slate-900">
+          <Link href={`/teachers/${teacher.slug}`} className="hover:underline">{teacher.name}</Link>
+        </h3>
         {teacher.city && <p className="text-sm text-slate-500">{teacher.city}</p>}
         {teacher.bio && <p className="mt-1 line-clamp-2 text-sm text-slate-600">{teacher.bio}</p>}
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -187,22 +207,22 @@ function VenueCard({ venue }: { venue: { name: string; slug: string; city: strin
   const imageUrl = venue.imageUrl?.trim() ?? "";
   const renderImage = imageUrl.length > 0;
 
+  // Same anchor-text/a11y fix as TeacherCard: description stays outside the <Link>.
   return (
-    <Link
-      href={`/venues/${venue.slug}`}
-      className="group flex overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white shadow-sm transition hover:shadow-lg"
-    >
-      <div className={`h-24 w-24 shrink-0 border-r border-(--color-sand-strong) ${!renderImage ? GENERIC_ACCENT_GRADIENT : ""}`}>
+    <div className="flex overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white shadow-sm transition hover:shadow-lg">
+      <Link href={`/venues/${venue.slug}`} className={`h-24 w-24 shrink-0 border-r border-(--color-sand-strong) ${!renderImage ? GENERIC_ACCENT_GRADIENT : ""}`}>
         {renderImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={getMediumUrl(imageUrl)} alt={venue.name} className="h-full w-full object-cover" />
         )}
-      </div>
+      </Link>
       <div className="min-w-0 flex-1 p-4">
-        <h3 className="font-serif text-lg text-slate-900">{venue.name}</h3>
+        <h3 className="font-serif text-lg text-slate-900">
+          <Link href={`/venues/${venue.slug}`} className="hover:underline">{venue.name}</Link>
+        </h3>
         <p className="text-sm text-slate-500">{venue.city}</p>
         {venue.description && <p className="mt-1 line-clamp-2 text-sm text-slate-600">{venue.description}</p>}
       </div>
-    </Link>
+    </div>
   );
 }
