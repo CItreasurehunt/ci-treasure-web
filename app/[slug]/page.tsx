@@ -112,19 +112,21 @@ export default async function CountryPage({ params }: CountryPageProps) {
           </div>
 
           {/* Map given more visual weight than the text (5/7 split) — it's the fastest way to
-              answer "where does this scene physically happen," ahead of reading prose. */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
-            <div className="lg:col-span-5">
+              answer "where does this scene physically happen," ahead of reading prose. Both
+              sides now share the same card treatment (white bg, border, padding) — previously
+              the map sat in a bordered box while the text floated bare on the page background,
+              an unbalanced pairing that read as unfinished. Default grid stretch (no
+              items-start) means both columns share one real row height instead of a hardcoded
+              guess, so the map's h-full now has a definite height to fill. */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <div className="rounded-2xl border border-(--color-sand-strong) bg-white p-6 lg:col-span-5">
               <h2 className="mb-2 font-serif text-xl text-slate-900">Overview</h2>
               <p className="text-lg leading-8 whitespace-pre-line text-slate-700">
                 {summaryText}
               </p>
             </div>
             {mapMarkers.length > 0 && (
-              // Fixed height at every breakpoint — h-full/min-h against an unstretched grid
-              // track (lg:items-start) previously left the map's actual height ambiguous and
-              // it rendered far taller than intended.
-              <div className="h-96 lg:col-span-7">
+              <div className="h-80 lg:col-span-7 lg:h-full">
                 <CountryCombinedMap markers={mapMarkers} />
               </div>
             )}
