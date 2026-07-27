@@ -1,11 +1,12 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ExternalLink, Globe, MapPin } from "lucide-react";
+import { Globe, MapPin } from "lucide-react";
 
 import { CountryCombinedMap } from "@/components/country-combined-map";
 import { EventCard } from "@/components/event-card";
 import { GENERIC_ACCENT_GRADIENT } from "@/lib/event-display";
+import { COMMUNITY_SUBMIT_URL } from "@/lib/communities";
 import { getAllCountrySlugs, getCountryPageData } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
 import { getMediumUrl } from "@/lib/image-url";
@@ -135,6 +136,12 @@ export default async function CountryPage({ params }: CountryPageProps) {
                 <CommunityCard key={c.id} community={c} />
               ))}
             </div>
+            <p className="mt-3 text-sm text-slate-500">
+              Know a community in {label} we&apos;re missing?{" "}
+              <a href={COMMUNITY_SUBMIT_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-(--color-pine) hover:underline">
+                Suggest it →
+              </a>
+            </p>
           </section>
         )}
 
@@ -146,6 +153,12 @@ export default async function CountryPage({ params }: CountryPageProps) {
                 <TeacherCard key={t.id} teacher={t} />
               ))}
             </div>
+            <p className="mt-3 text-sm text-slate-500">
+              Know a teacher, organizer, or musician who should be listed?{" "}
+              <Link href="/auth" className="font-medium text-(--color-pine) hover:underline">
+                Create your profile →
+              </Link>
+            </p>
           </section>
         )}
 
@@ -157,6 +170,12 @@ export default async function CountryPage({ params }: CountryPageProps) {
                 <EventCard key={event.id} event={event} />
               ))}
             </div>
+            <p className="mt-3 text-sm text-slate-500">
+              Missing your event in {label}?{" "}
+              <Link href="/events/new" className="font-medium text-(--color-pine) hover:underline">
+                Add it →
+              </Link>
+            </p>
           </section>
         )}
 
@@ -168,48 +187,14 @@ export default async function CountryPage({ params }: CountryPageProps) {
                 <VenueCard key={v.id} venue={v} />
               ))}
             </div>
+            <p className="mt-3 text-sm text-slate-500">
+              Know a venue in {label} that should be here?{" "}
+              <a href="mailto:hello@citreasurehunt.com" className="font-medium text-(--color-pine) hover:underline">
+                Let us know →
+              </a>
+            </p>
           </section>
         )}
-
-        <section className="mb-12 rounded-2xl bg-(--color-pine) p-8 text-white">
-          <h2 className="mb-6 text-center font-serif text-2xl">Something missing?</h2>
-          <div className="grid grid-cols-1 gap-6 text-center sm:grid-cols-3">
-            <div className="flex flex-col items-center">
-              <p className="mb-4 text-sm leading-6 text-white/75">
-                Know a teacher, organizer, or musician who should be listed?
-              </p>
-              <a
-                href="/auth"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-(--color-pine) transition hover:bg-slate-100"
-              >
-                Create your profile
-              </a>
-            </div>
-            <div className="flex flex-col items-center">
-              <p className="mb-4 text-sm leading-6 text-white/75">
-                Running an event in {label} that isn&apos;t listed yet?
-              </p>
-              <a
-                href="/events/new"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-(--color-pine) transition hover:bg-slate-100"
-              >
-                Add an event
-              </a>
-            </div>
-            <div className="flex flex-col items-center">
-              <p className="mb-4 text-sm leading-6 text-white/75">
-                Know a venue that should be on this page?
-              </p>
-              <a
-                href="mailto:hello@citreasurehunt.com"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-(--color-pine) transition hover:bg-slate-100"
-              >
-                <ExternalLink className="size-4" />
-                hello@citreasurehunt.com
-              </a>
-            </div>
-          </div>
-        </section>
       </div>
     </main>
   );
