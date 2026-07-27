@@ -222,8 +222,8 @@ export default async function CountryPage({ params }: CountryPageProps) {
         )}
 
         <p className="mt-4 border-t border-(--color-sand-strong) pt-6 text-sm text-slate-500">
-          Want to help keep the {label} page accurate — spot missing communities, teachers, or
-          venues before we do?{" "}
+          Want to help keep the {label} page accurate — spot missing communities, teachers,
+          events, or venues before we do?{" "}
           <a href="mailto:hello@citreasurehunt.com" className="font-medium text-(--color-pine) hover:underline">
             Get in touch →
           </a>
