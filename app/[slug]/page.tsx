@@ -11,7 +11,7 @@ import { COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, type Community } from "@/lib/c
 import { getAllCountrySlugs, getCountryPageData } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
 import { getMediumUrl } from "@/lib/image-url";
-import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE, ogImage } from "@/lib/site";
 
 export const revalidate = 3600;
 
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: CountryPageProps): Promise<Me
       description,
       url: `${SITE_URL}/${country.slug}`,
       siteName: "CI Treasure Hunt",
-      images: [{ url: SITE_OG_IMAGE }],
+      images: [ogImage()],
     },
     // Root layout's default twitter: block is worldwide/generic — without this override every
     // country page's card on X/Twitter would say "CI Treasure Hunt" instead of naming the

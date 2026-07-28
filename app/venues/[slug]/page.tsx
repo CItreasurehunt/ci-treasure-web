@@ -22,7 +22,7 @@ import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
 import { getAllVenueSlugs, getVenueBySlug, getVenueEvents, resolveVenueSlugRedirect } from "@/lib/venues";
 import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
-import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE, ogImage } from "@/lib/site";
 import { ReportButton } from "@/components/report-button";
 
 export const revalidate = 3600;
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
       description,
       url: `${SITE_URL}/venues/${venue.slug}`,
       siteName: "CI Treasure Hunt",
-      images: [{ url: venue.imageUrl ?? SITE_OG_IMAGE }],
+      images: [ogImage(venue.imageUrl)],
     },
     twitter: {
       card: "summary_large_image",
