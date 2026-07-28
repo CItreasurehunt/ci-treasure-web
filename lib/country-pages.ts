@@ -12,6 +12,7 @@ export type CountrySummary = {
   slug: string;
   label: string;
   summaryText: string;
+  updatedAt: string;
 };
 
 export type CountryTeacher = {
@@ -53,6 +54,7 @@ export type CountryPageData = {
   slug: string;
   label: string;
   summaryText: string;
+  summaryUpdatedAt: string;
   nationalCommunities: Community[];
   communities: Community[];
   teachers: CountryTeacher[];
@@ -70,13 +72,14 @@ export type CountryPageData = {
 export async function getAllCountrySummaries(): Promise<CountrySummary[]> {
   if (!hasSupabaseEnv()) return [];
   const supabase = createStaticClient();
-  const { data, error } = await supabase.from("country_summaries").select("iso, summary_text");
+  const { data, error } = await supabase.from("country_summaries").select("iso, summary_text, updated_at");
   if (error || !data) return [];
   return data.map((row) => ({
     iso: row.iso,
     slug: slugify(getCountryLabel(row.iso)),
     label: getCountryLabel(row.iso),
     summaryText: row.summary_text,
+    updatedAt: row.updated_at,
   }));
 }
 
@@ -198,6 +201,7 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
     slug: summary.slug,
     label: summary.label,
     summaryText: summary.summaryText,
+    summaryUpdatedAt: summary.updatedAt,
     nationalCommunities,
     communities,
     teachers,

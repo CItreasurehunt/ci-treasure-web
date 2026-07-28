@@ -67,7 +67,7 @@ export default async function CountryPage({ params }: CountryPageProps) {
   const country = await getCountryPageData(slug);
   if (!country) notFound();
 
-  const { label, iso, summaryText, nationalCommunities, communities, teachers, events, venues, mapMarkers } = country;
+  const { label, iso, summaryText, summaryUpdatedAt, nationalCommunities, communities, teachers, events, venues, mapMarkers } = country;
   const flag = getCountryFlag(iso);
 
   // Schema-only breadcrumb (I-132 follow-up, 2026-07-27): describes the page's position in the
@@ -151,6 +151,14 @@ export default async function CountryPage({ params }: CountryPageProps) {
             <h2 className="mb-2 font-serif text-xl text-slate-900">Overview</h2>
             <p className="text-lg leading-8 whitespace-pre-line text-slate-700">
               {summaryText}
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              Last updated{" "}
+              {new Date(summaryUpdatedAt).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
             </p>
           </div>
         </header>

@@ -19,6 +19,11 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
+  // EventsDashboard's filters live in the URL via router.replace, not real <a href> links, so
+  // Googlebot won't discover ?country=/?type=... through normal crawling — but a filtered URL
+  // copied from the address bar and shared externally could still get indexed on its own
+  // without this, diluting the canonical homepage across filter-combination URLs.
+  alternates: { canonical: SITE_URL },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,

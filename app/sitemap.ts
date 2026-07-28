@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { SITE_URL } from "@/lib/site";
-import { getAllCountrySlugs } from "@/lib/country-pages";
+import { getAllCountrySummaries } from "@/lib/country-pages";
 
 export const revalidate = 3600;
 
@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   }
 
-  const [{ data: events }, { data: venues }, { data: profiles }, { data: communities }, countrySlugs] =
+  const [{ data: events }, { data: venues }, { data: profiles }, { data: communities }, countrySummaries] =
     await Promise.all([
       supabase
         .from("events")
@@ -61,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // I-132 Step 2: a country only shows up here once it has a reviewed row in
       // country_summaries — same gate getCountryPageData() itself enforces, so a country never
       // appears in the sitemap before it has a real page to match.
-      getAllCountrySlugs(),
+      getAllCountrySummaries(),
     ]);
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -110,8 +110,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  const countryUrls: MetadataRoute.Sitemap = countrySlugs.map((slug) => ({
-    url: `${SITE_URL}/${slug}`,
+  const countryUrls: MetadataRoute.Sitemap = countrySummaries.map((c) => ({
+    url: `${SITE_URL}/${c.slug}`,
+    lastModified: new Date(c.updatedAt),
     changeFrequency: "weekly",
     priority: 0.7,
   }));

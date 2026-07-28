@@ -10,7 +10,11 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin/", "/dashboard/", "/auth", "/events/new", "/events/*/edit"],
+      // /api/ isn't a security boundary either (same as the rest of this list) — these are
+      // JSON endpoints with no unique content to rank, not linked from anywhere crawlable, but
+      // blocking them rules out any chance of a response surfacing in search results and saves
+      // crawl budget.
+      disallow: ["/admin/", "/dashboard/", "/auth", "/events/new", "/events/*/edit", "/api/"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

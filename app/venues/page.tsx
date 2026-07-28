@@ -2,10 +2,14 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import { getVenues } from "@/lib/venues";
 import { VenuesClient } from "./venues-client";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "CI Venues Worldwide",
   description: "Find Contact Improvisation venues and spaces around the world.",
+  // Same reasoning as /communities: filters live in the URL via client-side history
+  // navigation, not real links, but a shared filtered URL could still get indexed without this.
+  alternates: { canonical: `${SITE_URL}/venues` },
 };
 
 export const revalidate = 3600;
