@@ -155,7 +155,6 @@ export default async function CountryPage({ params }: CountryPageProps) {
             <p className="mt-2 text-xs text-slate-400">
               Last updated{" "}
               {new Date(summaryUpdatedAt).toLocaleDateString("en-GB", {
-                day: "numeric",
                 month: "long",
                 year: "numeric",
               })}
