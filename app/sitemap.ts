@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { SITE_URL } from "@/lib/site";
+import { getAllCountrySlugs } from "@/lib/country-pages";
 
 export const revalidate = 3600;
 
@@ -38,25 +39,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   }
 
-  const [{ data: events }, { data: venues }, { data: profiles }, { data: communities }] = await Promise.all([
-    supabase
-      .from("events")
-      .select("short_id, title, updated_at")
-      .eq("status", "published")
-      .eq("hide", false),
-    supabase
-      .from("venues")
-      .select("slug, updated_at")
-      .eq("visibility", "public"),
-    supabase
-      .from("profiles")
-      .select("slug, updated_at")
-      .eq("visibility", "public"),
-    supabase
-      .from("communities")
-      .select("slug, airtable_updated_at")
-      .is("deleted_at", null),
-  ]);
+  const [{ data: events }, { data: venues }, { data: profiles }, { data: communities }, countrySlugs] =
+    await Promise.all([
+      supabase
+        .from("events")
+        .select("short_id, title, updated_at")
+        .eq("status", "published")
+        .eq("hide", false),
+      supabase
+        .from("venues")
+        .select("slug, updated_at")
+        .eq("visibility", "public"),
+      supabase
+        .from("profiles")
+        .select("slug, updated_at")
+        .eq("visibility", "public"),
+      supabase
+        .from("communities")
+        .select("slug, airtable_updated_at")
+        .is("deleted_at", null),
+      // I-132 Step 2: a country only shows up here once it has a reviewed row in
+      // country_summaries — same gate getCountryPageData() itself enforces, so a country never
+      // appears in the sitemap before it has a real page to match.
+      getAllCountrySlugs(),
+    ]);
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: "daily", priority: 1.0 },
@@ -104,5 +110,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  return [...staticPages, ...eventUrls, ...venueUrls, ...teacherUrls, ...communityUrls];
+  const countryUrls: MetadataRoute.Sitemap = countrySlugs.map((slug) => ({
+    url: `${SITE_URL}/${slug}`,
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...eventUrls, ...venueUrls, ...teacherUrls, ...communityUrls, ...countryUrls];
 }

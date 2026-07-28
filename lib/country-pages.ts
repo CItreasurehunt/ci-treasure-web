@@ -65,7 +65,9 @@ export type CountryPageData = {
 // publishing" gate from the I-132 spec, enforced in practice: no reviewed summary, no static
 // page. Reused for both generateStaticParams (which countries get pages) and slug resolution
 // (which iso a given /[slug] request maps to).
-async function getAllCountrySummaries(): Promise<CountrySummary[]> {
+// Exported for app/page.tsx's homepage "About" line — needs {label, slug} pairs for every live
+// country page, not just the slugs generateStaticParams needs.
+export async function getAllCountrySummaries(): Promise<CountrySummary[]> {
   if (!hasSupabaseEnv()) return [];
   const supabase = createStaticClient();
   const { data, error } = await supabase.from("country_summaries").select("iso, summary_text");

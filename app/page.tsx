@@ -7,6 +7,7 @@ import { getUpcomingEvents } from "@/lib/events";
 import { getCountryLabel } from "@/lib/event-display";
 import { getVenueCountries } from "@/lib/venues";
 import { getCommunityCountries } from "@/lib/communities";
+import { getAllCountrySummaries } from "@/lib/country-pages";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -48,10 +49,11 @@ function getTodayDateKey() {
 }
 
 export default async function Home() {
-  const [{ events, error }, venues, communities] = await Promise.all([
+  const [{ events, error }, venues, communities, countryPages] = await Promise.all([
     getUpcomingEvents(getTodayDateKey()),
     getVenueCountries(),
     getCommunityCountries(),
+    getAllCountrySummaries(),
   ]);
 
   const countries = Array.from(new Set(events.map((event) => event.country))).sort((a, b) =>
@@ -146,6 +148,25 @@ export default async function Home() {
               your first jam, scouting the festival calendar for your next vacation or journey, or
               trying to find teachers and community near you? This is where to look.
             </p>
+            {/* I-132 Step 2: single inline mention, not a full list/footer block — that's Step 3,
+                deliberately gated behind 5+ live country pages so it reads as a real directory
+                feature instead of a sparse one. This line reads naturally with just one country
+                and scales to a short comma-separated list as more ship, without needing a rewrite
+                once there are 2-4. */}
+            {countryPages.length > 0 && (
+              <p>
+                Starting with country guides for{" "}
+                {countryPages.map((c, i) => (
+                  <span key={c.iso}>
+                    {i > 0 && (i === countryPages.length - 1 ? " and " : ", ")}
+                    <Link href={`/${c.slug}`} className="text-violet-600 underline underline-offset-4 hover:text-violet-800">
+                      {c.label}
+                    </Link>
+                  </span>
+                ))}
+                .
+              </p>
+            )}
           </div>
         </section>
       </section>
