@@ -18,6 +18,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import BackButton from "@/components/back-button";
+import { EntityBreadcrumb } from "@/components/entity-breadcrumb";
 import VenueMap from "@/components/venue-map";
 import { getLinkLabel, linkSortKey } from "@/lib/events";
 import {
@@ -38,6 +39,7 @@ import {
   isPrivateGroupInvite,
   resolveCommunitySlugRedirect,
 } from "@/lib/communities";
+import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL } from "@/lib/site";
 import { ReportButton } from "@/components/report-button";
@@ -71,6 +73,7 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
       title: community.name,
       description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
       url: `${SITE_URL}/communities/${community.slug}`,
+      siteName: "CI Treasure Hunt",
     },
   };
 }
@@ -87,10 +90,12 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
     notFound();
   }
 
-  const publishedInvitePlatforms = await getPublishedInvitePlatforms(community.id);
+  const [publishedInvitePlatforms, relatedEvents, countryLink] = await Promise.all([
+    getPublishedInvitePlatforms(community.id),
+    getCommunityEventsByCountry(community.country),
+    getCountryPageLink(community.country),
+  ]);
   const hasPublishedInvites = Object.keys(publishedInvitePlatforms).length > 0;
-
-  const relatedEvents = await getCommunityEventsByCountry(community.country);
 
   type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
   const communityLinks: LinkRow[] = [];
@@ -115,6 +120,11 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-8 text-slate-900 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        <EntityBreadcrumb
+          country={countryLink}
+          currentLabel={community.name}
+          currentUrl={`${SITE_URL}/communities/${community.slug}`}
+        />
         <div className="flex flex-wrap items-center gap-3">
           <BackButton />
         </div>

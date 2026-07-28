@@ -46,6 +46,7 @@ export async function generateMetadata({ params }: CountryPageProps): Promise<Me
       title,
       description,
       url: `${SITE_URL}/${country.slug}`,
+      siteName: "CI Treasure Hunt",
       images: [{ url: SITE_OG_IMAGE }],
     },
     // Root layout's default twitter: block is worldwide/generic — without this override every

@@ -85,6 +85,17 @@ export async function getAllCountrySlugs(): Promise<string[]> {
   return summaries.map((s) => s.slug);
 }
 
+// I-132 Step 2 (breadcrumbs): entity detail pages (events/venues/teachers/communities) use this
+// to decide whether their breadcrumb trail gets a "Sweden" segment at all. Deliberately returns
+// null rather than a country-less fallback — no country page for that iso means no breadcrumb
+// segment, not a broken/empty one (see Breadcrumbs component).
+export async function getCountryPageLink(iso: string | null): Promise<{ slug: string; label: string } | null> {
+  if (!iso) return null;
+  const summaries = await getAllCountrySummaries();
+  const match = summaries.find((s) => s.iso === iso);
+  return match ? { slug: match.slug, label: match.label } : null;
+}
+
 async function resolveCountryBySlug(slug: string): Promise<CountrySummary | null> {
   const summaries = await getAllCountrySummaries();
   return summaries.find((s) => s.slug === slug) ?? null;

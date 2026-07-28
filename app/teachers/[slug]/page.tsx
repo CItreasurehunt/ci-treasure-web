@@ -19,6 +19,7 @@ import {
 } from "@/lib/teachers";
 import { ReportButton } from "@/components/report-button";
 import BackButton from "@/components/back-button";
+import { EntityBreadcrumb } from "@/components/entity-breadcrumb";
 import { SocialLink } from "@/components/social-link";
 import { RevealEmail } from "@/components/reveal-email";
 import { EntityEventCard } from "@/components/entity-event-card";
@@ -26,6 +27,7 @@ import { EntityImage } from "@/components/entity-image";
 import { getLinkLabel, linkSortKey } from "@/lib/events";
 import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
 import { PracticeBadge, practicesToDisplay } from "@/components/shared/practice-badge";
+import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 
@@ -65,6 +67,7 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
       title: teacher.name,
       description,
       url: `${SITE_URL}/teachers/${teacher.slug}`,
+      siteName: "CI Treasure Hunt",
       images: [{ url: approvedImage ?? SITE_OG_IMAGE }],
     },
     twitter: {
@@ -90,7 +93,10 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
     notFound();
   }
 
-  const { upcoming, past } = await getTeacherEvents(teacher.id);
+  const [{ upcoming, past }, countryLink] = await Promise.all([
+    getTeacherEvents(teacher.id),
+    getCountryPageLink(teacher.country),
+  ]);
   const allEvents = [...upcoming, ...past];
 
   // Derive roles from both stored flags and linked events (I-115)
@@ -150,6 +156,11 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        <EntityBreadcrumb
+          country={countryLink}
+          currentLabel={teacher.name}
+          currentUrl={`${SITE_URL}/teachers/${teacher.slug}`}
+        />
         <div>
           <BackButton />
         </div>

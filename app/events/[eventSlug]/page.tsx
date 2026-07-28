@@ -7,6 +7,7 @@ import { ReportButton } from "@/components/report-button";
 import { SegmentsSection } from "@/components/segments-section";
 import { RevealEmail } from "@/components/reveal-email";
 import BackButton from "@/components/back-button";
+import { EntityBreadcrumb } from "@/components/entity-breadcrumb";
 import { PracticeBadge, practicesToDisplay } from "@/components/shared/practice-badge";
 import {
   type SeriesSibling,
@@ -25,6 +26,7 @@ import {
   getEventLocation,
   getTypeLabel,
 } from "@/lib/event-display";
+import { getCountryPageLink } from "@/lib/country-pages";
 import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -62,6 +64,7 @@ export async function generateMetadata({ params }: { params: Promise<{ eventSlug
       title: event.title,
       description,
       url: `${SITE_URL}/events/${event.slug}`,
+      siteName: "CI Treasure Hunt",
       type: "article",
       images: [{ url: event.imageUrl ?? SITE_OG_IMAGE }],
     },
@@ -99,6 +102,8 @@ export default async function EventPage({ params }: EventPageProps) {
   if (eventSlug !== event.slug) {
     permanentRedirect(`/events/${event.slug}`);
   }
+
+  const countryLink = await getCountryPageLink(event.country);
 
   const isSingleDay = event.startDate === event.endDate;
   const timeRange =
@@ -166,6 +171,11 @@ export default async function EventPage({ params }: EventPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        <EntityBreadcrumb
+          country={countryLink}
+          currentLabel={event.title}
+          currentUrl={`${SITE_URL}/events/${event.slug}`}
+        />
         <div className="flex flex-wrap items-center gap-3">
           <BackButton label="Back to events" toEventsList />
           <ShareButton

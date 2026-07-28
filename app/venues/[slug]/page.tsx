@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import BackButton from "@/components/back-button";
+import { EntityBreadcrumb } from "@/components/entity-breadcrumb";
 import VenueMap from "@/components/venue-map";
 import { SocialLink } from "@/components/social-link";
 import { RevealEmail } from "@/components/reveal-email";
@@ -19,6 +20,7 @@ import { EntityImage } from "@/components/entity-image";
 import { getLinkLabel, linkSortKey } from "@/lib/events";
 import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
 import { getAllVenueSlugs, getVenueBySlug, getVenueEvents, resolveVenueSlugRedirect } from "@/lib/venues";
+import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 import { ReportButton } from "@/components/report-button";
@@ -52,6 +54,7 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
       title: venue.name,
       description,
       url: `${SITE_URL}/venues/${venue.slug}`,
+      siteName: "CI Treasure Hunt",
       images: [{ url: venue.imageUrl ?? SITE_OG_IMAGE }],
     },
     twitter: {
@@ -75,7 +78,10 @@ export default async function VenuePage({ params }: VenuePageProps) {
     notFound();
   }
 
-  const { upcoming, past } = await getVenueEvents(venue.id);
+  const [{ upcoming, past }, countryLink] = await Promise.all([
+    getVenueEvents(venue.id),
+    getCountryPageLink(venue.country),
+  ]);
 
   const ensureHttps = (url: string) => url.startsWith("http") ? url : `https://${url}`;
   type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
@@ -119,6 +125,11 @@ export default async function VenuePage({ params }: VenuePageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        <EntityBreadcrumb
+          country={countryLink}
+          currentLabel={venue.name}
+          currentUrl={`${SITE_URL}/venues/${venue.slug}`}
+        />
         <div className="flex flex-wrap items-center gap-3">
           <BackButton />
         </div>
