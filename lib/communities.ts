@@ -407,6 +407,8 @@ export async function resolveCommunitySlugRedirect(slug: string): Promise<string
   return data?.slug ?? null;
 }
 
+export const COMMUNITY_RELATED_EVENTS_LIMIT = 5;
+
 export async function getCommunityEventsByCountry(countryIso: string | null) {
   if (!hasSupabaseEnv() || !countryIso) return [];
 
@@ -422,7 +424,7 @@ export async function getCommunityEventsByCountry(countryIso: string | null) {
     .eq("status", "published")
     .gte("end_date", today)
     .order("start_date", { ascending: true })
-    .limit(5);
+    .limit(COMMUNITY_RELATED_EVENTS_LIMIT);
 
   if (error) {
     console.error("Error fetching community events by country:", error);

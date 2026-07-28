@@ -24,12 +24,14 @@ import { getLinkLabel, linkSortKey } from "@/lib/events";
 import {
   formatEventDateRange,
   getCountryLabel,
+  getCountryLabelWithArticle,
   getEventHref,
   getEventLocation,
   getTypeLabel,
   EventListItem as EventListItemType,
 } from "@/lib/event-display";
 import {
+  COMMUNITY_RELATED_EVENTS_LIMIT,
   getAllCommunitySlugs,
   getCommunityBySlug,
   getCommunityEventsByCountry,
@@ -251,12 +253,21 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
 
               {relatedEvents.length > 0 && (
                 <section className="space-y-6">
-                  <h2 className="font-serif text-3xl text-slate-950">Upcoming events in {getCountryLabel(community.country ?? "")}</h2>
+                  <h2 className="font-serif text-3xl text-slate-950">Upcoming events in {getCountryLabelWithArticle(community.country ?? "")}</h2>
                   <div className="grid gap-4">
                     {relatedEvents.map((event) => (
                       <EventListItem key={event.id} event={event} />
                     ))}
                   </div>
+                  {relatedEvents.length >= COMMUNITY_RELATED_EVENTS_LIMIT && community.country && (
+                    <Link
+                      href={`/?country=${community.country}`}
+                      className="group flex items-center gap-2 text-sm font-semibold text-(--color-pine) hover:underline"
+                    >
+                      See all upcoming events in {getCountryLabelWithArticle(community.country)}
+                      <ArrowLeft className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  )}
                 </section>
               )}
             </div>

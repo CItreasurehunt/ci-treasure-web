@@ -56,6 +56,27 @@ export function getCountryLabel(country: string) {
   return country;
 }
 
+// ISO codes whose English name takes a definite article ("the United Kingdom", "the
+// Netherlands") — only relevant when the label is embedded in a sentence (e.g. "Upcoming
+// events in {label}"). "City, Country" style display never needs this.
+const COUNTRIES_WITH_ARTICLE = new Set([
+  "GB", // the United Kingdom
+  "US", // the United States
+  "AE", // the United Arab Emirates
+  "NL", // the Netherlands
+  "PH", // the Philippines
+  "BS", // the Bahamas
+  "GM", // the Gambia
+  "DO", // the Dominican Republic
+  "MV", // the Maldives
+  "KM", // the Comoros
+]);
+
+export function getCountryLabelWithArticle(country: string) {
+  const label = getCountryLabel(country);
+  return COUNTRIES_WITH_ARTICLE.has(country.toUpperCase()) ? `the ${label}` : label;
+}
+
 export function getTypeLabel(type: string) {
   const labels: Record<string, string> = {
     camp: "Camp",
