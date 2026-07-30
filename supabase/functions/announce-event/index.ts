@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { buildRichCaption, TEACHER_ROLES } from '../_shared/announce-format.ts'
+import { buildRichCaption, TEACHER_ROLES, slugify } from '../_shared/announce-format.ts'
 
 const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')!
 const CHAT_ID   = Deno.env.get('TELEGRAM_PUBLIC_CHAT_ID')!
@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
     // Unchanged short one-liner — festivals already have a de facto "list" (this topic
     // itself reads as a running index), so a terse pointer is enough.
     const title = escapeMarkdown(event.title)
-    const url   = `https://citreasurehunt.com/events/${event.short_id}`
+    const url   = `https://citreasurehunt.com/events/${event.short_id}-${slugify(event.title)}`
     const disciplines: string[] = event.discipline ?? []
     const isCi = disciplines.includes('contact_improvisation')
     const disciplineTag = !isCi && disciplines.length ? `[${disciplines.join(', ')}] ` : ''

@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { slugify } from '../_shared/announce-format.ts'
 
 const BOT_TOKEN    = Deno.env.get('TELEGRAM_BOT_TOKEN')!
 const CHAT_ID       = Deno.env.get('TELEGRAM_PUBLIC_CHAT_ID')!
@@ -20,9 +21,10 @@ const CHANNEL_CHAT = '@citreasurelist'
 //    show a cancellation banner — same "visible marker, not silent removal" convention the
 //    website uses (I-113's cancelled badge). Only if a channel post exists for this event.
 //
-// Duplicated helpers (CONTINENT_COUNTRIES, toFlag, formatDates, TYPE_EMOJI) rather than shared
-// across functions — same convention as announce-event/announce-event-channel, since Supabase
-// Edge Functions deploy standalone and can't import from each other or from lib/.
+// Duplicated helpers (CONTINENT_COUNTRIES, toFlag, formatDates, TYPE_EMOJI) rather than pulled
+// from _shared/announce-format.ts — same convention as announce-event/announce-event-channel,
+// which also keep their own copies of these. Only `slugify` is imported from _shared, to keep
+// the event-URL-building logic in one place after it drifted out of sync here (2026-07-30).
 
 const CONTINENT_COUNTRIES: Record<string, string[]> = {
   americas: [
@@ -135,7 +137,7 @@ Deno.serve(async (req) => {
   if (groupAnnounced?.length && !alreadyCancelledPost?.length) {
     const title = escapeMarkdown(event.title)
     const loc   = escapeMarkdown(location)
-    const url   = `https://citreasurehunt.com/events/${event.short_id}`
+    const url   = `https://citreasurehunt.com/events/${event.short_id}-${slugify(event.title)}`
     const reason = event.cancelled_text ? ` — ${event.cancelled_text}` : ''
     const text = `❌ CANCELLED: ${toFlag(event.country)} ${formatDates(event.start_date, event.end_date)} — [${title}](${url}), ${loc}${reason}`
 
@@ -187,7 +189,7 @@ Deno.serve(async (req) => {
       `📅 ${formatDates(event.start_date, event.end_date)}`,
     ]
     if (event.cancelled_text) lines.push('', event.cancelled_text)
-    const caption = `${lines.join('\n')}\n\nhttps://citreasurehunt.com/events/${event.short_id}`
+    const caption = `${lines.join('\n')}\n\nhttps://citreasurehunt.com/events/${event.short_id}-${slugify(event.title)}`
 
     const editRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageCaption`, {
       method: 'POST',
