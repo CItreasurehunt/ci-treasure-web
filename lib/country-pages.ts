@@ -7,6 +7,19 @@ function hasSupabaseEnv() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
+// I-132: which community (if any) is a country's genuine *national* umbrella group — a judgment
+// call requiring local knowledge, not something safely inferred from a data field. "Has a
+// website" was the original heuristic; it broke for Greece both ways at once (missed "Contact
+// Improvisation Greece", the real national FB group, since it has no website on file; would have
+// wrongly promoted "Contact Improvisation Crete" purely because that regional group happens to
+// have one). Deliberately not a `communities` table column either — that table is fully
+// Airtable-synced (sync-communities.yml, daily), so a manual-only flag there would get silently
+// ignored or overwritten by the next sync. Curated here by hand, once per country, at the same
+// moment its summary gets written/reviewed.
+const NATIONAL_COMMUNITY_SLUGS: Record<string, string[]> = {
+  GR: ["contact-improvisation-greece"],
+};
+
 export type CountrySummary = {
   iso: string;
   slug: string;
@@ -151,12 +164,13 @@ export async function getCountryPageData(slug: string): Promise<CountryPageData 
 
   const allCommunities = allSiteCommunities.filter((c) => c.countryIso === summary.iso);
 
-  // National community spotlight: communities with a website on file are shown separately,
-  // above the general list — see I-132 spec's "Canada/Switzerland/Dutch communities have
-  // their own site" case. Not always populated (e.g. Sweden currently has none), in which
-  // case this section is simply omitted by the page.
-  const nationalCommunities = allCommunities.filter((c) => c.websiteUrl);
-  const communities = allCommunities.filter((c) => !c.websiteUrl);
+  // National community spotlight, shown separately above the general list — see I-132 spec's
+  // "Canada/Switzerland/Dutch communities have their own site" case. Curated via
+  // NATIONAL_COMMUNITY_SLUGS above, not inferred. Not always populated (e.g. Sweden has no
+  // override entry), in which case this section is simply omitted by the page.
+  const nationalSlugs = NATIONAL_COMMUNITY_SLUGS[summary.iso] ?? [];
+  const nationalCommunities = allCommunities.filter((c) => nationalSlugs.includes(c.slug));
+  const communities = allCommunities.filter((c) => !nationalSlugs.includes(c.slug));
 
   const teachers = (teacherRows ?? []).map((t) => ({
     id: t.id,
