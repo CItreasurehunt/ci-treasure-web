@@ -1,8 +1,8 @@
 # Contributing to CI Treasure Hunt
 
-CI Treasure Hunt is a global directory of Contact Improvisation events, communities, venues, and teachers. The code is public for transparency and because the CI community is small and friendly.
+CI Treasure Hunt is a global directory of Contact Improvisation events, communities, venues, and teachers.
 
-Bug reports and small fixes are welcome. For larger changes, open an issue first — the project has a specific direction and not all contributions will fit.
+Bug reports and small fixes are welcome. For larger changes, open an issue first, the project has a specific direction and not all contributions will fit.
 
 ---
 
@@ -11,12 +11,12 @@ Bug reports and small fixes are welcome. For larger changes, open an issue first
 **Requirements:** Node.js 18+
 
 ```bash
-git clone https://github.com/CItreasurehunt/ci-treasure-web
+git clone https://github.com/ci-treasure-hunt/ci-treasure-web
 cd ci-treasure-web
 npm install
 ```
 
-Create `.env.local` — you'll need a Supabase URL and anon key. Open a GitHub issue to request read-only access for local development.
+Create `.env.local` with a Supabase URL and anon key.
 
 ```bash
 npm run dev
@@ -37,7 +37,6 @@ app/                  Next.js App Router pages
 components/           Shared UI components
 lib/
   supabase.ts         Supabase client (browser + server)
-  airtable.ts         Airtable client (communities data)
 supabase/
   migrations/         Database schema (PostgreSQL)
 ```
@@ -51,6 +50,6 @@ supabase/
 
 ## Community data and private links
 
-CI communities often use Telegram, WhatsApp, and Signal groups with private invite links. Direct join links are intentionally hidden on the public website to reduce spam — access is available after joining the main [CI Treasure Hunt Telegram group](https://t.me/citreasurehunt).
+CI communities often use Telegram, WhatsApp, Signal, and LINE groups with private invite links. Direct invite links are revealed in the public UI, but only after the visitor passes a Cloudflare Turnstile challenge (see `components/invite-buttons.tsx`, `lib/invite-links-action.ts`). This limits scraping and spam while keeping links a normal part of the page.
 
-Never expose raw invite links in public-facing UI.
+Don't bypass or remove the Turnstile gate when touching this flow.
