@@ -44,12 +44,10 @@ supabase/
 **Key conventions:**
 - Tailwind v4: use `bg-(--color-name)` not `bg-[--color-name]` for CSS variable references
 - Server components fetch directly; client components use `"use client"` + props passed down
-- Admin routes use the Supabase service role key (not committed — set in deployment env vars)
+- Admin routes use the Supabase service role key (set in deployment env vars)
 
 ---
 
 ## Community data and private links
 
-CI communities often use Telegram, WhatsApp, Signal, and LINE groups with private invite links. Direct invite links are revealed in the public UI, but only after the visitor passes a Cloudflare Turnstile challenge (see `components/invite-buttons.tsx`, `lib/invite-links-action.ts`). This limits scraping and spam while keeping links a normal part of the page.
-
-Don't bypass or remove the Turnstile gate when touching this flow.
+CI communities often use Telegram, WhatsApp, Signal, and LINE groups with private invite links. Direct invite links are revealed in the public UI, but only after the visitor passes a Cloudflare Turnstile challenge (see `components/invite-buttons.tsx`, `lib/invite-links-action.ts`). This limits scraping and spam while keeping links a normal part of the page. Don't bypass or remove the Turnstile gate when touching this flow.
