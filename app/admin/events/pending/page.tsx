@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { requireAdminUser } from "@/lib/admin-auth";
 
 import { getPendingEvents } from "./actions";
@@ -38,6 +40,12 @@ export default async function AdminPendingEventsPage() {
                 <p className="mt-1 text-sm text-slate-500">
                   Organizer: {event.organizer ? event.organizer.name : "— unlinked —"}
                 </p>
+                <Link
+                  href={`/admin/events/pending/${event.id}/preview`}
+                  className="mt-2 inline-block text-sm font-semibold text-(--color-pine) underline"
+                >
+                  Preview full event →
+                </Link>
               </div>
               <EventReviewActions eventId={event.id} organizer={event.organizer} />
             </li>

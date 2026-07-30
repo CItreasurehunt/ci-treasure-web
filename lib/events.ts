@@ -1,5 +1,7 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createStaticClient } from "@/lib/supabase/static";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   type EventListItem,
   type SegmentItem,
@@ -356,49 +358,47 @@ function getTimezoneOffset(timezone: string, date: Date) {
   }
 }
 
-export async function getEventBySlug(shortId: string): Promise<EventDetail | null> {
-  if (!hasSupabaseEnv()) {
-    return null;
-  }
+const EVENT_DETAIL_COLUMNS =
+  "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, image_credit, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, level, language, discipline, event_series(title)";
 
-  const columns =
-    "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, image_credit, links, price, segments, venue_id, address, contact_email, series_id, series_order, status, level, language, discipline, event_series(title)";
-
-  // events_select_public RLS covers both 'published' and 'archived' (I-112) -- archived
-  // (past) events stay publicly readable so their pages keep working for SEO + history,
-  // rendered as "ended"; drafts/pending/rejected stay excluded by RLS regardless of query.
-  const supabase = await createClient();
-  const { data: eventRow } = await supabase
-    .from("events")
-    .select(columns)
-    .ilike("short_id", shortId)
-    .maybeSingle();
-
-  if (!eventRow) {
-    return null;
-  }
+// Shared by the public event page (RLS-gated client, RPC-scoped credits) and the admin
+// pending-event preview (service-role client, direct table reads) — same output shape either
+// way so the preview is a faithful "what this will look like once published," not a
+// hand-maintained second rendering of the same data (I-147).
+async function buildEventDetail(
+  eventRow: Record<string, unknown>,
+  supabase: SupabaseClient,
+  creditedPeopleOverride?: Array<SupabaseProfileJoinFlat & { kind: "teacher" | "organizer" }>,
+): Promise<EventDetail> {
+  const row = eventRow as unknown as SupabaseEventRow & {
+    id: string;
+    series_id: string | null;
+    venue_id: string | null;
+    status: string;
+    event_series: { title?: string } | { title?: string }[] | null;
+  };
 
   const base = mapEventRow(eventRow as unknown as SupabaseEventRow);
 
   let seriesSiblings: SeriesSibling[] = [];
-  if (eventRow.series_id) {
+  if (row.series_id) {
     const { data: siblingsData } = await supabase
       .from("events")
       .select("id, short_id, title, type, start_date, end_date, series_order")
-      .eq("series_id", eventRow.series_id)
+      .eq("series_id", row.series_id)
       .eq("status", "published")
       .order("series_order", { ascending: true });
 
     if (siblingsData) {
-      seriesSiblings = siblingsData.map((row) => ({
-        id: row.id,
-        shortId: row.short_id,
-        slug: `${row.short_id}-${slugify(row.title)}`,
-        title: row.title,
-        type: row.type,
-        startDate: row.start_date,
-        endDate: row.end_date,
-        seriesOrder: row.series_order,
+      seriesSiblings = siblingsData.map((sib) => ({
+        id: sib.id,
+        shortId: sib.short_id,
+        slug: `${sib.short_id}-${slugify(sib.title)}`,
+        title: sib.title,
+        type: sib.type,
+        startDate: sib.start_date,
+        endDate: sib.end_date,
+        seriesOrder: sib.series_order,
       }));
     }
   }
@@ -409,58 +409,123 @@ export async function getEventBySlug(shortId: string): Promise<EventDetail | nul
   // pattern as venueSlug just below. get_event_credited_people is a SECURITY DEFINER RPC scoped
   // to exactly (kind, role, name, slug, visibility) for credits on publicly-visible events —
   // deliberately not a blanket admin-client/RLS bypass, which would leak the full profile row
-  // (bio, city, country, socials...) for a profile that chose to deactivate itself.
+  // (bio, city, country, socials...) for a profile that chose to deactivate itself. A pending
+  // event isn't publicly-visible yet, so the RPC would return nothing for it — the admin
+  // preview path passes creditedPeopleOverride (fetched directly, service-role) instead.
   const [creditedPeopleResponse, venueResponse] = await Promise.all([
-    supabase.rpc("get_event_credited_people", { p_event_id: eventRow.id }),
-    eventRow.venue_id
-      ? supabase.from("venues").select("name, address, slug, visibility").eq("id", eventRow.venue_id).single()
+    creditedPeopleOverride
+      ? Promise.resolve({ data: creditedPeopleOverride })
+      : supabase.rpc("get_event_credited_people", { p_event_id: row.id }),
+    row.venue_id
+      ? supabase.from("venues").select("name, address, slug, visibility").eq("id", row.venue_id).single()
       : Promise.resolve({ data: null, error: null }),
   ]);
 
-  const linkItems = normalizeLinkItems(eventRow.links);
+  const linkItems = normalizeLinkItems(row.links);
   const venueData = venueResponse.data as { name?: string; address?: string; slug?: string; visibility?: string } | null;
   const creditedPeople = (creditedPeopleResponse.data ?? []) as Array<
     SupabaseProfileJoinFlat & { kind: "teacher" | "organizer" }
   >;
-
   return {
     ...base,
-    startTime: eventRow.start_time,
-    endTime: eventRow.end_time,
-    timezone: eventRow.timezone,
-    cancelledText: eventRow.cancelled_text,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    timezone: row.timezone,
+    cancelledText: row.cancelled_text,
     linkItems,
-    priceItems: normalizePriceItems(eventRow.price),
-    segments: normalizeSegments(eventRow.segments),
+    priceItems: normalizePriceItems(row.price),
+    segments: normalizeSegments(row.segments),
     teachers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "teacher")),
     organizers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "organizer")),
     hasUnclaimedOrganizer:
       creditedPeople.filter((p) => p.kind === "organizer").length === 0 ||
       creditedPeople.some((p) => p.kind === "organizer" && !p.is_claimed),
     hasNoOrganizer: creditedPeople.filter((p) => p.kind === "organizer").length === 0,
-    venueName: venueData?.name ?? eventRow.address?.venue_name ?? null,
+    venueName: venueData?.name ?? row.address?.venue_name ?? null,
     venueAddress: venueData?.address ?? null,
     venueSlug: venueData?.visibility === "public" ? (venueData.slug ?? null) : null,
-    contactEmail: eventRow.contact_email ?? null,
-    level: eventRow.level ?? null,
-    language: eventRow.language ?? [],
+    contactEmail: row.contact_email ?? null,
+    level: row.level ?? null,
+    language: row.language ?? [],
     primaryRegistrationUrl:
       linkItems.find((item) => item.type === "registration")?.url ?? linkItems[0]?.url ?? null,
-    startDateIso: `${eventRow.start_date}T${eventRow.start_time ?? "00:00:00"}${getTimezoneOffset(
-      eventRow.timezone,
-      new Date(`${eventRow.start_date}T${eventRow.start_time ?? "00:00:00"}`),
+    startDateIso: `${row.start_date}T${row.start_time ?? "00:00:00"}${getTimezoneOffset(
+      row.timezone,
+      new Date(`${row.start_date}T${row.start_time ?? "00:00:00"}`),
     )}`,
-    endDateIso: `${eventRow.end_date}T${eventRow.end_time ?? "23:59:00"}${getTimezoneOffset(
-      eventRow.timezone,
-      new Date(`${eventRow.end_date}T${eventRow.end_time ?? "23:59:00"}`),
+    endDateIso: `${row.end_date}T${row.end_time ?? "23:59:00"}${getTimezoneOffset(
+      row.timezone,
+      new Date(`${row.end_date}T${row.end_time ?? "23:59:00"}`),
     )}`,
-    seriesName: Array.isArray(eventRow.event_series)
-      ? (eventRow.event_series[0] as { title?: string } | null)?.title ?? null
-      : (eventRow.event_series as { title?: string } | null)?.title ?? null,
+    seriesName: Array.isArray(row.event_series)
+      ? (row.event_series[0] as { title?: string } | null)?.title ?? null
+      : (row.event_series as { title?: string } | null)?.title ?? null,
     seriesSiblings,
-    imageCredit: eventRow.image_credit ?? null,
-    isPast: eventRow.status === "archived",
+    imageCredit: row.image_credit ?? null,
+    isPast: row.status === "archived",
   };
+}
+
+export async function getEventBySlug(shortId: string): Promise<EventDetail | null> {
+  if (!hasSupabaseEnv()) {
+    return null;
+  }
+
+  // events_select_public RLS covers both 'published' and 'archived' (I-112) -- archived
+  // (past) events stay publicly readable so their pages keep working for SEO + history,
+  // rendered as "ended"; drafts/pending/rejected stay excluded by RLS regardless of query.
+  const supabase = await createClient();
+  const { data: eventRow } = await supabase
+    .from("events")
+    .select(EVENT_DETAIL_COLUMNS)
+    .ilike("short_id", shortId)
+    .maybeSingle();
+
+  if (!eventRow) {
+    return null;
+  }
+
+  return buildEventDetail(eventRow as unknown as Record<string, unknown>, supabase);
+}
+
+// Admin-only: same shape as getEventBySlug, but for a pending/rejected event by id, via the
+// service-role client (bypasses RLS — safe here since this is only reachable from
+// requireAdminUser()-gated routes). Credited people are fetched directly rather than through
+// get_event_credited_people, since that RPC only returns rows for published/archived events —
+// see buildEventDetail's comment. Built for the I-147 pending-event preview.
+export async function getEventDetailForAdmin(eventId: string): Promise<EventDetail | null> {
+  const admin = createAdminClient();
+
+  const { data: eventRow } = await admin
+    .from("events")
+    .select(EVENT_DETAIL_COLUMNS)
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!eventRow) {
+    return null;
+  }
+
+  const [teachersRes, organizersRes] = await Promise.all([
+    admin.from("event_teachers").select("role, profiles(name, slug, visibility, user_id)").eq("event_id", eventId),
+    admin.from("event_organizers").select("role, profiles(name, slug, visibility, user_id)").eq("event_id", eventId),
+  ]);
+
+  type CreditRow = { role: string | null; profiles: { name: string; slug: string; visibility: string; user_id: string | null } | null };
+  const mapCredit = (kind: "teacher" | "organizer") => (r: CreditRow) => ({
+    kind,
+    role: r.role,
+    name: r.profiles?.name ?? null,
+    slug: r.profiles?.slug ?? null,
+    visibility: r.profiles?.visibility ?? null,
+    is_claimed: Boolean(r.profiles?.user_id),
+  });
+  const creditedPeople = [
+    ...((teachersRes.data ?? []) as unknown as CreditRow[]).map(mapCredit("teacher")),
+    ...((organizersRes.data ?? []) as unknown as CreditRow[]).map(mapCredit("organizer")),
+  ];
+
+  return buildEventDetail(eventRow as unknown as Record<string, unknown>, admin, creditedPeople as never);
 }
 
 export function parseEventSlug(value: string) {
@@ -554,6 +619,16 @@ export function getLinkLabel(type: string, label?: string) {
     program: "Schedule",
   };
   return labels[type] ?? "Open link";
+}
+
+// Shared by generateMetadata (page <meta> description) and EventDetailView (JSON-LD
+// description) — both want plain text, not raw markdown syntax.
+export function stripMarkdown(text: string) {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Replace links [text](url) with 'text'
+    .replace(/[#*`_~]/g, "") // Remove basic markdown characters
+    .replace(/\n+/g, " ") // Replace newlines with spaces
+    .trim();
 }
 
 export function formatTimeRange(event: Pick<EventDetail, "startTime" | "endTime" | "timezone">) {
