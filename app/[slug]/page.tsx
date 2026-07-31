@@ -19,11 +19,11 @@ type CountryPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-// I-132 Step 1 (pilot): this route intentionally has no entry in app/sitemap.ts and no inbound
-// links from the homepage/breadcrumbs yet — see docs/issues/i-132-country-pages.md. The page
-// exists at its real URL for direct review only. generateStaticParams below is scoped to
-// country_summaries rows, so an unmatched slug 404s rather than rendering — required since this
-// is a root-level catch-all route sitting alongside /venues, /teachers, /newsletter, etc.
+// I-132: generateStaticParams is scoped to country_summaries rows, so an unmatched slug 404s
+// rather than rendering — required since this is a root-level catch-all route sitting alongside
+// /venues, /teachers, /newsletter, etc. A country only gets a live page, a sitemap entry
+// (app/sitemap.ts), and a homepage link (app/page.tsx) once it has a reviewed row here — see
+// docs/issues/i-132-country-pages.md.
 export async function generateStaticParams() {
   const slugs = await getAllCountrySlugs();
   return slugs.map((slug) => ({ slug }));
