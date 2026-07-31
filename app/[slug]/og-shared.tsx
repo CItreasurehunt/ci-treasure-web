@@ -34,11 +34,13 @@ export async function renderCountryOgImage(slug: string) {
   const flag = country ? getCountryFlag(country.iso) : "";
 
   const communityCount = (country?.communities.length ?? 0) + (country?.nationalCommunities.length ?? 0);
+  // Same order as the page's own stat strip (app/[slug]/page.tsx): communities, teachers,
+  // upcoming events, venues — kept in sync deliberately, not just an arbitrary list order.
   const stats = [
+    communityCount > 0 ? pluralize(communityCount, "community", "communities") : null,
     country && country.teachers.length > 0 ? pluralize(country.teachers.length, "teacher") : null,
     country && country.events.length > 0 ? pluralize(country.events.length, "upcoming event") : null,
     country && country.venues.length > 0 ? pluralize(country.venues.length, "venue") : null,
-    communityCount > 0 ? pluralize(communityCount, "community", "communities") : null,
   ].filter((s): s is string => Boolean(s));
 
   const fraunces = await loadFraunces(600);
