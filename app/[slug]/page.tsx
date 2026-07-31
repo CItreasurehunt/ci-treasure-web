@@ -276,29 +276,43 @@ export default async function CountryPage({ params }: CountryPageProps) {
           </section>
         )}
 
-        <div className="mt-4 space-y-3 border-t border-(--color-sand-strong) pt-6">
+        <div className="mt-4 grid grid-cols-1 gap-4 border-t border-(--color-sand-strong) pt-6 sm:grid-cols-2">
           {otherCountries.length > 0 && (
-            <p className="text-sm text-slate-500">
-              Exploring Contact Improvisation beyond {label}? Also see{" "}
-              {otherCountries.map((c, i) => (
-                <span key={c.iso}>
-                  {i > 0 && (i === otherCountries.length - 1 ? " and " : ", ")}
-                  <Link href={`/${c.slug}`} className="font-medium text-(--color-pine) hover:underline">
+            <div className="rounded-xl border border-(--color-sand-strong) bg-white p-5">
+              <h2 className="mb-3 font-serif text-lg text-slate-900">Explore other countries</h2>
+              <div className="flex flex-wrap gap-2">
+                {otherCountries.map((c) => (
+                  <Link
+                    key={c.iso}
+                    href={`/${c.slug}`}
+                    className="flex items-center gap-1.5 rounded-full border border-(--color-sand-strong) bg-(--color-sand) px-3.5 py-1.5 text-sm font-medium text-slate-800 transition hover:border-(--color-pine) hover:text-(--color-pine)"
+                  >
+                    <span>{getCountryFlag(c.iso)}</span>
                     {c.label}
                   </Link>
-                </span>
-              ))}
-              .
-            </p>
+                ))}
+              </div>
+            </div>
           )}
 
-          <p className="text-sm text-slate-500">
-            Want to help keep the {label} page accurate — spot missing communities, teachers,
-            events, or venues before we do?{" "}
-            <a href="mailto:hello@citreasurehunt.com" className="font-medium text-(--color-pine) hover:underline">
+          {/* Distinct from the per-section "missing X? tell us" lines above (Communities/
+              Teachers/Events/Venues each already have their own) — this is a standing invitation
+              to a country-level volunteer role, not another one-off correction prompt, so it gets
+              its own card rather than blending into that stack. */}
+          <div className={`rounded-xl border border-(--color-sand-strong) border-l-4 border-l-(--color-pine) bg-(--color-sand) p-5 ${otherCountries.length === 0 ? "sm:col-span-2" : ""}`}>
+            <h2 className="mb-1.5 font-serif text-lg text-slate-900">Become {label}&apos;s page steward</h2>
+            <p className="mb-3 text-sm leading-6 text-slate-700">
+              We&apos;re looking for someone connected to the {label} CI scene to help keep this
+              page accurate over time — new events, missing teachers or venues, corrections as the
+              community grows.
+            </p>
+            <a
+              href="mailto:hello@citreasurehunt.com"
+              className="inline-block rounded-lg bg-(--color-pine) px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+            >
               Get in touch →
             </a>
-          </p>
+          </div>
         </div>
       </div>
     </main>

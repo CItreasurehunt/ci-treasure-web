@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 
-import { buildEventSlug } from "@/lib/events";
+import { buildEventSlug, slugify } from "@/lib/events";
+import { getCountryLabel } from "@/lib/event-display";
 
 // Called by a Supabase Database Webhook (pg_net trigger, see
 // supabase/migrations/*_revalidate_on_write.sql) whenever a row changes in events, profiles, or
@@ -52,6 +53,15 @@ export async function POST(request: NextRequest) {
     case "venues": {
       revalidatePath("/venues");
       if (record?.slug) revalidatePath(`/venues/${record.slug as string}`);
+      break;
+    }
+    case "country_summaries": {
+      // Table only carries `iso`, not a slug — same derivation getAllCountrySummaries() uses
+      // (lib/country-pages.ts), kept in sync here since this route can't import a server-only
+      // Supabase helper just to look up a string transform.
+      if (record?.iso) {
+        revalidatePath(`/${slugify(getCountryLabel(record.iso as string))}`);
+      }
       break;
     }
     default:
