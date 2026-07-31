@@ -8,7 +8,7 @@ import { EventCard } from "@/components/event-card";
 import { ExpandableList } from "@/components/expandable-list";
 import { GENERIC_ACCENT_GRADIENT } from "@/lib/event-display";
 import { COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, type Community } from "@/lib/communities";
-import { getAllCountrySlugs, getCountryPageData } from "@/lib/country-pages";
+import { getAllCountrySlugs, getAllCountrySummaries, getCountryPageData } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
 import { getMediumUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site";
@@ -72,6 +72,13 @@ export default async function CountryPage({ params }: CountryPageProps) {
 
   const { label, iso, summaryText, summaryUpdatedAt, nationalCommunities, communities, teachers, events, venues, mapMarkers } = country;
   const flag = getCountryFlag(iso);
+
+  // Cross-links to other live country guides — same "comma-separated, 'and' before the last"
+  // pattern as the homepage's own country-guide sentence (app/page.tsx), so it scales the same
+  // way from 1 to N other countries without a copy rewrite at 2-4.
+  const otherCountries = (await getAllCountrySummaries())
+    .filter((c) => c.iso !== iso)
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   // Schema-only breadcrumb (I-132 follow-up, 2026-07-27): describes the page's position in the
   // site hierarchy independent of any visible trail. Deliberately decoupled from the visible
@@ -173,9 +180,9 @@ export default async function CountryPage({ params }: CountryPageProps) {
             {nationalCommunities.length > 0 && (
               <section className="mb-8">
                 <h2 className="mb-3 font-serif text-xl text-slate-900">National community</h2>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {nationalCommunities.map((c) => (
-                    <CompactCommunityRow key={c.id} community={c} />
+                    <NationalCommunitySpotlight key={c.id} community={c} />
                   ))}
                 </div>
               </section>
@@ -269,15 +276,71 @@ export default async function CountryPage({ params }: CountryPageProps) {
           </section>
         )}
 
-        <p className="mt-4 border-t border-(--color-sand-strong) pt-6 text-sm text-slate-500">
-          Want to help keep the {label} page accurate — spot missing communities, teachers,
-          events, or venues before we do?{" "}
-          <a href="mailto:hello@citreasurehunt.com" className="font-medium text-(--color-pine) hover:underline">
-            Get in touch →
-          </a>
-        </p>
+        <div className="mt-4 space-y-3 border-t border-(--color-sand-strong) pt-6">
+          {otherCountries.length > 0 && (
+            <p className="text-sm text-slate-500">
+              Exploring Contact Improvisation beyond {label}? Also see{" "}
+              {otherCountries.map((c, i) => (
+                <span key={c.iso}>
+                  {i > 0 && (i === otherCountries.length - 1 ? " and " : ", ")}
+                  <Link href={`/${c.slug}`} className="font-medium text-(--color-pine) hover:underline">
+                    {c.label}
+                  </Link>
+                </span>
+              ))}
+              .
+            </p>
+          )}
+
+          <p className="text-sm text-slate-500">
+            Want to help keep the {label} page accurate — spot missing communities, teachers,
+            events, or venues before we do?{" "}
+            <a href="mailto:hello@citreasurehunt.com" className="font-medium text-(--color-pine) hover:underline">
+              Get in touch →
+            </a>
+          </p>
+        </div>
       </div>
     </main>
+  );
+}
+
+// A real card, not a reused CompactCommunityRow — NATIONAL_COMMUNITY_SLUGS (lib/country-pages.ts)
+// is deliberately curated to be small, realistically one entry per country, so this section is
+// effectively always a single spotlight rather than a list. Reusing the dense table-row style
+// left it looking *less* finished than the plain "Communities" list below it (no card, no
+// description, nothing to say why it's separated out) — backwards for the one community meant to
+// stand out. Surfaces `description` (unused by CompactCommunityRow) and a real button instead of
+// a bare icon.
+function NationalCommunitySpotlight({ community }: { community: Community }) {
+  const joinUrl = getPrimaryJoinUrl(community);
+  return (
+    <div className="rounded-xl border border-(--color-sand-strong) border-l-4 border-l-(--color-pine) bg-(--color-sand) p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link href={`/communities/${community.slug}`} className="font-serif text-2xl text-slate-900 hover:underline">
+            {community.name}
+          </Link>
+          {community.city && (
+            <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
+              <MapPin className="size-3.5 shrink-0 text-slate-400" />
+              {community.city}
+            </p>
+          )}
+        </div>
+        {joinUrl && (
+          <a
+            href={joinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 rounded-lg bg-(--color-pine) px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+          >
+            Join →
+          </a>
+        )}
+      </div>
+      {community.description && <p className="mt-3 text-sm leading-6 text-slate-700">{community.description}</p>}
+    </div>
   );
 }
 
