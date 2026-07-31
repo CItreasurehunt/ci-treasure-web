@@ -11,7 +11,7 @@ import { COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, type Community } from "@/lib/c
 import { getAllCountrySlugs, getCountryPageData } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
 import { getMediumUrl } from "@/lib/image-url";
-import { SITE_URL, SITE_OG_IMAGE, ogImage } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
 
@@ -47,17 +47,20 @@ export async function generateMetadata({ params }: CountryPageProps): Promise<Me
       description,
       url: `${SITE_URL}/${country.slug}`,
       siteName: "CI Treasure Hunt",
-      images: [ogImage()],
+      // No `images` here — opengraph-image.tsx (this same route segment) generates a
+      // country-specific image (flag, title, live stats) and Next.js's file-convention metadata
+      // owns the og:image tags for this segment. Setting images here too would create two
+      // competing sources for the same tag.
     },
     // Root layout's default twitter: block is worldwide/generic — without this override every
     // country page's card on X/Twitter would say "CI Treasure Hunt" instead of naming the
     // country, undermining the one channel (external CI orgs sharing their own country link)
-    // this whole feature is meant to earn.
+    // this whole feature is meant to earn. Image itself comes from twitter-image.tsx, same
+    // reasoning as openGraph above.
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [SITE_OG_IMAGE],
     },
   };
 }
