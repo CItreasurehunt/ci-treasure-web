@@ -297,10 +297,11 @@ export default async function CountryPage({ params }: CountryPageProps) {
 
           {/* Distinct from the per-section "missing X? tell us" lines above (Communities/
               Teachers/Events/Venues each already have their own) — this is a standing invitation
-              to a country-level volunteer role, not another one-off correction prompt, so it gets
-              its own card rather than blending into that stack. */}
+              to become the country's CI Ambassador (a volunteer role, established terminology —
+              don't rename this again without checking), not another one-off correction prompt, so
+              it gets its own card rather than blending into that stack. */}
           <div className={`rounded-xl border border-(--color-sand-strong) border-l-4 border-l-(--color-pine) bg-(--color-sand) p-5 ${otherCountries.length === 0 ? "sm:col-span-2" : ""}`}>
-            <h2 className="mb-1.5 font-serif text-lg text-slate-900">Become {label}&apos;s page steward</h2>
+            <h2 className="mb-1.5 font-serif text-lg text-slate-900">Become {label}&apos;s CI Ambassador</h2>
             <p className="mb-3 text-sm leading-6 text-slate-700">
               We&apos;re looking for someone connected to the {label} CI scene to help keep this
               page accurate over time — new events, missing teachers or venues, corrections as the
