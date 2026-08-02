@@ -1,6 +1,6 @@
-import { renderCountryOgImage, size } from "./og-shared";
+import { alt, renderCountryOgImage, size } from "./og-shared";
 
-export { size };
+export { alt, size };
 export const contentType = "image/png";
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {

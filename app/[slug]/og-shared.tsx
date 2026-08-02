@@ -5,6 +5,12 @@ import { getCountryFlag } from "@/lib/utils";
 
 export const size = { width: 1200, height: 630 };
 
+// Next's opengraph-image/twitter-image file convention only supports a static `alt` export (no
+// params access, confirmed against the docs) — can't say "Sweden" vs "Greece" here. Still needs
+// to be genuinely descriptive text, not a placeholder: this is what was missing entirely before
+// (no og:image:alt/twitter:image:alt tag at all), which is what a crawler like Bing flags.
+export const alt = "A Contact Improvisation country guide on CI Treasure Hunt — communities, teachers, upcoming events, and venues";
+
 // Same recipe Vercel's own OG-image examples use: requesting Google's css2 endpoint with a
 // `text=` param (rather than no param, or a UA-sniffed woff2 request) reliably returns a single
 // `@font-face` block in `format('truetype')` — the one format satori/ImageResponse can consume.
