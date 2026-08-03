@@ -29,7 +29,8 @@ import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
 import { PracticeBadge, practicesToDisplay } from "@/components/shared/practice-badge";
 import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
-import { SITE_URL, SITE_OG_IMAGE, ogImage } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+import { ogImage } from "@/lib/og-image";
 
 export const revalidate = 3600;
 
@@ -68,7 +69,8 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
       description,
       url: `${SITE_URL}/teachers/${teacher.slug}`,
       siteName: "CI Treasure Hunt",
-      images: [ogImage(approvedImage)],
+      type: "profile",
+      images: [await ogImage(approvedImage)],
     },
     twitter: {
       card: "summary_large_image",

@@ -3,14 +3,34 @@ import { Suspense } from "react";
 import { Globe, MapPin } from "lucide-react";
 import { getVenues } from "@/lib/venues";
 import { VenuesClient } from "./venues-client";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+
+const TITLE = "CI Venues Worldwide";
+const DESCRIPTION = "Find Contact Improvisation venues and spaces around the world.";
 
 export const metadata: Metadata = {
-  title: "CI Venues Worldwide",
-  description: "Find Contact Improvisation venues and spaces around the world.",
+  title: TITLE,
+  description: DESCRIPTION,
   // Same reasoning as /communities: filters live in the URL via client-side history
   // navigation, not real links, but a shared filtered URL could still get indexed without this.
   alternates: { canonical: `${SITE_URL}/venues` },
+  // Without its own openGraph block this page inherited the root layout's wholesale (Next.js
+  // doesn't deep-merge nested metadata keys) — og:title "CI Treasure Hunt" and og:url pointing at
+  // the homepage, not this page. Same bug fixed on /communities below (I-150).
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: `${SITE_URL}/venues`,
+    siteName: "CI Treasure Hunt",
+    type: "website",
+    images: [{ url: SITE_OG_IMAGE, width: 1280, height: 1024, type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [SITE_OG_IMAGE],
+  },
 };
 
 export const revalidate = 3600;

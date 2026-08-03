@@ -47,6 +47,7 @@ export async function generateMetadata({ params }: CountryPageProps): Promise<Me
       description,
       url: `${SITE_URL}/${country.slug}`,
       siteName: "CI Treasure Hunt",
+      type: "website",
       // No `images` here — opengraph-image.tsx (this same route segment) generates a
       // country-specific image (flag, title, live stats) and Next.js's file-convention metadata
       // owns the og:image tags for this segment. Setting images here too would create two

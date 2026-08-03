@@ -43,7 +43,8 @@ import {
 } from "@/lib/communities";
 import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+import { ogImage } from "@/lib/og-image";
 import { ReportButton } from "@/components/report-button";
 import { InviteButtons } from "@/components/invite-buttons";
 
@@ -76,6 +77,16 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
       description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
       url: `${SITE_URL}/communities/${community.slug}`,
       siteName: "CI Treasure Hunt",
+      type: "website",
+      // Communities have no image field of their own — always the site fallback, with its
+      // known dimensions (unlike events/teachers/venues, which probe their own photo).
+      images: [await ogImage(null)],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: community.name,
+      description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
+      images: [SITE_OG_IMAGE],
     },
   };
 }

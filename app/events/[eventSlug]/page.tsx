@@ -3,7 +3,8 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { EventDetailView } from "@/components/event-detail-view";
 import { getEventBySlug, parseEventSlug, stripMarkdown } from "@/lib/events";
 import { getCountryPageLink } from "@/lib/country-pages";
-import { SITE_URL, SITE_OG_IMAGE, ogImage } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+import { ogImage } from "@/lib/og-image";
 
 export const revalidate = 3600;
 
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ eventSlug
       url: `${SITE_URL}/events/${event.slug}`,
       siteName: "CI Treasure Hunt",
       type: "article",
-      images: [ogImage(event.imageUrl)],
+      images: [await ogImage(event.imageUrl)],
     },
     twitter: {
       card: "summary_large_image",

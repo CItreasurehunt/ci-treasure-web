@@ -3,16 +3,36 @@ import { Suspense } from "react";
 import { Globe, MapPin } from "lucide-react";
 import { getCommunities } from "@/lib/communities";
 import { CommunitiesClient } from "./communities-client";
-import { SITE_URL, TELEGRAM_URL } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE, TELEGRAM_URL } from "@/lib/site";
+
+const TITLE = "CI Communities Worldwide";
+const DESCRIPTION = "Find and join Contact Improvisation communities around the world.";
 
 export const metadata: Metadata = {
-  title: "CI Communities Worldwide",
-  description: "Find and join Contact Improvisation communities around the world.",
+  title: TITLE,
+  description: DESCRIPTION,
   // Filter state (country/type/etc.) lives in the URL via router.replace, not real <a href>
   // links — Googlebot won't discover ?country=SE... through normal crawling, but a filtered
   // URL copied from the address bar and shared externally could still get indexed on its own
   // without this, diluting the canonical /communities page across filter-combination URLs.
   alternates: { canonical: `${SITE_URL}/communities` },
+  // Without its own openGraph block this page inherited the root layout's wholesale (Next.js
+  // doesn't deep-merge nested metadata keys) — og:title "CI Treasure Hunt" and og:url pointing at
+  // the homepage, not this page. Same bug fixed on /venues above (I-150).
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: `${SITE_URL}/communities`,
+    siteName: "CI Treasure Hunt",
+    type: "website",
+    images: [{ url: SITE_OG_IMAGE, width: 1280, height: 1024, type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [SITE_OG_IMAGE],
+  },
 };
 
 export const revalidate = 3600;
