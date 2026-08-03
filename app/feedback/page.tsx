@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Feedback — CI Treasure Hunt",
-  description: "Share your thoughts, report a bug, or suggest a feature.",
+  description:
+    "Found a bug, missing an event, or have an idea for CI Treasure Hunt? Share your thoughts here, we read every submission and use it to improve the site.",
 };
 
 export default function FeedbackPage() {

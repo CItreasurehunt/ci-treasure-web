@@ -4,7 +4,8 @@ import { EOSubscribeForm } from "./eo-form";
 
 export const metadata: Metadata = {
   title: "Newsletter — CI Treasure Hunt",
-  description: "Stay up to date with Contact Improvisation events and communities worldwide.",
+  description:
+    "Occasional updates on new Contact Improvisation events and news from the CI world, delivered straight to your inbox. Free to subscribe, unsubscribe any time.",
 };
 
 export default function NewsletterPage() {

@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service — CI Treasure Hunt",
+  description:
+    "The terms of service governing use of CI Treasure Hunt, a directory of Contact Improvisation events, teachers, communities, and venues worldwide.",
+};
+
 export default function TermsPage() {
   return (
     <main className="mx-auto min-h-screen max-w-3xl px-5 py-14 sm:px-8">

@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy — CI Treasure Hunt",
+  description:
+    "How CI Treasure Hunt collects, uses, and protects your data, including account information, cookies, and third-party services used on the site.",
+};
+
 export default function PrivacyPage() {
   return (
     <main className="mx-auto min-h-screen max-w-3xl px-5 py-14 sm:px-8">

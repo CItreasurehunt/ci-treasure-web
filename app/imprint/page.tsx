@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Imprint — CI Treasure Hunt",
+  description:
+    "Legal contact information (Impressum) for CI Treasure Hunt under German law (§ 5 TMG), including the site operator's name and postal address.",
+};
+
 export default function ImprintPage() {
   return (
     <main className="mx-auto min-h-screen max-w-3xl px-5 py-14 sm:px-8">
