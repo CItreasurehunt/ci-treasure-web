@@ -66,15 +66,21 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
   const community = await getCommunityBySlug(slug);
   if (!community) return {};
 
+  const countryLabel = getCountryLabel(community.country ?? "");
+  const description = (
+    community.description ??
+    `${community.name} is a Contact Improvisation community in ${community.city}, ${countryLabel}, part of the CI Treasure Hunt global directory of jams, classes, and gatherings.`
+  ).slice(0, 160);
+
   return {
-    title: buildEntityTitle(community.name, { city: community.city, country: getCountryLabel(community.country ?? "") }),
-    description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
+    title: buildEntityTitle(community.name, { city: community.city, country: countryLabel }),
+    description,
     alternates: {
       canonical: `${SITE_URL}/communities/${community.slug}`,
     },
     openGraph: {
       title: community.name,
-      description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
+      description,
       url: `${SITE_URL}/communities/${community.slug}`,
       siteName: "CI Treasure Hunt",
       type: "website",
@@ -85,7 +91,7 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
     twitter: {
       card: "summary_large_image",
       title: community.name,
-      description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
+      description,
       images: [SITE_OG_IMAGE],
     },
   };

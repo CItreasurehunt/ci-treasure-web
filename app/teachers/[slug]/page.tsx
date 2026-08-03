@@ -52,9 +52,12 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
   const teacher = await getTeacherBySlug(slug);
   if (!teacher) return {};
 
-  const description =
-    teacher.bio?.slice(0, 160) ??
-    `Contact Improvisation teacher${teacher.city ? ` based in ${teacher.city}` : ""} — CI Treasure Hunt`;
+  const description = (
+    teacher.bio ??
+    (teacher.city
+      ? `${teacher.name} is a Contact Improvisation teacher based in ${teacher.city}, listed on CI Treasure Hunt, the global directory of CI teachers, events, and communities.`
+      : `${teacher.name} is a Contact Improvisation teacher listed on CI Treasure Hunt, the global directory of CI teachers, events, and communities.`)
+  ).slice(0, 160);
 
   const approvedImage = teacher.image_status === "approved" ? teacher.image_url : null;
 

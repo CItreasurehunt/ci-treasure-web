@@ -36,9 +36,9 @@ export function buildEntityTitle(
   const cityCountry = city && country ? `${city}, ${country}` : city;
 
   const candidates = [
-    cityCountry ? `${name} — ${cityCountry} — ${TITLE_SUFFIX}` : `${name} — ${TITLE_SUFFIX}`,
-    cityCountry ? `${name} — ${cityCountry}` : null,
-    city && country ? `${name} — ${city}` : null,
+    cityCountry ? `${name} - ${cityCountry} - ${TITLE_SUFFIX}` : `${name} - ${TITLE_SUFFIX}`,
+    cityCountry ? `${name} - ${cityCountry}` : null,
+    city && country ? `${name} - ${city}` : null,
     name,
   ].filter((c): c is string => c !== null);
 

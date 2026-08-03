@@ -6,7 +6,8 @@ import { CommunitiesClient } from "./communities-client";
 import { SITE_URL, SITE_OG_IMAGE, TELEGRAM_URL } from "@/lib/site";
 
 const TITLE = "CI Communities Worldwide";
-const DESCRIPTION = "Find and join Contact Improvisation communities around the world.";
+const DESCRIPTION =
+  "Discover Contact Improvisation communities around the world, find local jams, teacher networks, and groups, plus the channels that connect you locally.";
 
 export const metadata: Metadata = {
   title: TITLE,

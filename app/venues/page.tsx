@@ -6,7 +6,8 @@ import { VenuesClient } from "./venues-client";
 import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
 
 const TITLE = "CI Venues Worldwide";
-const DESCRIPTION = "Find Contact Improvisation venues and spaces around the world.";
+const DESCRIPTION =
+  "Discover Contact Improvisation venues around the world, a curated, hand-maintained directory of spaces that host CI jams, classes, workshops, and festivals.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -48,7 +49,7 @@ export default async function VenuesPage() {
             CI Venues Worldwide
           </h1>
           <p className="mb-6 max-w-2xl text-lg text-slate-600">
-            A curated directory of spaces that regularly host Contact Improvisation — jams, classes,
+            A curated directory of spaces that regularly host Contact Improvisation, jams, classes,
             workshops, and festivals.
           </p>
           <div className="flex justify-start gap-8 text-sm font-medium text-slate-700">

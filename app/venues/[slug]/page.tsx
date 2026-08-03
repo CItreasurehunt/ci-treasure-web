@@ -44,9 +44,13 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
   const venue = await getVenueBySlug(slug);
   if (!venue) return {};
 
-  const description = venue.description?.slice(0, 160) ?? `Venue in ${venue.city}, ${getCountryLabel(venue.country)}`;
+  const countryLabel = getCountryLabel(venue.country);
+  const description = (
+    venue.description ??
+    `${venue.name} is a Contact Improvisation venue in ${venue.city}, ${countryLabel}, part of the CI Treasure Hunt directory of spaces hosting jams, workshops, and festivals.`
+  ).slice(0, 160);
   return {
-    title: buildEntityTitle(venue.name, { city: venue.city, country: getCountryLabel(venue.country) }),
+    title: buildEntityTitle(venue.name, { city: venue.city, country: countryLabel }),
     description,
     alternates: {
       canonical: `${SITE_URL}/venues/${venue.slug}`,

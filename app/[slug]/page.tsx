@@ -34,10 +34,13 @@ export async function generateMetadata({ params }: CountryPageProps): Promise<Me
   const country = await getCountryPageData(slug);
   if (!country) return {};
 
-  const description = `Contact Improvisation in ${country.label}: communities, teachers, upcoming events, and venues.`;
+  // Sliced to 160 as a safety net: length varies with the country name (e.g. "Bosnia and
+  // Herzegovina" alone pushes this past the target band), and nothing currently populated is
+  // long enough to matter, but a future long country name shouldn't silently regress this.
+  const description = `Contact Improvisation in ${country.label}: find local communities, teachers, upcoming events, and venues, the full CI Treasure Hunt directory for ${country.label}.`.slice(0, 160);
   const title = `Contact Improvisation in ${country.label}`;
   return {
-    title: `${title} — CI Treasure Hunt`,
+    title: `${title} - CI Treasure Hunt`,
     description,
     alternates: {
       canonical: `${SITE_URL}/${country.slug}`,
