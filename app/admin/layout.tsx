@@ -50,6 +50,20 @@ async function getPendingEventCount(): Promise<number> {
   }
 }
 
+async function getPendingProfileCount(): Promise<number> {
+  try {
+    const supabase = createAdminClient();
+    const { count } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("visibility", "shadow")
+      .eq("source", "self_submitted");
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 async function getPendingPhotoCount(): Promise<number> {
   try {
     const supabase = createAdminClient();
@@ -79,14 +93,15 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }>) {
   const adminUser = await getAdminUser();
-  const [openReports, pendingClaims, pendingEvents, pendingPhotos] = adminUser
+  const [openReports, pendingClaims, pendingEvents, pendingPhotos, pendingProfiles] = adminUser
     ? await Promise.all([
         getOpenReportCount(),
         getPendingClaimCount(),
         getPendingEventCount(),
         getPendingPhotoCount(),
+        getPendingProfileCount(),
       ])
-    : [0, 0, 0, 0];
+    : [0, 0, 0, 0, 0];
 
   return (
     <main className="min-h-screen bg-(--color-mist) px-5 py-6 text-slate-900 sm:px-8 lg:px-10">
@@ -111,6 +126,10 @@ export default async function AdminLayout({
             <Link href="/admin/claims" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
               Claims
               <NavBadge count={pendingClaims} />
+            </Link>
+            <Link href="/admin/profiles/pending" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
+              Profiles
+              <NavBadge count={pendingProfiles} />
             </Link>
             <Link href="/admin/profile-photos" className="relative rounded-full border border-(--color-sand-strong) px-4 py-2 hover:border-(--color-pine) hover:text-(--color-pine)">
               Photos

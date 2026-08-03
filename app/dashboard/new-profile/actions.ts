@@ -89,7 +89,10 @@ export async function createProfile(input: {
     slug,
     website: input.website.trim() || null,
     user_id: user.id,
-    visibility: "public",
+    // Shadow, not public: self-submitted profiles need admin review before going live (I-150).
+    // Previously these auto-published immediately with no review at all — a stray "test" profile
+    // and a studio submitted as if it were a person both slipped through before this was caught.
+    visibility: "shadow",
     source: "self_submitted",
     is_organizer: input.isOrganizer,
     is_teacher: input.isTeacher,
@@ -101,5 +104,39 @@ export async function createProfile(input: {
     return { success: false, error: error.message };
   }
 
+  // Fire-and-forget admin notification (same pattern as app/events/actions.ts's
+  // notifyAdminNewEvent). Best-effort: a failed notification must never block signup.
+  notifyAdminNewProfile(name, user.email ?? "unknown").catch(() => {});
+
   return { success: true };
+}
+
+// Admin group topic for new self-submitted profiles. No dedicated Telegram topic exists for
+// this yet (unlike events' TELEGRAM_EVENT_THREAD_ID/claims' TELEGRAM_CLAIM_THREAD_ID) — falls
+// back to the main admin chat until TELEGRAM_PROFILE_THREAD_ID is set.
+const PROFILE_THREAD_ID = process.env.TELEGRAM_PROFILE_THREAD_ID
+  ? Number(process.env.TELEGRAM_PROFILE_THREAD_ID)
+  : undefined;
+
+async function notifyAdminNewProfile(name: string, email: string) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+  if (!token || !chatId) return;
+
+  const text = [
+    `New profile submitted: ${name}`,
+    `From: ${email}`,
+    "Review: https://citreasurehunt.com/admin/profiles/pending",
+  ].join("\n");
+
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      ...(PROFILE_THREAD_ID ? { message_thread_id: PROFILE_THREAD_ID } : {}),
+      text,
+      link_preview_options: { is_disabled: true },
+    }),
+  });
 }
