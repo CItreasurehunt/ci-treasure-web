@@ -156,7 +156,13 @@ export function VenueForm({
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="City">
-                <input value={form.city} onChange={(event) => setForm({ ...form, city: event.target.value })} className={inputClassName} />
+                <input
+                  value={form.city}
+                  onChange={(event) => setForm({ ...form, city: event.target.value })}
+                  className={inputClassName}
+                  autoComplete="off"
+                  name="ci-th-city"
+                />
               </Field>
               <Field label="Country">
                 <CountryPicker

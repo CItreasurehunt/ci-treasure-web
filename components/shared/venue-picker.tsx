@@ -126,11 +126,16 @@ export function VenuePicker({
 
   return (
     <div className="space-y-2">
+      {/* autoComplete="off": browsers' address autofill can target a free-text venue/address
+          field and insert text outside React's onChange, causing the controlled value to snap
+          back to stale state on the next render (see country-picker.tsx for the full writeup). */}
       <input
         value={query}
         onChange={(e) => void handleQueryChange(e.target.value)}
         className={inputClassName}
         placeholder="Search existing venues, or type a name/address"
+        autoComplete="off"
+        name="ci-th-venue-filter"
       />
       {isSearching ? <p className="text-xs text-slate-500">Searching…</p> : null}
       {searchError ? <p className="text-xs text-rose-700">{searchError}</p> : null}

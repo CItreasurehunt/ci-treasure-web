@@ -43,11 +43,19 @@ export function CountryPicker({
 
   return (
     <div className="space-y-2">
+      {/* autoComplete="off" + a name that avoids the literal word "country": browsers'
+          built-in address autofill targets exactly this shape (a search field right after a
+          City field) by heuristic, not just the autocomplete attribute — it can insert text
+          directly into the DOM without firing React's onChange, so the controlled `value={query}`
+          snaps back to stale state on the next render and the just-typed text visibly vanishes.
+          Reported live 2026-08-04 (organizer typing "Poland" watched it disappear mid-type). */}
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className={inputClassName}
         placeholder="Search countries…"
+        autoComplete="off"
+        name="ci-th-country-filter"
       />
       {matches.length ? (
         <div className="flex flex-col gap-2">

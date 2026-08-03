@@ -42,11 +42,15 @@ export function CurrencyPicker({
 
   return (
     <div className="space-y-2">
+      {/* autoComplete="off": same browser-autofill desync risk as CountryPicker/VenuePicker
+          (see country-picker.tsx for the full writeup), applied here for consistency. */}
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className={inputClassName}
         placeholder="Search currencies…"
+        autoComplete="off"
+        name="ci-th-currency-filter"
       />
       {matches.length ? (
         <div className="flex flex-col gap-2">

@@ -195,7 +195,13 @@ export function OrganizerEventForm({
         <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Location</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Field label="City *">
-            <input value={form.city} onChange={(e) => set("city", e.target.value)} className={inputClassName} />
+            <input
+              value={form.city}
+              onChange={(e) => set("city", e.target.value)}
+              className={inputClassName}
+              autoComplete="off"
+              name="ci-th-city"
+            />
           </Field>
           <Field label="Country *">
             <CountryPicker value={form.country} onChange={(code) => set("country", code)} inputClassName={inputClassName} />
