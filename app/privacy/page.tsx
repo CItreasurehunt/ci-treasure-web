@@ -57,6 +57,14 @@ export default function PrivacyPage() {
             Standard Contractual Clauses. Legal basis:{" "}
             Art.&nbsp;6(1)(f) GDPR — legitimate interest in understanding how the site is used and performs so we can improve it.
           </p>
+          <p>
+            This website also uses Umami, a self-hosted, privacy-focused analytics tool (aggregate traffic: page
+            views, referrers, visit duration). Like the tools above, Umami does not use cookies or persistent
+            identifiers and does not track visitors across sites. Unlike Vercel&apos;s tools, Umami is self-hosted by
+            us rather than run by a third-party processor, though no personally identifiable information is
+            collected either way. Legal basis: Art.&nbsp;6(1)(f) GDPR, legitimate interest in understanding how the
+            site is used and performs so we can improve it.
+          </p>
         </section>
         <section>
           <h2 className="font-semibold text-slate-950">5. Event data</h2>

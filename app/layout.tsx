@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import { Coffee, Mail } from "lucide-react";
 import { Fraunces, Manrope } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
@@ -170,6 +171,17 @@ export default function RootLayout({
         </div>
         <Analytics />
         <SpeedInsights />
+        {/* I-121: self-hosted Umami, proxied through /stats/* (vercel.json rewrite to the
+            ci-treasure-analytics Vercel project) so the request looks first-party and isn't
+            caught by ad-blocker filter lists targeting obvious analytics subdomains. Running
+            alongside @vercel/analytics for a short overlap window to cross-check numbers before
+            deciding on cutover — see docs/issues/i-121-umami-analytics.md. */}
+        <Script
+          defer
+          src="/stats/script.js"
+          data-website-id="962ed0a9-d211-4e03-9a5a-5d623a4375a4"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
