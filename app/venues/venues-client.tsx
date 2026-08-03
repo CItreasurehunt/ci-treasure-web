@@ -98,43 +98,20 @@ export function VenuesClient({
 
   if (initialError) {
     return (
-      <main className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50 p-6">
-            <h1 className="mb-2 font-serif text-2xl text-amber-900">Unable to load venues</h1>
-            <p className="text-amber-800">{initialError}</p>
-          </div>
-          <p className="text-sm text-slate-500">
-            Please try again later or contact us if the problem persists.
-          </p>
+      <div className="mx-auto max-w-4xl text-center">
+        <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50 p-6">
+          <p className="mb-2 font-serif text-2xl text-amber-900">Unable to load venues</p>
+          <p className="text-amber-800">{initialError}</p>
         </div>
-      </main>
+        <p className="text-sm text-slate-500">
+          Please try again later or contact us if the problem persists.
+        </p>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-7xl">
-        <header className="mb-8">
-          <h1 className="mb-3 font-serif text-3xl text-slate-900 md:text-5xl">
-            CI Venues Worldwide
-          </h1>
-          <p className="mb-6 max-w-2xl text-lg text-slate-600">
-            A curated directory of spaces that regularly host Contact Improvisation — jams, classes,
-            workshops, and festivals.
-          </p>
-          <div className="flex justify-start gap-8 text-sm font-medium text-slate-700">
-            <span className="flex items-center gap-2">
-              <Globe className="size-4 text-(--color-pine)" />
-              {initialVenueCount} venues
-            </span>
-            <span className="flex items-center gap-2">
-              <MapPin className="size-4 text-slate-400" />
-              {initialCountryCount} countries
-            </span>
-          </div>
-        </header>
-
+    <>
         {/* Search & Filter Toolbar */}
         <div className="mb-8 flex flex-col gap-4 rounded-xl border border-(--color-sand-strong) bg-white p-4 shadow-sm md:p-5">
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -248,8 +225,7 @@ export function VenuesClient({
             hello@citreasurehunt.com
           </a>
         </section>
-      </div>
-    </main>
+    </>
   );
 }
 

@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarDays, ExternalLink, Globe, Lock, MapPin, MessageCircle, Send, Search, X, Filter, Map, List } from "lucide-react";
+import { CalendarDays, ExternalLink, Lock, MapPin, MessageCircle, Send, Search, X, Filter, Map, List } from "lucide-react";
 
 import { COMMUNITY_ISSUE_URL, COMMUNITY_SUBMIT_URL, isLineUrl, isMessengerUrl, isPrivateGroupInvite, type Community } from "@/lib/communities";
 import { TELEGRAM_URL } from "@/lib/site";
@@ -186,58 +186,22 @@ export function CommunitiesClient({
   // Error state
   if (initialError) {
     return (
-      <main className="min-h-screen bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50 p-6">
-            <h1 className="mb-2 font-serif text-2xl text-amber-900">
-              Unable to load communities
-            </h1>
-            <p className="text-amber-800">{initialError}</p>
-          </div>
-          <p className="text-sm text-slate-500">
-            Please try again later or contact us if the problem persists.
+      <div className="mx-auto max-w-4xl text-center">
+        <div className="mb-6 rounded-2xl border-2 border-amber-200 bg-amber-50 p-6">
+          <p className="mb-2 font-serif text-2xl text-amber-900">
+            Unable to load communities
           </p>
+          <p className="text-amber-800">{initialError}</p>
         </div>
-      </main>
+        <p className="text-sm text-slate-500">
+          Please try again later or contact us if the problem persists.
+        </p>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <header className="mb-8">
-          <h1 className="mb-3 font-serif text-3xl text-slate-900 md:text-5xl">
-            CI Communities Worldwide
-          </h1>
-          <p className="mb-6 max-w-2xl text-lg text-slate-600">
-            Explore Contact Improvisation communities around the globe and find the public channels, websites, and resources that help you connect locally.
-          </p>
-          <div className="flex justify-start gap-8 text-sm font-medium text-slate-700">
-            <span className="flex items-center gap-2">
-              <Globe className="size-4 text-(--color-pine)" />
-              {initialCommunityCount} communities
-            </span>
-            <span className="flex items-center gap-2">
-              <MapPin className="size-4 text-slate-400" />
-              {initialCountryCount} countries
-            </span>
-          </div>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-500">
-            Invite links to Telegram, WhatsApp, and Signal groups are protected by a quick
-            verification check to keep spam bots out. Questions, or a link not working?{" "}
-            <a
-              href={TELEGRAM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-(--color-pine) underline decoration-(--color-pine)/35 underline-offset-4"
-            >
-              Join our Telegram group
-            </a>
-            .
-          </p>
-        </header>
-
+    <>
         {/* Search & Filter Toolbar */}
         <div className="mb-8 flex flex-col gap-4 rounded-xl border border-(--color-sand-strong) bg-white p-4 shadow-sm md:p-5">
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -471,8 +435,7 @@ export function CommunitiesClient({
             </a>
           </div>
         </section>
-      </div>
-    </main>
+    </>
   );
 }
 

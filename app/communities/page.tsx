@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
+import { Globe, MapPin } from "lucide-react";
 import { getCommunities } from "@/lib/communities";
 import { CommunitiesClient } from "./communities-client";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, TELEGRAM_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "CI Communities Worldwide",
@@ -21,18 +22,56 @@ export default async function CommunitiesPage() {
     await getCommunities();
 
   return (
-    // Same fix as venues/page.tsx and the original homepage CLS bug (I-136): Suspense is
-    // required for useSearchParams(), not data, but a bare fallback lets the real content pop
-    // in all at once and shove the footer down. min-h-screen matches the real content's own
-    // base height.
-    <Suspense fallback={<div className="min-h-screen" />}>
-      <CommunitiesClient
-        initialCommunities={communities}
-        initialCountries={countries}
-        initialCommunityCount={communityCount}
-        initialCountryCount={countryCount}
-        initialError={error}
-      />
-    </Suspense>
+    <main className="min-h-screen overflow-x-hidden bg-(--color-mist) px-5 py-10 sm:px-8 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        {/* Rendered server-side, outside the Suspense boundary below, so crawlers that don't
+            execute client JS still see the H1 and page content — see I-150 (Ahrefs H1 finding). */}
+        <header className="mb-8">
+          <h1 className="mb-3 font-serif text-3xl text-slate-900 md:text-5xl">
+            CI Communities Worldwide
+          </h1>
+          <p className="mb-6 max-w-2xl text-lg text-slate-600">
+            Explore Contact Improvisation communities around the globe and find the public channels, websites, and resources that help you connect locally.
+          </p>
+          <div className="flex justify-start gap-8 text-sm font-medium text-slate-700">
+            <span className="flex items-center gap-2">
+              <Globe className="size-4 text-(--color-pine)" />
+              {communityCount} communities
+            </span>
+            <span className="flex items-center gap-2">
+              <MapPin className="size-4 text-slate-400" />
+              {countryCount} countries
+            </span>
+          </div>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-500">
+            Invite links to Telegram, WhatsApp, and Signal groups are protected by a quick
+            verification check to keep spam bots out. Questions, or a link not working?{" "}
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-(--color-pine) underline decoration-(--color-pine)/35 underline-offset-4"
+            >
+              Join our Telegram group
+            </a>
+            .
+          </p>
+        </header>
+
+        {/* Same fix as venues/page.tsx and the original homepage CLS bug (I-136): Suspense is
+            required for useSearchParams(), not data, but a bare fallback lets the real content pop
+            in all at once and shove the footer down. min-h-screen matches the real content's own
+            base height. */}
+        <Suspense fallback={<div className="min-h-screen" />}>
+          <CommunitiesClient
+            initialCommunities={communities}
+            initialCountries={countries}
+            initialCommunityCount={communityCount}
+            initialCountryCount={countryCount}
+            initialError={error}
+          />
+        </Suspense>
+      </div>
+    </main>
   );
 }
