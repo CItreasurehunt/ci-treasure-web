@@ -43,7 +43,7 @@ import {
 } from "@/lib/communities";
 import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
-import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE, buildEntityTitle } from "@/lib/site";
 import { ogImage } from "@/lib/og-image";
 import { ReportButton } from "@/components/report-button";
 import { InviteButtons } from "@/components/invite-buttons";
@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
   if (!community) return {};
 
   return {
-    title: `${community.name} — ${community.city}, ${getCountryLabel(community.country ?? "")} — CI Treasure Hunt`,
+    title: buildEntityTitle(community.name, { city: community.city, country: getCountryLabel(community.country ?? "") }),
     description: community.description?.slice(0, 160) ?? `Community in ${community.city}, ${getCountryLabel(community.country ?? "")}`,
     alternates: {
       canonical: `${SITE_URL}/communities/${community.slug}`,

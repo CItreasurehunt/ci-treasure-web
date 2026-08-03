@@ -29,7 +29,7 @@ import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
 import { PracticeBadge, practicesToDisplay } from "@/components/shared/practice-badge";
 import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
-import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE, buildEntityTitle } from "@/lib/site";
 import { ogImage } from "@/lib/og-image";
 
 export const revalidate = 3600;
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
   const approvedImage = teacher.image_status === "approved" ? teacher.image_url : null;
 
   return {
-    title: `${teacher.name} — CI Treasure Hunt`,
+    title: buildEntityTitle(teacher.name),
     description,
     alternates: {
       canonical: `${SITE_URL}/teachers/${teacher.slug}`,

@@ -3,7 +3,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { EventDetailView } from "@/components/event-detail-view";
 import { getEventBySlug, parseEventSlug, stripMarkdown } from "@/lib/events";
 import { getCountryPageLink } from "@/lib/country-pages";
-import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+import { SITE_URL, SITE_OG_IMAGE, buildEntityTitle } from "@/lib/site";
 import { ogImage } from "@/lib/og-image";
 
 export const revalidate = 3600;
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ eventSlug
     ? stripMarkdown(event.description).slice(0, 160)
     : `${event.type} in ${event.city}, ${event.country}`;
   return {
-    title: `${event.title} — CI Treasure Hunt`,
+    title: buildEntityTitle(event.title),
     description,
     alternates: {
       canonical: `${SITE_URL}/events/${event.slug}`,
