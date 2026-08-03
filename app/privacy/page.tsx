@@ -65,7 +65,7 @@ export default function PrivacyPage() {
             on the site. It consists of event details compiled from public sources and does not include personal data
             beyond organiser names and contact links that are already publicly available. Data transfers to Supabase
             are governed by Standard Contractual Clauses (SCCs) under Art.&nbsp;46(2)(c) GDPR. See{" "}
-            <a href="https://supabase.com/legal/privacy" className="underline" target="_blank" rel="noopener noreferrer">
+            <a href="https://supabase.com/privacy" className="underline" target="_blank" rel="noopener noreferrer">
               Supabase&apos;s privacy policy
             </a>{" "}
             for details.
@@ -171,7 +171,7 @@ export default function PrivacyPage() {
             Art.&nbsp;6(1)(b) GDPR — processing necessary to provide the account and organiser tools you request.
             Data transfers to Supabase are governed by Standard Contractual Clauses (SCCs) under
             Art.&nbsp;46(2)(c) GDPR. See{" "}
-            <a href="https://supabase.com/legal/privacy" className="underline" target="_blank" rel="noopener noreferrer">
+            <a href="https://supabase.com/privacy" className="underline" target="_blank" rel="noopener noreferrer">
               Supabase&apos;s privacy policy
             </a>
             .
@@ -225,7 +225,7 @@ export default function PrivacyPage() {
             remove your photo at any time from your dashboard; a new upload is reviewed again before going live.
             Legal basis: Art.&nbsp;6(1)(a) GDPR — your consent, given by choosing to upload a photo. Data transfers
             to Supabase are governed by Standard Contractual Clauses (SCCs) under Art.&nbsp;46(2)(c) GDPR. See{" "}
-            <a href="https://supabase.com/legal/privacy" className="underline" target="_blank" rel="noopener noreferrer">
+            <a href="https://supabase.com/privacy" className="underline" target="_blank" rel="noopener noreferrer">
               Supabase&apos;s privacy policy
             </a>
             .

@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: CountryPageProps): Promise<Me
   const description = `Contact Improvisation in ${country.label}: find local communities, teachers, upcoming events, and venues, the full CI Treasure Hunt directory for ${country.label}.`.slice(0, 160);
   const title = `Contact Improvisation in ${country.label}`;
   return {
-    title: `${title} - CI Treasure Hunt`,
+    title: `${title} — CI Treasure Hunt`,
     description,
     alternates: {
       canonical: `${SITE_URL}/${country.slug}`,
