@@ -52,6 +52,15 @@ export function EventDetailView({
   const isSingleDay = event.startDate === event.endDate;
   const timeRange = isSingleDay && (event.startTime || event.endTime) ? formatTimeRange(event) : "";
 
+  // Registration links are tied to one instance of the event and routinely go dead once it's
+  // over (organizers take the signup page down post-event) — and even when they don't, nobody
+  // needs to register for a past event. Hiding them on archived events removes both the dead-link
+  // problem (I-150) and a misleading CTA at the source, rather than patching each broken link by
+  // hand as it's found.
+  const visibleLinkItems = event.isPast
+    ? event.linkItems.filter((item) => item.type !== "registration")
+    : event.linkItems;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -313,8 +322,8 @@ export function EventDetailView({
               <section className="rounded-[1.75rem] border border-(--color-sand-strong) bg-(--color-mist) p-5">
                 <h2 className="font-serif text-2xl text-slate-950">Links</h2>
                 <div className="mt-4 flex flex-col gap-3">
-                  {event.linkItems.length ? (
-                    event.linkItems.map((item) => (
+                  {visibleLinkItems.length ? (
+                    visibleLinkItems.map((item) => (
                       <a
                         key={`${item.type}-${item.url}`}
                         href={item.url}
@@ -327,7 +336,11 @@ export function EventDetailView({
                       </a>
                     ))
                   ) : (
-                    <p className="text-sm leading-6 text-slate-600">No public links added yet.</p>
+                    <p className="text-sm leading-6 text-slate-600">
+                      {event.isPast && event.linkItems.length
+                        ? "Registration is closed now that this event has ended."
+                        : "No public links added yet."}
+                    </p>
                   )}
                   {event.contactEmail ? (
                     preview ? (
