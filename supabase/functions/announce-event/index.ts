@@ -93,11 +93,15 @@ Deno.serve(async (req) => {
   // Series de-dup: once any sibling in the same series has been announced, later siblings stay
   // silent here. Prevents a repeating-format series (e.g. a retreat run bimonthly under one
   // series_id) from posting one near-identical "New:" per date — found live 2026-07-25 adding
-  // an 8-date Deep Contact retreat series. Simple and blanket: it also silences later modules of
-  // a *distinct-content* series (different teacher/theme per module, e.g. Wallin Works) — an
-  // acceptable tradeoff for now since that case hasn't caused a complaint yet; revisit with a
-  // smarter per-module check if it does.
-  if (event.series_id) {
+  // an 8-date Deep Contact retreat series. Only applies to series_type = 'recurring' (identical
+  // format each time); 'sequential' series (distinct teacher/theme per module, e.g. Wallin Works,
+  // Tom Goldhand's "Deep Dive into CI") skip this check and announce every module — found live
+  // 2026-08-01 when FlAF/PwPl (modules 2-3 of Deep Dive into CI) were silently skipped after
+  // module 1 announced, even though each module is materially different content.
+  const { data: seriesRow } = event.series_id
+    ? await supabase.from('event_series').select('series_type').eq('id', event.series_id).single()
+    : { data: null }
+  if (event.series_id && seriesRow?.series_type === 'recurring') {
     const { data: siblings } = await supabase
       .from('events')
       .select('id')
