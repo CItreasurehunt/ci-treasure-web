@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
   const venue = await getVenueBySlug(slug);
   if (!venue) return {};
 
-  const description = venue.description?.slice(0, 160) ?? `Venue in ${venue.city}, ${venue.country}`;
+  const description = venue.description?.slice(0, 160) ?? `Venue in ${venue.city}, ${getCountryLabel(venue.country)}`;
   return {
     title: buildEntityTitle(venue.name, { city: venue.city, country: getCountryLabel(venue.country) }),
     description,
