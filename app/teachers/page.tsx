@@ -1,6 +1,35 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SITE_URL, SITE_OG_IMAGE } from "@/lib/site";
+
+const TITLE = "Teachers — CI Treasure Hunt";
+const DESCRIPTION =
+  "A searchable directory of Contact Improvisation teachers is coming soon. In the meantime, every teacher's own profile page is already live and linked from their event listings.";
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: `${SITE_URL}/teachers` },
+  // Previously had no page-specific metadata at all, so it inherited the homepage's title/OG
+  // wholesale (Next.js doesn't deep-merge nested metadata keys) — same bug already fixed on
+  // /venues and /communities (I-150).
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: `${SITE_URL}/teachers`,
+    siteName: "CI Treasure Hunt",
+    type: "website",
+    images: [{ url: SITE_OG_IMAGE, width: 1280, height: 1024, type: "image/jpeg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [SITE_OG_IMAGE],
+  },
+};
 
 export default function TeachersPage() {
   return (
@@ -20,7 +49,10 @@ export default function TeachersPage() {
             Teachers
           </h1>
           <p className="text-lg text-slate-600">
-            The teacher directory is coming soon. In the meantime, teacher profiles are linked from individual event pages.
+            A searchable teacher directory is coming soon. In the meantime, every teacher already
+            has their own profile page, listing their bio, location, and links, linked from the
+            events they're teaching. Browse the calendar and follow a teacher's name from any
+            event to find them.
           </p>
         </div>
       </div>

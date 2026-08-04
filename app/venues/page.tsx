@@ -50,7 +50,8 @@ export default async function VenuesPage() {
           </h1>
           <p className="mb-6 max-w-2xl text-lg text-slate-600">
             A curated directory of spaces that regularly host Contact Improvisation, jams, classes,
-            workshops, and festivals.
+            workshops, and festivals. Each venue is researched and verified by hand, not scraped
+            automatically, so listings stay accurate as spaces open, close, or change hands.
           </p>
           <div className="flex justify-start gap-8 text-sm font-medium text-slate-700">
             <span className="flex items-center gap-2">

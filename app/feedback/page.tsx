@@ -14,7 +14,8 @@ export default function FeedbackPage() {
         <div className="mb-8 border-l-4 border-(--color-pine) pl-5 py-1">
           <h1 className="font-serif text-3xl tracking-tight text-slate-950 sm:text-4xl">Feedback</h1>
           <p className="mt-2 text-base text-slate-500">
-            Found a bug, missing an event, or have an idea? We read everything.
+            Found a bug, missing an event, or have an idea? We read everything. CI Treasure Hunt
+            is maintained by one person, so your report goes straight to Jan, not a support queue.
           </p>
         </div>
 
