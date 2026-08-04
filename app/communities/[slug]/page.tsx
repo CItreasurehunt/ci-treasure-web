@@ -28,6 +28,7 @@ import {
   getEventHref,
   getEventLocation,
   getTypeLabel,
+  padShortDescription,
   EventListItem as EventListItemType,
 } from "@/lib/event-display";
 import {
@@ -67,10 +68,9 @@ export async function generateMetadata({ params }: CommunityPageProps): Promise<
   if (!community) return {};
 
   const countryLabel = getCountryLabel(community.country ?? "");
-  const description = (
-    community.description ??
-    `${community.name} is a Contact Improvisation community in ${community.city}, ${countryLabel}, part of the CI Treasure Hunt global directory of jams, classes, and gatherings.`
-  ).slice(0, 160);
+  const description = community.description
+    ? padShortDescription(community.description, "communities")
+    : `${community.name} is a Contact Improvisation community in ${community.city}, ${countryLabel}, part of the CI Treasure Hunt global directory of jams, classes, and gatherings.`.slice(0, 160);
 
   return {
     title: buildEntityTitle(community.name, { city: community.city, country: countryLabel }),

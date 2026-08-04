@@ -104,6 +104,20 @@ export function buildEventFallbackDescription(type: string, city: string, countr
   return text;
 }
 
+// Meta-description padding for entities with real but short (< ~110 char) content of their own
+// (a community's one-line note, a teacher's short bio). The original text is never altered or
+// truncated — only appended to, one sentence at a time, so it never gets cut mid-sentence either.
+export function padShortDescription(text: string, subject: string, min = 110, max = 160) {
+  const trimmed = text.trim();
+  const base = /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+  if (base.length >= min) return base.slice(0, max);
+  const sentence1 = " Listed on CI Treasure Hunt.";
+  const sentence2 = ` The global directory of Contact Improvisation ${subject} worldwide.`;
+  let out = base + sentence1;
+  if ((out + sentence2).length <= max) out += sentence2;
+  return out;
+}
+
 // Acronyms that shouldn't be title-cased word-by-word. Add here as new short-form
 // practices appear — everything else humanizes automatically (snake_case -> Title Case).
 // Shared between the homepage practice filter and the organizer submission form.

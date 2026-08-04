@@ -25,7 +25,7 @@ import { RevealEmail } from "@/components/reveal-email";
 import { EntityEventCard } from "@/components/entity-event-card";
 import { EntityImage } from "@/components/entity-image";
 import { getLinkLabel, linkSortKey } from "@/lib/events";
-import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
+import { GENERIC_ACCENT_GRADIENT, getCountryLabel, padShortDescription } from "@/lib/event-display";
 import { PracticeBadge, practicesToDisplay } from "@/components/shared/practice-badge";
 import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
@@ -52,12 +52,12 @@ export async function generateMetadata({ params }: TeacherPageProps): Promise<Me
   const teacher = await getTeacherBySlug(slug);
   if (!teacher) return {};
 
-  const description = (
-    teacher.bio ??
-    (teacher.city
-      ? `${teacher.name} is a Contact Improvisation teacher based in ${teacher.city}, listed on CI Treasure Hunt, the global directory of CI teachers, events, and communities.`
-      : `${teacher.name} is a Contact Improvisation teacher listed on CI Treasure Hunt, the global directory of CI teachers, events, and communities.`)
-  ).slice(0, 160);
+  const description = teacher.bio
+    ? padShortDescription(teacher.bio, "teachers")
+    : (teacher.city
+        ? `${teacher.name} is a Contact Improvisation teacher based in ${teacher.city}, listed on CI Treasure Hunt, the global directory of CI teachers, events, and communities.`
+        : `${teacher.name} is a Contact Improvisation teacher listed on CI Treasure Hunt, the global directory of CI teachers, events, and communities.`
+      ).slice(0, 160);
 
   const approvedImage = teacher.image_status === "approved" ? teacher.image_url : null;
 
