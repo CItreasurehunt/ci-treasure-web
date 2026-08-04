@@ -91,6 +91,19 @@ export function getTypeLabel(type: string) {
   return labels[type] ?? type;
 }
 
+// Meta-description fallback for events with no description of their own. The base fact alone is
+// too short for Ahrefs' ~110-char floor across all realistic city/country lengths, so two filler
+// sentences are appended one at a time, each only kept whole if it fits under the 160-char cap —
+// never trimmed mid-sentence, which would leave a dangling clause like "the Contact Improvisation."
+export function buildEventFallbackDescription(type: string, city: string, country: string) {
+  const base = `A Contact Improvisation ${getTypeLabel(type).toLowerCase()} in ${city}, ${country}.`;
+  const sentence1 = " Find dates, location, and event details on CI Treasure Hunt.";
+  const sentence2 = " The Contact Improvisation events directory.";
+  let text = base + sentence1;
+  if ((text + sentence2).length <= 160) text += sentence2;
+  return text;
+}
+
 // Acronyms that shouldn't be title-cased word-by-word. Add here as new short-form
 // practices appear — everything else humanizes automatically (snake_case -> Title Case).
 // Shared between the homepage practice filter and the organizer submission form.
