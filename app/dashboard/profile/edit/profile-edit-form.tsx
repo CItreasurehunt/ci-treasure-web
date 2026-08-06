@@ -185,7 +185,7 @@ export function ProfileEditForm({
               className={`${inputClassName} bg-slate-50 text-slate-500 cursor-not-allowed`}
             />
             <p className="mt-1 text-xs text-slate-500">
-              To update your name, contact us at <a href="mailto:hello@citreasurehunt.com" className="underline">hello@citreasurehunt.com</a>.
+              To update your name, contact us at <a href="mailto:hello@citreasurehunt.com" className="underline">hello@citreasurehunt.com</a>. We keep names in standard capitalization (e.g. &quot;Jane Doe&quot;, not &quot;jane doe&quot;) for consistency across the site.
             </p>
           </Field>
           <Field label="Bio">
@@ -539,14 +539,18 @@ function PhotoUploadSection({
     formData.set("credit", credit);
 
     startTransition(async () => {
-      const result = await uploadProfilePhoto(formData);
-      if (result.success) {
-        setSuccess(true);
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        router.refresh();
-      } else {
-        setError(result.error || "Failed to upload photo");
+      try {
+        const result = await uploadProfilePhoto(formData);
+        if (result.success) {
+          setSuccess(true);
+          setSelectedFile(null);
+          setPreviewUrl(null);
+          router.refresh();
+        } else {
+          setError(result.error || "Failed to upload photo");
+        }
+      } catch {
+        setError("Upload failed — please try again.");
       }
     });
   }
