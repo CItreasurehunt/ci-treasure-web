@@ -33,7 +33,7 @@ export default function PrivacyPage() {
           <h2 className="font-semibold text-slate-950">2. What this site does</h2>
           <p>
             CI Treasure Hunt is a non-commercial public directory of contact improvisation events and communities
-            worldwide. We do not sell tickets, process payments, or organise events. We link to external organiser
+            worldwide. We do not sell tickets, process payments, or organize events. We link to external organizer
             pages.
           </p>
         </section>
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
           <p>
             Event listings are stored in a database provided by Supabase Inc. (US). This data is publicly displayed
             on the site. It consists of event details compiled from public sources and does not include personal data
-            beyond organiser names and contact links that are already publicly available. Data transfers to Supabase
+            beyond organizer names and contact links that are already publicly available. Data transfers to Supabase
             are governed by Standard Contractual Clauses (SCCs) under Art.&nbsp;46(2)(c) GDPR. See{" "}
             <a href="https://supabase.com/privacy" className="underline" target="_blank" rel="noopener noreferrer">
               Supabase&apos;s privacy policy
@@ -184,7 +184,7 @@ export default function PrivacyPage() {
             in by magic link. We store your email address and an internal user identifier, and set a session
             cookie so you stay signed in. We do not use passwords — sign-in is by emailed link only. The session
             cookie is strictly necessary for login and is not used for tracking or profiling. Legal basis:
-            Art.&nbsp;6(1)(b) GDPR — processing necessary to provide the account and organiser tools you request.
+            Art.&nbsp;6(1)(b) GDPR — processing necessary to provide the account and organizer tools you request.
             Data transfers to Supabase are governed by Standard Contractual Clauses (SCCs) under
             Art.&nbsp;46(2)(c) GDPR. See{" "}
             <a href="https://supabase.com/privacy" className="underline" target="_blank" rel="noopener noreferrer">
@@ -203,7 +203,7 @@ export default function PrivacyPage() {
             within the EU; because Resend is a US-incorporated company, however, its staff may access data from
             the US, so transfers are governed by Standard Contractual Clauses (SCCs) under Art.&nbsp;46(2)(c)
             GDPR. Legal basis: Art.&nbsp;6(1)(b) GDPR for login emails (necessary to provide the account), and
-            Art.&nbsp;6(1)(f) GDPR — legitimate interest in operating the organiser tools — for related
+            Art.&nbsp;6(1)(f) GDPR — legitimate interest in operating the organizer tools — for related
             notifications. See{" "}
             <a href="https://resend.com/legal/privacy-policy" className="underline" target="_blank" rel="noopener noreferrer">
               Resend&apos;s privacy policy
@@ -237,7 +237,7 @@ export default function PrivacyPage() {
           <p>
             If you upload a profile photo, it is stored in our Supabase Storage (Supabase Inc., US) and is not
             publicly visible until we&apos;ve reviewed and approved it. Approved photos are shown publicly on your
-            teacher/organiser profile page, together with a photo credit if you provide one. You can replace or
+            teacher/organizer profile page, together with a photo credit if you provide one. You can replace or
             remove your photo at any time from your dashboard; a new upload is reviewed again before going live.
             Legal basis: Art.&nbsp;6(1)(a) GDPR — your consent, given by choosing to upload a photo. Data transfers
             to Supabase are governed by Standard Contractual Clauses (SCCs) under Art.&nbsp;46(2)(c) GDPR. See{" "}

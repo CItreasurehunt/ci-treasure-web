@@ -313,7 +313,7 @@ export function OrganizerEventForm({
                   value={form.cancelledText}
                   onChange={(e) => set("cancelledText", e.target.value)}
                   className={`${inputClassName} min-h-24`}
-                  placeholder="e.g. Cancelled due to low enrolment. Refunds have been issued."
+                  placeholder="e.g. Cancelled due to low enrollment. Refunds have been issued."
                 />
               </Field>
             </div>

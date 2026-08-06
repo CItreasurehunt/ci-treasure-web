@@ -23,8 +23,8 @@ export default function TermsPage() {
           <h2 className="font-semibold text-slate-950">2. Nature of the service</h2>
           <p>
             CI Treasure Hunt is a free, non-commercial directory of contact improvisation events and communities.
-            Event listings link to external organiser pages. Registration, ticketing, and participation are handled
-            entirely by the respective organisers. We are not a party to any transaction between users and organisers.
+            Event listings link to external organizer pages. Registration, ticketing, and participation are handled
+            entirely by the respective organizers. We are not a party to any transaction between users and organizers.
           </p>
         </section>
         <section>
@@ -32,7 +32,7 @@ export default function TermsPage() {
           <p>
             Listings are compiled from public sources. While we aim for accuracy, we cannot guarantee that event
             information is complete, correct, or current at all times. Always verify details directly with the
-            organiser before making travel or registration decisions. We accept no liability for cancelled, changed,
+            organizer before making travel or registration decisions. We accept no liability for cancelled, changed,
             or incorrectly listed events.
           </p>
         </section>

@@ -211,7 +211,7 @@ export default async function DashboardPage() {
 
             <section className="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(106,75,25,0.08)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="font-serif text-2xl text-slate-950">Events you organise</h2>
+                <h2 className="font-serif text-2xl text-slate-950">Events you organize</h2>
                 <div className="flex items-center gap-4">
                   {profile && (
                     <Link
