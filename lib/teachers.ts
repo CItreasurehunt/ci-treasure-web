@@ -104,6 +104,45 @@ export async function getTeacherBySlug(slug: string): Promise<TeacherProfile | n
   return data as TeacherProfile;
 }
 
+// I-153: associated communities (community_profiles) and venues (venue_profiles, e.g. a resident
+// teacher). Kept as a separate call rather than folded into getTeacherBySlug's select("*") — other
+// callers of TeacherProfile don't need this, and junction embeds don't mix with "*".
+export async function getProfileAssociations(profileId: string): Promise<{
+  communities: { slug: string; name: string; type: string | null; city: string | null; description: string | null }[];
+  venues: { slug: string; name: string; role: string | null; city: string | null; description: string | null; imageUrl: string | null }[];
+}> {
+  if (!hasSupabaseEnv()) return { communities: [], venues: [] };
+
+  const supabase = await createClient();
+  const [{ data: communityRows }, { data: venueRows }] = await Promise.all([
+    supabase
+      .from("community_profiles")
+      .select("community:community_id ( slug, name, type, city, description, deleted_at )")
+      .eq("profile_id", profileId),
+    supabase
+      .from("venue_profiles")
+      .select("role, venue:venue_id ( slug, name, city, description, image_url )")
+      .eq("profile_id", profileId),
+  ]);
+
+  type CommunityRowShape = { slug: string; name: string; type: string | null; city: string | null; description: string | null; deleted_at: string | null };
+  type VenueRowShape = { slug: string; name: string; city: string | null; description: string | null; image_url: string | null };
+  type CommunityRow = { community: CommunityRowShape | CommunityRowShape[] | null };
+  type VenueRow = { role: string | null; venue: VenueRowShape | VenueRowShape[] | null };
+
+  const communities = ((communityRows ?? []) as CommunityRow[])
+    .map((row) => (Array.isArray(row.community) ? row.community[0] : row.community))
+    .filter((c): c is CommunityRowShape => Boolean(c) && !c!.deleted_at)
+    .map(({ slug, name, type, city, description }) => ({ slug, name, type, city, description }));
+
+  const venues = ((venueRows ?? []) as VenueRow[])
+    .map((row) => ({ role: row.role, venue: Array.isArray(row.venue) ? row.venue[0] : row.venue }))
+    .filter((row): row is { role: string | null; venue: VenueRowShape } => Boolean(row.venue))
+    .map(({ role, venue }) => ({ slug: venue.slug, name: venue.name, role, city: venue.city, description: venue.description, imageUrl: venue.image_url }));
+
+  return { communities, venues };
+}
+
 // I-117: called only when getTeacherBySlug misses on the exact slug — looks up whether it's a
 // superseded one (tracked via the profiles_track_slug_history trigger) and returns the current
 // slug to redirect to. Mirrors the events short_id redirect in app/events/[eventSlug]/page.tsx.

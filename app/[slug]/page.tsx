@@ -1,16 +1,16 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ExternalLink, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 import { CountryCombinedMap } from "@/components/country-combined-map";
 import { EventCard } from "@/components/event-card";
 import { ExpandableList } from "@/components/expandable-list";
-import { GENERIC_ACCENT_GRADIENT } from "@/lib/event-display";
+import { CompactCommunityRow, CompactTeacherRow } from "@/components/compact-entity-row";
+import { VenueCard } from "@/components/entity-cards";
 import { COMMUNITY_SUBMIT_URL, getPrimaryJoinUrl, type Community } from "@/lib/communities";
 import { getAllCountrySlugs, getAllCountrySummaries, getCountryPageData } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
-import { getMediumUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -363,93 +363,3 @@ function NationalCommunitySpotlight({ community }: { community: Community }) {
   );
 }
 
-// Table-style row: name / city / link as fixed grid columns, not a bordered card — a CSS grid
-// rather than a real <table> so the columns can collapse per-row on narrow screens (name+link on
-// one line, city dropping below) instead of forcing horizontal scroll the way a literal <table>
-// would. Used for both community and teacher lists so a mixed-density country page still reads
-// as one consistent list style.
-function CompactCommunityRow({ community }: { community: Community }) {
-  const joinUrl = getPrimaryJoinUrl(community);
-  return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto_28px] items-center gap-3 px-4 py-2.5 sm:grid-cols-[minmax(0,1fr)_140px_28px]">
-      <Link href={`/communities/${community.slug}`} className="truncate font-serif text-base text-slate-900 hover:underline">
-        {community.name}
-      </Link>
-      {community.city && (
-        <p className="col-start-1 row-start-2 flex items-center gap-1 text-xs text-slate-500 sm:col-start-2 sm:row-start-1 sm:text-sm">
-          <MapPin className="size-3 shrink-0 text-slate-400" />
-          {community.city}
-        </p>
-      )}
-      {joinUrl && (
-        <a
-          href={joinUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="col-start-3 row-start-1 justify-self-end text-slate-400 hover:text-(--color-pine)"
-          aria-label={`Visit ${community.name}`}
-        >
-          <ExternalLink className="size-4" />
-        </a>
-      )}
-    </div>
-  );
-}
-
-function CompactTeacherRow({ teacher }: { teacher: { name: string; slug: string; city: string | null; bio: string | null; imageUrl?: string | null; linkUrl?: string | null } }) {
-  const imageUrl = teacher.imageUrl?.trim() ?? "";
-  return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto_28px] items-center gap-3 px-4 py-2.5 sm:grid-cols-[minmax(0,1fr)_140px_28px]">
-      <div className="flex min-w-0 items-center gap-2">
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={getMediumUrl(imageUrl)} alt={teacher.name} className="size-7 shrink-0 rounded-full object-cover" />
-        ) : null}
-        <Link href={`/teachers/${teacher.slug}`} className="truncate font-serif text-base text-slate-900 hover:underline">
-          {teacher.name}
-        </Link>
-      </div>
-      {teacher.city && (
-        <p className="col-start-1 row-start-2 text-xs text-slate-500 sm:col-start-2 sm:row-start-1 sm:text-sm">
-          {teacher.city}
-        </p>
-      )}
-      {teacher.linkUrl && (
-        <a
-          href={teacher.linkUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="col-start-3 row-start-1 justify-self-end text-slate-400 hover:text-(--color-pine)"
-          aria-label={`Visit ${teacher.name}'s website`}
-        >
-          <ExternalLink className="size-4" />
-        </a>
-      )}
-    </div>
-  );
-}
-
-function VenueCard({ venue }: { venue: { name: string; slug: string; city: string; description: string | null; imageUrl: string | null } }) {
-  const imageUrl = venue.imageUrl?.trim() ?? "";
-  const renderImage = imageUrl.length > 0;
-
-  // Anchor-text/a11y fix (I-132 follow-up): description stays outside the <Link> — only the
-  // name/image are the link, so a screen reader doesn't announce the whole card as one link.
-  return (
-    <div className="flex overflow-hidden rounded-2xl border border-(--color-sand-strong) bg-white shadow-sm transition hover:shadow-lg">
-      <Link href={`/venues/${venue.slug}`} className={`h-24 w-24 shrink-0 border-r border-(--color-sand-strong) ${!renderImage ? GENERIC_ACCENT_GRADIENT : ""}`}>
-        {renderImage && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={getMediumUrl(imageUrl)} alt={venue.name} className="h-full w-full object-cover" />
-        )}
-      </Link>
-      <div className="min-w-0 flex-1 p-4">
-        <h3 className="font-serif text-lg text-slate-900">
-          <Link href={`/venues/${venue.slug}`} className="hover:underline">{venue.name}</Link>
-        </h3>
-        <p className="text-sm text-slate-500">{venue.city}</p>
-        {venue.description && <p className="mt-1 line-clamp-2 text-sm text-slate-600">{venue.description}</p>}
-      </div>
-    </div>
-  );
-}

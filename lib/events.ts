@@ -86,6 +86,10 @@ export type EventDetail = EventListItem & {
   segments: SegmentsData | null;
   teachers: Array<{ name: string; role?: string | null; slug?: string | null }>;
   organizers: Array<{ name: string; role?: string | null; slug?: string | null }>;
+  // I-153: event_organizers.community_id — a community credited as organizer-of-record,
+  // additive alongside the person-level organizers above (e.g. Confluence is organized by
+  // Francisco Borges/Alexa Papa/Viktória Makra AND presented by Assembly).
+  organizingCommunities: Array<{ name: string; slug: string; type: string | null; city: string | null; description: string | null }>;
   venueName: string | null;
   venueAddress: string | null;
   venueSlug: string | null;
@@ -412,13 +416,20 @@ async function buildEventDetail(
   // (bio, city, country, socials...) for a profile that chose to deactivate itself. A pending
   // event isn't publicly-visible yet, so the RPC would return nothing for it — the admin
   // preview path passes creditedPeopleOverride (fetched directly, service-role) instead.
-  const [creditedPeopleResponse, venueResponse] = await Promise.all([
+  // No RPC needed here (unlike creditedPeople above) — event_organizers and communities both
+  // already have public SELECT policies, and a community row carries no PII to protect.
+  const [creditedPeopleResponse, venueResponse, organizingCommunitiesResponse] = await Promise.all([
     creditedPeopleOverride
       ? Promise.resolve({ data: creditedPeopleOverride })
       : supabase.rpc("get_event_credited_people", { p_event_id: row.id }),
     row.venue_id
       ? supabase.from("venues").select("name, address, slug, visibility").eq("id", row.venue_id).single()
       : Promise.resolve({ data: null, error: null }),
+    supabase
+      .from("event_organizers")
+      .select("community:community_id ( slug, name, type, city, description, deleted_at )")
+      .eq("event_id", row.id)
+      .not("community_id", "is", null),
   ]);
 
   const linkItems = normalizeLinkItems(row.links);
@@ -426,6 +437,12 @@ async function buildEventDetail(
   const creditedPeople = (creditedPeopleResponse.data ?? []) as Array<
     SupabaseProfileJoinFlat & { kind: "teacher" | "organizer" }
   >;
+  type OrganizingCommunityRowShape = { slug: string; name: string; type: string | null; city: string | null; description: string | null; deleted_at: string | null };
+  type OrganizingCommunityRow = { community: OrganizingCommunityRowShape | OrganizingCommunityRowShape[] | null };
+  const organizingCommunities = ((organizingCommunitiesResponse.data ?? []) as OrganizingCommunityRow[])
+    .map((r) => (Array.isArray(r.community) ? r.community[0] : r.community))
+    .filter((c): c is OrganizingCommunityRowShape => Boolean(c) && !c!.deleted_at)
+    .map(({ slug, name, type, city, description }) => ({ slug, name, type, city, description }));
   return {
     ...base,
     startTime: row.start_time,
@@ -437,6 +454,7 @@ async function buildEventDetail(
     segments: normalizeSegments(row.segments),
     teachers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "teacher")),
     organizers: normalizePeopleFlat(creditedPeople.filter((p) => p.kind === "organizer")),
+    organizingCommunities,
     hasUnclaimedOrganizer:
       creditedPeople.filter((p) => p.kind === "organizer").length === 0 ||
       creditedPeople.some((p) => p.kind === "organizer" && !p.is_claimed),

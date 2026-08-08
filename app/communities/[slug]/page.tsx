@@ -20,6 +20,9 @@ import { Badge } from "@/components/ui/badge";
 import BackButton from "@/components/back-button";
 import { EntityBreadcrumb } from "@/components/entity-breadcrumb";
 import VenueMap from "@/components/venue-map";
+import { ExpandableList } from "@/components/expandable-list";
+import { CompactTeacherRow } from "@/components/compact-entity-row";
+import { VenueCard } from "@/components/entity-cards";
 import { getLinkLabel, linkSortKey } from "@/lib/events";
 import {
   formatEventDateRange,
@@ -35,6 +38,7 @@ import {
   COMMUNITY_RELATED_EVENTS_LIMIT,
   getAllCommunitySlugs,
   getCommunityBySlug,
+  getCommunityOwnEvents,
   getCommunityEventsByCountry,
   getPublishedInvitePlatforms,
   isLineUrl,
@@ -109,12 +113,15 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
     notFound();
   }
 
-  const [publishedInvitePlatforms, relatedEvents, countryLink] = await Promise.all([
+  const [publishedInvitePlatforms, ownEvents, relatedEventsRaw, countryLink] = await Promise.all([
     getPublishedInvitePlatforms(community.id),
+    getCommunityOwnEvents(community.id),
     getCommunityEventsByCountry(community.country),
     getCountryPageLink(community.country),
   ]);
   const hasPublishedInvites = Object.keys(publishedInvitePlatforms).length > 0;
+  const ownEventIds = new Set(ownEvents.map((e) => e.id));
+  const relatedEvents = relatedEventsRaw.filter((e) => !ownEventIds.has(e.id));
 
   type LinkRow = { type: string; href: string; label: string; icon: React.ReactNode };
   const communityLinks: LinkRow[] = [];
@@ -236,54 +243,69 @@ export default async function CommunityPage({ params }: CommunityPageProps) {
                 </section>
               )}
 
-              {(community.venue || community.profile) && (
-                <section className="space-y-4 rounded-2xl border border-(--color-sand-strong) bg-slate-50 p-6">
-                  <h2 className="font-serif text-xl text-slate-950">Related Pages</h2>
-                  <div className="flex flex-col gap-3">
-                    {community.venue && (
-                      <Link
-                        href={`/venues/${community.venue.slug}`}
-                        className="group flex items-center justify-between text-slate-700 hover:text-(--color-pine)"
-                      >
-                        <span className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          This space also has a venue page
-                        </span>
-                        <ArrowLeft className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-1" />
-                      </Link>
-                    )}
-                    {community.profile && (
-                      <Link
-                        href={`/teachers/${community.profile.slug}`}
-                        className="group flex items-center justify-between text-slate-700 hover:text-(--color-pine)"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          Run by {community.profile.name}
-                        </span>
-                        <ArrowLeft className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-1" />
-                      </Link>
-                    )}
+              {community.associatedPeople.length > 0 && (
+                <section className="space-y-3">
+                  <h2 className="font-serif text-2xl text-slate-950">People</h2>
+                  <div className="divide-y divide-(--color-sand-strong) overflow-hidden rounded-xl border border-(--color-sand-strong) bg-white">
+                    <ExpandableList
+                      itemLabel="people"
+                      initialCount={7}
+                      items={community.associatedPeople.map((person) => (
+                        <CompactTeacherRow key={person.slug} teacher={person} />
+                      ))}
+                    />
                   </div>
                 </section>
               )}
 
-              {relatedEvents.length > 0 && (
-                <section className="space-y-6">
-                  <h2 className="font-serif text-3xl text-slate-950">Upcoming events in {getCountryLabelWithArticle(community.country ?? "")}</h2>
-                  <div className="grid gap-4">
-                    {relatedEvents.map((event) => (
-                      <EventListItem key={event.id} event={event} />
+              {community.associatedVenues.length > 0 && (
+                <section className="space-y-3">
+                  <h2 className="font-serif text-2xl text-slate-950">Venues</h2>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {community.associatedVenues.map((venue) => (
+                      <VenueCard key={venue.slug} venue={venue} />
                     ))}
                   </div>
-                  {relatedEvents.length >= COMMUNITY_RELATED_EVENTS_LIMIT && community.country && (
-                    <Link
-                      href={`/?country=${community.country}`}
-                      className="group flex items-center gap-2 text-sm font-semibold text-(--color-pine) hover:underline"
-                    >
-                      See all upcoming events in {getCountryLabelWithArticle(community.country)}
-                      <ArrowLeft className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-1" />
-                    </Link>
+                </section>
+              )}
+
+              {(ownEvents.length > 0 || relatedEvents.length > 0) && (
+                <section className="space-y-8">
+                  <h2 className="font-serif text-3xl text-slate-950">Events</h2>
+
+                  {ownEvents.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">
+                        Organized by {community.name}
+                      </h3>
+                      <div className="grid gap-4">
+                        {ownEvents.map((event) => (
+                          <EventListItem key={event.id} event={event} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {relatedEvents.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">
+                        Also happening in {getCountryLabelWithArticle(community.country ?? "")}
+                      </h3>
+                      <div className="grid gap-4">
+                        {relatedEvents.map((event) => (
+                          <EventListItem key={event.id} event={event} />
+                        ))}
+                      </div>
+                      {relatedEvents.length >= COMMUNITY_RELATED_EVENTS_LIMIT && community.country && (
+                        <Link
+                          href={`/?country=${community.country}`}
+                          className="group flex items-center gap-2 text-sm font-semibold text-(--color-pine) hover:underline"
+                        >
+                          See all upcoming events in {getCountryLabelWithArticle(community.country)}
+                          <ArrowLeft className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-1" />
+                        </Link>
+                      )}
+                    </div>
                   )}
                 </section>
               )}

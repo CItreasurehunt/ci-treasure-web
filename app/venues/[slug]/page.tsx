@@ -17,9 +17,11 @@ import { SocialLink } from "@/components/social-link";
 import { RevealEmail } from "@/components/reveal-email";
 import { EntityEventCard } from "@/components/entity-event-card";
 import { EntityImage } from "@/components/entity-image";
+import { CommunitySpotlightCard } from "@/components/entity-cards";
+import { CompactTeacherRow } from "@/components/compact-entity-row";
 import { getLinkLabel, linkSortKey } from "@/lib/events";
 import { GENERIC_ACCENT_GRADIENT, getCountryLabel } from "@/lib/event-display";
-import { getAllVenueSlugs, getVenueBySlug, getVenueEvents, resolveVenueSlugRedirect } from "@/lib/venues";
+import { getAllVenueSlugs, getVenueBySlug, getVenueEvents, getVenueAssociations, resolveVenueSlugRedirect } from "@/lib/venues";
 import { getCountryPageLink } from "@/lib/country-pages";
 import { getCountryFlag } from "@/lib/utils";
 import { SITE_URL, SITE_OG_IMAGE, buildEntityTitle } from "@/lib/site";
@@ -84,9 +86,10 @@ export default async function VenuePage({ params }: VenuePageProps) {
     notFound();
   }
 
-  const [{ upcoming, past }, countryLink] = await Promise.all([
+  const [{ upcoming, past }, countryLink, associations] = await Promise.all([
     getVenueEvents(venue.id),
     getCountryPageLink(venue.country),
+    getVenueAssociations(venue.id),
   ]);
 
   const ensureHttps = (url: string) => url.startsWith("http") ? url : `https://${url}`;
@@ -182,6 +185,17 @@ export default async function VenuePage({ params }: VenuePageProps) {
                 </section>
               )}
 
+              {associations.people.length > 0 && (
+                <section className="space-y-3">
+                  <h2 className="font-serif text-2xl text-slate-950">People</h2>
+                  <div className="divide-y divide-(--color-sand-strong) overflow-hidden rounded-xl border border-(--color-sand-strong) bg-white">
+                    {associations.people.map((p) => (
+                      <CompactTeacherRow key={p.slug} teacher={p} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
               <section className="space-y-6">
                 <h2 className="font-serif text-2xl text-slate-950">Events at this venue</h2>
 
@@ -225,6 +239,19 @@ export default async function VenuePage({ params }: VenuePageProps) {
                   )}
                 </div>
               </section>
+
+              {associations.communities.length > 0 && (
+                <section className="space-y-3">
+                  <h2 className="font-serif text-2xl text-slate-950">
+                    {associations.communities.length > 1 ? "Associated Communities" : "Associated Community"}
+                  </h2>
+                  <div className="space-y-3">
+                    {associations.communities.map((c) => (
+                      <CommunitySpotlightCard key={c.slug} community={c} />
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
 
             <aside className="space-y-6">

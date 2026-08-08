@@ -15,11 +15,13 @@ import {
   getTeacherBySlug,
   getTeacherEvents,
   getAllPublicTeacherSlugs,
-  resolveTeacherSlugRedirect
+  resolveTeacherSlugRedirect,
+  getProfileAssociations
 } from "@/lib/teachers";
 import { ReportButton } from "@/components/report-button";
 import BackButton from "@/components/back-button";
 import { EntityBreadcrumb } from "@/components/entity-breadcrumb";
+import { CommunitySpotlightCard, VenueCard } from "@/components/entity-cards";
 import { SocialLink } from "@/components/social-link";
 import { RevealEmail } from "@/components/reveal-email";
 import { EntityEventCard } from "@/components/entity-event-card";
@@ -98,9 +100,10 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
     notFound();
   }
 
-  const [{ upcoming, past }, countryLink] = await Promise.all([
+  const [{ upcoming, past }, countryLink, associations] = await Promise.all([
     getTeacherEvents(teacher.id),
     getCountryPageLink(teacher.country),
+    getProfileAssociations(teacher.id),
   ]);
   const allEvents = [...upcoming, ...past];
 
@@ -229,6 +232,28 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                   </p>
                 </section>
               ) : null}
+
+              {associations.communities.length > 0 && (
+                <section className="space-y-3">
+                  <h2 className="font-serif text-2xl text-slate-950">Community</h2>
+                  <div className="space-y-3">
+                    {associations.communities.map((c) => (
+                      <CommunitySpotlightCard key={c.slug} community={c} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {associations.venues.length > 0 && (
+                <section className="space-y-3">
+                  <h2 className="font-serif text-2xl text-slate-950">Venue</h2>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {associations.venues.map((v) => (
+                      <VenueCard key={v.slug} venue={v} roleLabel={v.role} />
+                    ))}
+                  </div>
+                </section>
+              )}
 
               <section className="space-y-6">
                 <h2 className="font-serif text-2xl text-slate-950">Events</h2>

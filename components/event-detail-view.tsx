@@ -8,6 +8,7 @@ import { RevealEmail } from "@/components/reveal-email";
 import BackButton from "@/components/back-button";
 import { EntityBreadcrumb } from "@/components/entity-breadcrumb";
 import { PracticeBadge, practicesToDisplay } from "@/components/shared/practice-badge";
+import { CommunitySpotlightCard } from "@/components/entity-cards";
 import {
   type EventDetail,
   type SeriesSibling,
@@ -283,6 +284,19 @@ export function EventDetailView({
                   ) : null}
                 </div>
               ) : null}
+
+              {event.organizingCommunities.length > 0 && (
+                <section className="space-y-3">
+                  <h2 className="font-serif text-2xl text-slate-950">
+                    {event.organizingCommunities.length > 1 ? "Associated Communities" : "Associated Community"}
+                  </h2>
+                  <div className="space-y-3">
+                    {event.organizingCommunities.map((c) => (
+                      <CommunitySpotlightCard key={c.slug} community={c} />
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {!preview &&
                 (event.hasNoOrganizer ? (

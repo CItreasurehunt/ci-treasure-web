@@ -139,8 +139,8 @@ export type CommunityDetail = {
   has_whatsapp_invite: boolean;
   has_signal_invite: boolean;
   has_line_invite: boolean;
-  venue: { slug: string; name: string } | null;
-  profile: { slug: string; name: string } | null;
+  associatedVenues: { slug: string; name: string; city: string | null; description: string | null; imageUrl: string | null }[];
+  associatedPeople: { id: string; name: string; slug: string; city: string | null; bio: string | null; imageUrl: string | null; linkUrl: string | null }[];
 };
 
 const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
@@ -349,9 +349,8 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
       facebook_page, telegram_group, telegram_channel, whatsapp_channel,
       youtube, calendar, newsletter, other_resource,
       has_invites, has_telegram_invite, has_whatsapp_invite, has_signal_invite, has_line_invite,
-      venue_id, profile_id,
-      venue:venue_id ( slug, name ),
-      profile:profile_id ( slug, name )
+      community_venues ( venue:venue_id ( slug, name, city, description, image_url ) ),
+      community_profiles ( profile:profile_id ( slug, name, city, bio, image_url, website, instagram, facebook ) )
     `)
     .eq("slug", slug)
     .is("deleted_at", null)
@@ -359,21 +358,55 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
 
   if (error || !data) return null;
 
+  type AssociatedProfileRow = {
+    slug: string;
+    name: string;
+    city: string | null;
+    bio: string | null;
+    image_url: string | null;
+    website: string | null;
+    instagram: string | null;
+    facebook: string | null;
+  };
+
+  type AssociatedVenueRow = { slug: string; name: string; city: string | null; description: string | null; image_url: string | null };
+
+  const { community_venues, community_profiles, ...rest } = data as typeof data & {
+    community_venues: { venue: AssociatedVenueRow | AssociatedVenueRow[] | null }[];
+    community_profiles: { profile: AssociatedProfileRow | AssociatedProfileRow[] | null }[];
+  };
+
   return {
-    ...data,
-    website: normalizeUrl(data.website),
-    instagram: normalizeUrl(data.instagram),
-    facebook_group: normalizeUrl(data.facebook_group),
-    facebook_page: normalizeUrl(data.facebook_page),
-    telegram_group: normalizeUrl(data.telegram_group),
-    telegram_channel: normalizeUrl(data.telegram_channel),
-    whatsapp_channel: normalizeUrl(data.whatsapp_channel),
-    youtube: normalizeUrl(data.youtube),
-    calendar: normalizeUrl(data.calendar),
-    newsletter: normalizeUrl(data.newsletter),
-    other_resource: normalizeUrl(data.other_resource),
-    venue: Array.isArray(data.venue) ? data.venue[0] : data.venue,
-    profile: Array.isArray(data.profile) ? data.profile[0] : data.profile,
+    ...rest,
+    website: normalizeUrl(rest.website),
+    instagram: normalizeUrl(rest.instagram),
+    facebook_group: normalizeUrl(rest.facebook_group),
+    facebook_page: normalizeUrl(rest.facebook_page),
+    telegram_group: normalizeUrl(rest.telegram_group),
+    telegram_channel: normalizeUrl(rest.telegram_channel),
+    whatsapp_channel: normalizeUrl(rest.whatsapp_channel),
+    youtube: normalizeUrl(rest.youtube),
+    calendar: normalizeUrl(rest.calendar),
+    newsletter: normalizeUrl(rest.newsletter),
+    other_resource: normalizeUrl(rest.other_resource),
+    associatedVenues: (community_venues ?? [])
+      .map((row) => (Array.isArray(row.venue) ? row.venue[0] : row.venue))
+      .filter((v): v is AssociatedVenueRow => Boolean(v))
+      .map((v) => ({ slug: v.slug, name: v.name, city: v.city, description: v.description, imageUrl: v.image_url })),
+    associatedPeople: (community_profiles ?? [])
+      .map((row) => (Array.isArray(row.profile) ? row.profile[0] : row.profile))
+      .filter((p): p is AssociatedProfileRow => Boolean(p))
+      .map((p) => ({
+        id: p.slug,
+        name: p.name,
+        slug: p.slug,
+        city: p.city,
+        bio: p.bio,
+        imageUrl: p.image_url,
+        // Same fallback order as I-132's country pages (lib/country-pages.ts) — website first,
+        // then Instagram, then Facebook.
+        linkUrl: p.website ?? p.instagram ?? p.facebook ?? null,
+      })),
   } as unknown as CommunityDetail;
 }
 
@@ -408,6 +441,35 @@ export async function resolveCommunitySlugRedirect(slug: string): Promise<string
 }
 
 export const COMMUNITY_RELATED_EVENTS_LIMIT = 5;
+
+// I-153: events this community organizes directly (event_organizers.community_id), shown ahead
+// of the country-wide list below — those are just "nearby", these are the community's own.
+export async function getCommunityOwnEvents(communityId: string) {
+  if (!hasSupabaseEnv()) return [];
+
+  const supabase = await createClient();
+  const today = new Date().toISOString().split("T")[0];
+
+  const EVENT_COLS = "id, short_id, title, description, type, start_date, end_date, start_time, end_time, timezone, city, country, cancelled, cancelled_text, image_url, links, price, segments, venue_id, lat, lng, status";
+
+  const { data, error } = await supabase
+    .from("event_organizers")
+    .select(`events (${EVENT_COLS})`)
+    .eq("community_id", communityId);
+
+  if (error || !data) {
+    console.error("Error fetching community's own events:", error);
+    return [];
+  }
+
+  type Row = { events: (SupabaseEventRow & { status: string }) | (SupabaseEventRow & { status: string })[] | null };
+  const events = (data as Row[])
+    .map((row) => (Array.isArray(row.events) ? row.events[0] : row.events))
+    .filter((e): e is SupabaseEventRow & { status: string } => Boolean(e) && e!.status === "published" && e!.end_date >= today)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+
+  return events.map(mapEventRow);
+}
 
 export async function getCommunityEventsByCountry(countryIso: string | null) {
   if (!hasSupabaseEnv() || !countryIso) return [];

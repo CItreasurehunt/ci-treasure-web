@@ -18,6 +18,7 @@ function hasSupabaseEnv() {
 // moment its summary gets written/reviewed.
 const NATIONAL_COMMUNITY_SLUGS: Record<string, string[]> = {
   GR: ["contact-improvisation-greece"],
+  PT: ["contact-improvisation-portugal"],
 };
 
 export type CountrySummary = {

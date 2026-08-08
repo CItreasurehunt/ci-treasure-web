@@ -2,6 +2,52 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createStaticClient } from "@/lib/supabase/static";
 import { mapEventRow, SupabaseEventRow, LinkItem, getLinkLabel, linkSortKey } from "./events";
 
+// I-153: associated communities (community_venues) and people (venue_profiles, e.g. an owner or
+// resident teacher). Separate call, same reasoning as lib/teachers.ts's getProfileAssociations.
+export async function getVenueAssociations(venueId: string): Promise<{
+  communities: { slug: string; name: string; type: string | null; city: string | null; description: string | null }[];
+  people: { slug: string; name: string; role: string | null; city: string | null; bio: string | null; imageUrl: string | null; linkUrl: string | null }[];
+}> {
+  if (!hasSupabaseEnv()) return { communities: [], people: [] };
+
+  const supabase = await createClient();
+  const [{ data: communityRows }, { data: peopleRows }] = await Promise.all([
+    supabase
+      .from("community_venues")
+      .select("community:community_id ( slug, name, type, city, description, deleted_at )")
+      .eq("venue_id", venueId),
+    supabase
+      .from("venue_profiles")
+      .select("role, profile:profile_id ( slug, name, city, bio, image_url, website, instagram, facebook )")
+      .eq("venue_id", venueId),
+  ]);
+
+  type CommunityRowShape = { slug: string; name: string; type: string | null; city: string | null; description: string | null; deleted_at: string | null };
+  type PeopleRowShape = { slug: string; name: string; city: string | null; bio: string | null; image_url: string | null; website: string | null; instagram: string | null; facebook: string | null };
+  type CommunityRow = { community: CommunityRowShape | CommunityRowShape[] | null };
+  type PeopleRow = { role: string | null; profile: PeopleRowShape | PeopleRowShape[] | null };
+
+  const communities = ((communityRows ?? []) as CommunityRow[])
+    .map((row) => (Array.isArray(row.community) ? row.community[0] : row.community))
+    .filter((c): c is CommunityRowShape => Boolean(c) && !c!.deleted_at)
+    .map(({ slug, name, type, city, description }) => ({ slug, name, type, city, description }));
+
+  const people = ((peopleRows ?? []) as PeopleRow[])
+    .map((row) => ({ role: row.role, profile: Array.isArray(row.profile) ? row.profile[0] : row.profile }))
+    .filter((row): row is { role: string | null; profile: PeopleRowShape } => Boolean(row.profile))
+    .map(({ role, profile }) => ({
+      slug: profile.slug,
+      name: profile.name,
+      role,
+      city: profile.city,
+      bio: profile.bio,
+      imageUrl: profile.image_url,
+      linkUrl: profile.website ?? profile.instagram ?? profile.facebook ?? null,
+    }));
+
+  return { communities, people };
+}
+
 function normalizeAddress(raw: unknown): string | null {
   if (!raw) return null;
   if (typeof raw === "string") {
